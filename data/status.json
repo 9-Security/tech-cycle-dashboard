@@ -1,9 +1,9 @@
 {
- "as_of": "20261123T085540Z",
+ "as_of": "20261123T091337Z",
  "DATA_SOURCE": "REAL",
  "data_source": "REAL",
  "engine_version": "3.5.0",
- "git_sha": "b59544fbf04c",
+ "git_sha": "06f3fb7a4268",
  "n_months": 322,
  "panel_start": "2000-01-31",
  "panel_end": "2026-10-31",
@@ -50,8 +50,8 @@
    "label": "Shock"
   },
   "signals": {
-   "vix": 23.49062478542328,
-   "vix_last": 31.309999465942383,
+   "vix": 23.446249842643738,
+   "vix_last": 30.600000381469727,
    "overheat_score": 0.815108272547914,
    "val_z": -2.029405882266463,
    "val_src": "PE",
@@ -71,9 +71,9 @@
   "label": "v3 candidate: valuation/Capex tilts + vol targeting",
   "design_date": "2026-11-23",
   "panel_end": "2026-10-31",
-  "executed_weight": 0.1913197563566019,
+  "executed_weight": 0.19131975635660345,
   "month_end": {
-   "weight": 0.1913197563566019,
+   "weight": 0.19131975635660345,
    "state": {
     "code": 2,
     "label": "Vol-capped"
@@ -81,8 +81,8 @@
    "tilt": -0.4656266176585442,
    "base_weight": 0.2843733823414558,
    "earnings_cut_active": false,
-   "vol_forecast": 0.297275501241399,
-   "vol_scale": 0.6727765966748548
+   "vol_forecast": 0.2972755012413966,
+   "vol_scale": 0.6727765966748602
   },
   "params": {
    "c_px": 0.25,
@@ -107,8 +107,8 @@
    "tilt": -0.9672259551180379,
    "base_weight": 0.0,
    "earnings_cut_active": false,
-   "vol_forecast": 0.4987581587458753,
-   "vol_scale": 0.4009959466184953
+   "vol_forecast": 0.49875815874587387,
+   "vol_scale": 0.4009959466184964
   },
   "since_design": null,
   "note": "Candidate only. Live posture remains the v2 regime model until v3 earns out-of-sample evidence after its design date.",
@@ -120,14 +120,14 @@
   }
  },
  "metrics": {
-  "sharpe": 0.11232206451966092,
-  "sortino": 0.08775402110732833,
-  "cagr": 0.02513204349550202,
-  "ann_vol": 0.14392270080181943,
-  "max_dd": -0.7190493987896429,
-  "calmar": 0.034951762059472036,
-  "final_nav": 1.9465170168127435,
-  "period_return": 0.9465170168127435,
+  "sharpe": 0.11232153239193493,
+  "sortino": 0.08775356737190801,
+  "cagr": 0.025131961125833602,
+  "ann_vol": 0.14392273763400398,
+  "max_dd": -0.7190495929804639,
+  "calmar": 0.034951638066661725,
+  "final_nav": 1.94651281999714,
+  "period_return": 0.94651281999714,
   "ann_turnover": 1.3975155279503106,
   "avg_weight": 0.6187888198757764,
   "total_cost": 0.05625000000000001,
@@ -141,36 +141,36 @@
   "headline_source": "base_rate",
   "headline_p": 0.15571776155717762,
   "base_rate": 0.15571776155717762,
-  "model_p": 0.3385368302841653,
+  "model_p": 0.33849969130909424,
   "model_ci90": [
-   0.07409659012101276,
-   0.5773836059465132
+   0.07396179774157724,
+   0.576743602508501
   ],
   "as_of_row": "2026-11-30",
   "vol_forecast_next_month": {
    "date": "2026-11-30",
-   "vol": 0.3529805402546261,
+   "vol": 0.3528375587099836,
    "band90": [
-    0.1949973853983652,
-    0.6784170991452474
+    0.19491479010955173,
+    0.6781423779389226
    ],
-   "current_rv21": 0.4987581587458753
+   "current_rv21": 0.49875815874587387
   },
-  "vol_forecast_oos_r2": 0.4978625082961988,
+  "vol_forecast_oos_r2": 0.497860421391374,
   "short_term": {
    "date": "2026-11-20",
    "model": "har_vix",
    "label": "HAR + VIX",
    "spec": "log",
-   "vol_1d_ann": 0.534896723646831,
-   "vol_1d": 0.033695326377922795,
-   "var95_1d": 0.05520155380240265,
-   "var95_1d_simple_ret": 0.05370560050331963,
-   "vol_5d_ann": 0.5308004491746356,
-   "vol_5d": 0.07476804300529184,
-   "ewma_vol_ann": 0.4814884586704499,
+   "vol_1d_ann": 0.5349027747314418,
+   "vol_1d": 0.033695707560423796,
+   "var95_1d": 0.05520207152940808,
+   "var95_1d_simple_ret": 0.053706090425358566,
+   "vol_5d_ann": 0.5308009234568201,
+   "vol_5d": 0.07476810981222619,
+   "ewma_vol_ann": 0.4814884586700456,
    "vol_hist_percentile": 0.9717337361096127,
-   "vol_hist_median": 0.190365186123355,
+   "vol_hist_median": 0.1903658654936798,
    "vol_hist_start": "1990-02-01",
    "vol_hist_days": 9269
   },
@@ -185,11 +185,11 @@
   },
   "date": "2026-11-20",
   "vol_percentile": 0.9717337361096127,
-  "vol_ann": 0.534896723646831,
-  "vol_median": 0.190365186123355,
-  "vol_ratio": 2.80984530070652,
-  "daily_move": 0.033695326377922795,
-  "var95": 0.05370560050331963,
+  "vol_ann": 0.5349027747314418,
+  "vol_median": 0.1903658654936798,
+  "vol_ratio": 2.8098670596446857,
+  "daily_move": 0.033695707560423796,
+  "var95": 0.053706090425358566,
   "hist_start": "1990-02-01",
   "mtd_month": "2026-11",
   "mtd_return": -0.16990697417039102,
