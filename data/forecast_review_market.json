@@ -1,5 +1,5 @@
 {
- "as_of": "20261123T135547Z",
+ "as_of": "20261123T140224Z",
  "settings": {
   "var_level": 0.05,
   "min_days_var": 250,
@@ -9,7 +9,8 @@
  "current_models": {
   "var_1d": "8d7e08f31003",
   "vol_5d": "8d7e08f31003",
-  "vol_1m": "ebc4fcd6e218"
+  "vol_1m": "ebc4fcd6e218",
+  "var_1d_challenger": "117dc393ad20"
  },
  "targets": {
   "var_1d": {
@@ -39,9 +40,45 @@
    "logged_since": "2026-10-31",
    "other_models": {},
    "pending": 1
+  },
+  "var_1d_challenger": {
+   "n": 0,
+   "breaches": 0,
+   "breach_rate": null,
+   "kupiec_p": null,
+   "christoffersen_p": null,
+   "verdict": "insufficient",
+   "first_date": null,
+   "logged": 1,
+   "logged_since": "2026-11-20",
+   "other_models": {},
+   "pending": 1
   }
  },
  "last_run": {
-  "forecasts_added": 0
+  "forecasts_added": 1
+ },
+ "challenger_comparison": {
+  "common_days": 0,
+  "incumbent": {
+   "n": 0,
+   "breaches": 0,
+   "breach_rate": null,
+   "kupiec_p": null,
+   "christoffersen_p": null,
+   "verdict": "insufficient",
+   "first_date": null
+  },
+  "challenger": {
+   "n": 0,
+   "breaches": 0,
+   "breach_rate": null,
+   "kupiec_p": null,
+   "christoffersen_p": null,
+   "verdict": "insufficient",
+   "first_date": null
+  },
+  "decision": "insufficient",
+  "rule": "after >= 250 common live days: recommend switching only if the incumbent fails Kupiec or Christoffersen and the challenger passes both"
  }
 }
