@@ -304,6 +304,14 @@ Module `engine/tcd/stocks.py`; list in `engine/watchlist.json` (edit it to add o
 * **First results (2026-11-23):** HAR beats EWMA (DM t > 0) for most names, but only **7/28 VaRs are verified** (MSFT, GOOGL, META, NVDA, INTC, AVGO, 3711). Most Taiwan failures are "breaches cluster": large moves come in runs (limit-down days follow each other), which a one-day model cannot anticipate. The page shows the failing reason per stock.
 * **Known limits:** jumps around earnings releases are not forecastable; Taiwan names use prices only (no MOPS fundamentals); the list reflects today's leaders.
 
+### 13b. Taiwan holiday bars removed from the model history (2026-11-23)
+
+Module `engine/tcd/tw_calendar.py`, applied to Yahoo prices before the stock model (data layer; the model code and its `model_id` are unchanged). Yahoo's Taiwan stock series carry bars on days the exchange did not trade (national holidays, Lunar New Year, typhoon closures), usually the previous close repeated and sometimes a spurious price (e.g. 2330 on 2012-01-02: 75.8 → 69.8 → 70.5, a market holiday). The TAIEX series (`^TWII`) from the same source does not have them: its calendar matched the official TWSE calendar in 2025 (243/243 days) and never showed a bar on an official closure; where the official yearly list was incomplete (ad-hoc typhoon closures such as 2026-10-23), `^TWII` was the one that was right.
+
+**Rule** (fixed before looking at its effect on the backtest and adopted regardless): inside the `^TWII` window (1997-07-02 →), drop a Taiwan stock bar if `^TWII` has no bar that day or `^TWII`'s close is unchanged from its previous bar (market-wide closure carried forward, e.g. 2001-09-18, 2014-07-23, 2016-07-08). Bars before the first or after the latest `^TWII` bar are kept. The second-source check (§ 15) still audits the raw Yahoo bars, so new holiday bars keep being reported.
+
+Effect (2026-11-23): 1,130 bars dropped across 18 names (most before 2006); next-day volatility and VaR rise slightly (holiday zero returns had deflated them); no risk light changed; verified Taiwan VaRs stay at 1 (2382 crosses into "verified", 3711 drops out, both at the p ≈ 0.05 boundary). The removal is reported in `stocks.json` → `data_cleaning.tw_holiday_bars`. Limitation: bars before July 1997 (2317 only) are not checked.
+
 ### 13a. Tested and rejected: out-of-sample VaR quantile for stocks (2026-11-23)
 
 After the market VaR fix (§ 10, out-of-sample FHS quantile), the same change was tested on the 28 stocks. Adoption rule fixed before looking at the results: adopt only if, on the same scored days, the number of verified names does not fall **and** the mean |breach rate − 5%| falls.
