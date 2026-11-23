@@ -24,10 +24,12 @@ from .fetch import fetch_all
 from .quality import DataQualityError, enforce, run_checks
 from .signal_study import run_study
 from .sources.http import FetchError
-from .status import build_scenarios, build_status
+from .status import build_candidate_status, build_scenarios, build_status
 from dataclasses import replace
 
-from .validation import full_validation, prepare, valuation_comparison
+from .backtest import metrics
+from .config import V3_DESIGN_DATE
+from .validation import _pick, full_validation, prepare, tilt_spec, valuation_comparison
 
 log = logging.getLogger("tcd")
 
@@ -63,7 +65,24 @@ def refresh(args: argparse.Namespace) -> int:
     vrun.report["valuation_comparison"] = valuation_comparison(
         {cfg.features.valuation: panel, alt_mode: alt_panel}, cfg.grid, cfg.backtest, live_year)
 
+    log.info("v3 candidate: nested walk-forward over %d configs", len(cfg.tilt_grid))
+    vrun3 = full_validation(bt, tilt_spec(cfg.tilt_grid), cfg.backtest, live_year)
+    design_end = pd.Timestamp(V3_DESIGN_DATE) + pd.offsets.MonthEnd(0)
+    post = vrun3.wf.dates > design_end
+    since_design = None
+    if post.sum() >= 1:
+        safe_post = bt.safe[bt.dates > design_end]
+        bh_post = vrun3.bh.ret[post]
+        since_design = {"months": int(post.sum()),
+                        "v3": _pick(metrics(vrun3.wf.sim.ret[post], safe_post)) if post.sum() >= 2 else
+                              {"period_return": float(vrun3.wf.sim.ret[post][0])},
+                        "bh": _pick(metrics(bh_post, safe_post)) if post.sum() >= 2 else {"period_return": float(bh_post[0])}}
+    # Weight in force now = v3 target at the last complete month (lag-1, after band).
+    cand_now = float(vrun3.wf.target[-1])
+
     status = build_status(panel, params, live_year)
+    status["candidate"] = build_candidate_status(panel, vrun3.wf.live_params, live_year, cand_now,
+                                                 V3_DESIGN_DATE, since_design)
     git_sha = os.environ.get("GITHUB_SHA", "")[:12] or None
     meta = {
         "as_of": as_of,
@@ -81,7 +100,15 @@ def refresh(args: argparse.Namespace) -> int:
                  "signals": status["signals"], "weights": status["weights"],
                  **build_scenarios(status, params), "snapshot_label": "Live - rule-based brief"}
 
-    validation = {**meta, **vrun.report, "config": cfg.to_dict()}
+    m2, m3 = vrun.report["oos"], vrun3.report["oos"]
+    validation = {**meta, **vrun.report, "config": cfg.to_dict(),
+                  "candidate": {**vrun3.report, "design_date": V3_DESIGN_DATE, "since_design": since_design},
+                  "model_comparison": [
+                      {"model": "regime_v2", "label": "v2 regime (live)", **m2},
+                      {"model": "tilt_v3", "label": "v3 tilt + vol target (candidate)", **m3},
+                      {"model": "buy_hold", "label": "Buy & hold", **vrun.report["bh"]},
+                      {"model": "vol_matched_bh_v3", "label": "Vol-matched B&H (to v3, ex-post)", **vrun3.report["vol_matched_bh"]},
+                  ]}
     last_obs = pd.Timestamp(panel.attrs["last_obs"])
     health = {
         "ok": True,
@@ -117,6 +144,8 @@ def refresh(args: argparse.Namespace) -> int:
         "overheat_score": (prov.get("signals") or status["signals"])["overheat_score"],
         "earn_score": (prov.get("signals") or status["signals"])["earn_score"],
         "oos_sharpe": round(vrun.report["oos"]["sharpe"], 4),
+        "v3_weight": round(status["candidate"]["executed_weight"], 4),
+        "v3_month_end_weight": round(status["candidate"]["month_end"]["weight"], 4),
         "git_sha": git_sha,
     }
     for k in ("vix", "overheat_score", "earn_score"):
@@ -124,14 +153,15 @@ def refresh(args: argparse.Namespace) -> int:
             history_row[k] = round(history_row[k], 4)
 
     signals = {**meta, **run_study(panel)}
-    series = build_series(vrun, panel, as_of)
+    series = build_series(vrun, panel, as_of, candidate=vrun3)
     written = write_all(Path(args.out), series=series, status=status, scenarios=scenarios,
                         validation=validation, health=health, panel=panel, history_row=history_row,
                         signals=signals)
     log.info("wrote %d files to %s in %.1fs", len(written), args.out, time.time() - t0)
-    log.info("regime %s | weight %.2f | OOS Sharpe %.2f | BH Sharpe %.2f",
+    log.info("v2 regime %s | weight %.2f | OOS Sharpe %.2f | BH Sharpe %.2f",
              status["regime"]["label"], status["weights"]["executed_weight"],
              vrun.report["oos"]["sharpe"], vrun.report["bh"]["sharpe"])
+    log.info("v3 candidate weight %.2f | OOS Sharpe %.2f", cand_now, vrun3.report["oos"]["sharpe"])
     return 0
 
 

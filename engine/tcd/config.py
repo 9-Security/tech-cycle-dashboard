@@ -11,7 +11,7 @@ from dataclasses import asdict, dataclass, field
 from itertools import product
 from typing import Iterator
 
-ENGINE_VERSION = "2.2.0"
+ENGINE_VERSION = "3.0.0"
 
 REGIME_LABELS = {1: "Overheat", 2: "Shock", 3: "Digestion", 4: "Normal"}
 REGIME_COLORS = {1: "#c45c26", 2: "#8b1e3f", 3: "#b08900", 4: "#2f6f4e"}
@@ -119,6 +119,53 @@ class ParamGrid:
 
 
 @dataclass(frozen=True)
+class TiltParams:
+    """v3 continuous model: valuation / Capex tilts (signs learned by
+    walk-forward), optional earnings cut, volatility targeting."""
+
+    c_px: float = 0.0  # weight change per +1 sd of price extension (momentum-like)
+    c_pe: float = 0.0  # weight change per +1 sd of aggregate P/E z (0 before P/E exists)
+    c_capex: float = 0.0  # weight change per +1 sd of capex_z
+    base: float = 1.0  # exposure before tilts
+    earn_cut: float = 1.0  # multiplier when earnings score < earn_threshold (1.0 = off)
+    earn_threshold: float = -1.0
+    vol_input: str = "rv63"  # rv21 | rv63 | vix
+    vol_target: float = float("inf")  # annualized; inf = off
+    band: float = 0.05  # no-trade band on weight changes
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
+
+@dataclass(frozen=True)
+class TiltGrid:
+    # 0 first: walk-forward ties (e.g. a coefficient with no data yet) go to the simplest model.
+    c_px: tuple[float, ...] = (0.0, -0.25, 0.25)
+    c_pe: tuple[float, ...] = (0.0, -0.25, 0.25)
+    c_capex: tuple[float, ...] = (0.0, -0.25, 0.25)
+    base: tuple[float, ...] = (1.0, 0.75)
+    earn: tuple[tuple[float, float], ...] = ((1.0, -1.0), (0.75, -1.0))  # (cut, threshold); off first
+    vol: tuple[tuple[str, float], ...] = (
+        ("rv63", float("inf")),
+        ("rv21", 0.15), ("rv21", 0.20), ("rv21", 0.25),
+        ("rv63", 0.15), ("rv63", 0.20), ("rv63", 0.25),
+        ("vix", 0.15), ("vix", 0.20), ("vix", 0.25),
+    )
+
+    def __iter__(self) -> Iterator[TiltParams]:
+        for cx, cp, cc, b, (ec, et), (vi, vt) in product(self.c_px, self.c_pe, self.c_capex, self.base, self.earn, self.vol):
+            yield TiltParams(cx, cp, cc, b, ec, et, vi, vt)
+
+    def __len__(self) -> int:
+        return len(self.c_px) * len(self.c_pe) * len(self.c_capex) * len(self.base) * len(self.earn) * len(self.vol)
+
+
+# Date the v3 design was fixed. Months after it are a true holdout for v3:
+# the design itself was chosen after seeing full-sample signal studies.
+V3_DESIGN_DATE = "2026-11-23"
+
+
+@dataclass(frozen=True)
 class FeatureConfig:
     # Valuation: "pe" = aggregate mega-cap P/E (SEC + Yahoo) where available,
     # price-extension proxy before; "price_ext" = proxy only (v2.0 behaviour).
@@ -139,6 +186,9 @@ class FeatureConfig:
     earn_std_window: int = 60
     earn_std_min_firm: int = 24
     earn_std_min_proxy: int = 36
+    # Realized volatility windows (trading days) for vol targeting; VIX is
+    # mapped to tech vol with a trailing median ratio (PIT).
+    vix_ratio_months: int = 36
     # VIX monthly statistic: "mean" (month average) or "last" (month-end close).
     vix_stat: str = "mean"
     # BEA macro proxies: availability lag after quarter end (conservative;
@@ -182,10 +232,12 @@ class EngineConfig:
     features: FeatureConfig = field(default_factory=FeatureConfig)
     backtest: BacktestConfig = field(default_factory=BacktestConfig)
     grid: ParamGrid = field(default_factory=ParamGrid)
+    tilt_grid: TiltGrid = field(default_factory=TiltGrid)
     fetch: FetchConfig = field(default_factory=FetchConfig)
 
     def to_dict(self) -> dict:
         d = asdict(self)
         d["fetch"].pop("user_agent", None)
         d["grid"]["n_combinations"] = len(self.grid)
+        d["tilt_grid"]["n_combinations"] = len(self.tilt_grid)
         return d

@@ -7,7 +7,8 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from .config import REGIME_LABELS, RegimeParams
+from . import model_tilt
+from .config import REGIME_LABELS, RegimeParams, TiltParams
 from .regime import classify_arrays, weights_for
 
 
@@ -181,3 +182,42 @@ def build_scenarios(status: dict, params: RegimeParams) -> dict:
         "scenarios": scenarios,
         "disclaimer": "Scenario analysis for risk discussion only. Not investment advice. Not an auto-trading signal.",
     }
+
+
+def _tilt_row(row: pd.Series, p: TiltParams) -> dict:
+    sig = {c: np.array([row.get(c, np.nan)], dtype=float) for c in model_tilt.SIGNAL_COLUMNS}
+    c = model_tilt.components(sig, p)
+    st = int(model_tilt.states(c, p)[0])
+    return {
+        "weight": float(c["raw"][0]),
+        "state": {"code": st, "label": model_tilt.STATE_LABELS[st]},
+        "tilt": float(c["tilt"][0]),
+        "base_weight": float(c["base_w"][0]),
+        "earnings_cut_active": bool(c["earn_hit"][0]),
+        "vol_forecast": _f(c["sigma"][0]),
+        "vol_scale": float(c["scale"][0]),
+    }
+
+
+def build_candidate_status(panel: pd.DataFrame, params: TiltParams, params_year: int,
+                           executed_now: float, design_date: str, since_design: dict | None) -> dict:
+    """v3 posture. `executed_now` is the walk-forward weight in force (after
+    the no-trade band); components show what drives the month-end target."""
+    complete = panel[~panel["partial"].astype(bool)]
+    out = {
+        "model": "tilt_v3",
+        "label": "v3 candidate: valuation/Capex tilts + vol targeting",
+        "design_date": design_date,
+        "panel_end": str(complete.index[-1].date()),
+        "executed_weight": executed_now,
+        "month_end": _tilt_row(complete.iloc[-1], params),
+        "params": {**params.to_dict(), "fit_for_year": params_year},
+        "provisional": None,
+        "since_design": since_design,
+        "note": "Candidate only. Live posture remains the v2 regime model until v3 earns out-of-sample evidence after its design date.",
+    }
+    if bool(panel["partial"].iloc[-1]):
+        out["provisional"] = {"month": panel.index[-1].strftime("%Y-%m"),
+                              "data_through": str(pd.Timestamp(panel.attrs["last_obs"]).date()),
+                              **_tilt_row(panel.iloc[-1], params)}
+    return out

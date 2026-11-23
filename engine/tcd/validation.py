@@ -19,7 +19,8 @@ import numpy as np
 import pandas as pd
 
 from .backtest import SimResult, metrics, objective, simulate
-from .config import BacktestConfig, ParamGrid, RegimeParams
+from . import model_tilt
+from .config import BacktestConfig, ParamGrid, RegimeParams, TiltGrid, TiltParams
 from .regime import classify_arrays, weights_for
 
 log = logging.getLogger(__name__)
@@ -40,13 +41,26 @@ class BTData:
     dates: pd.DatetimeIndex  # backtest months
     risk: np.ndarray
     safe: np.ndarray
-    sig_vix: np.ndarray  # length n+1: [prior month, *backtest months]
-    sig_oh: np.ndarray
-    sig_earn: np.ndarray
+    sig: dict[str, np.ndarray]  # each length n+1: [prior month, *backtest months]
 
     @property
     def n(self) -> int:
         return len(self.dates)
+
+    @property
+    def sig_vix(self) -> np.ndarray:
+        return self.sig["vix"]
+
+    @property
+    def sig_oh(self) -> np.ndarray:
+        return self.sig["overheat_score"]
+
+    @property
+    def sig_earn(self) -> np.ndarray:
+        return self.sig["earn_score"]
+
+
+SIGNAL_COLUMNS = ("vix", "overheat_score", "earn_score") + model_tilt.SIGNAL_COLUMNS
 
 
 def prepare(panel: pd.DataFrame, bcfg: BacktestConfig) -> BTData:
@@ -60,19 +74,22 @@ def prepare(panel: pd.DataFrame, bcfg: BacktestConfig) -> BTData:
         dates=bt.index,
         risk=bt["risk_ret"].to_numpy(float),
         safe=bt["safe_ret"].to_numpy(float),
-        sig_vix=sig["vix"].to_numpy(float),
-        sig_oh=sig["overheat_score"].to_numpy(float),
-        sig_earn=sig["earn_score"].to_numpy(float),
+        sig={c: sig[c].to_numpy(float) for c in dict.fromkeys(SIGNAL_COLUMNS) if c in sig},
     )
 
 
-def targets(bt: BTData, p: RegimeParams) -> tuple[np.ndarray, np.ndarray]:
-    """(regime codes, target weights) over [prior month, *backtest months]."""
+Params = RegimeParams | TiltParams
+
+
+def targets(bt: BTData, p: Params) -> tuple[np.ndarray, np.ndarray]:
+    """(state codes, target weights) over [prior month, *backtest months]."""
+    if isinstance(p, TiltParams):
+        return model_tilt.targets(bt.sig, p)
     codes = classify_arrays(bt.sig_vix, bt.sig_oh, bt.sig_earn, p)
     return codes, weights_for(codes, p)
 
 
-def run(bt: BTData, p: RegimeParams, cost_bps: float) -> tuple[np.ndarray, np.ndarray, SimResult]:
+def run(bt: BTData, p: Params, cost_bps: float) -> tuple[np.ndarray, np.ndarray, SimResult]:
     codes, tgt = targets(bt, p)
     executed = tgt[:-1]  # executed[t] = target[t-1]
     return codes[1:], tgt[1:], simulate(bt.risk, bt.safe, executed, cost_bps)
@@ -80,14 +97,14 @@ def run(bt: BTData, p: RegimeParams, cost_bps: float) -> tuple[np.ndarray, np.nd
 
 @dataclass
 class GridRun:
-    params: list[RegimeParams]
+    params: list[Params]
     ret: np.ndarray  # K x n
     executed: np.ndarray  # K x n
     target: np.ndarray  # K x n (target decided at each backtest month-end)
     codes: np.ndarray  # K x n
 
 
-def run_grid(bt: BTData, params: list[RegimeParams], cost_bps: float) -> GridRun:
+def run_grid(bt: BTData, params: list[Params], cost_bps: float) -> GridRun:
     K, n = len(params), bt.n
     R = np.empty((K, n))
     E = np.empty((K, n))
@@ -107,7 +124,7 @@ class WalkForward:
     codes: np.ndarray
     sim: SimResult
     folds: list[dict] = field(default_factory=list)
-    live_params: RegimeParams | None = None
+    live_params: Params | None = None
     live_year: int | None = None
 
 
@@ -224,6 +241,65 @@ VARIANT_LABELS = {
 }
 
 
+def tilt_variant_params(grid: TiltGrid, kind: str) -> list[TiltParams]:
+    base = list(grid)
+    if kind == "full":
+        out = base
+    elif kind == "no_vol_target":
+        out = [replace(p, vol_input="rv63", vol_target=INF) for p in base]
+    elif kind == "no_price_ext":
+        out = [replace(p, c_px=0.0) for p in base]
+    elif kind == "no_pe":
+        out = [replace(p, c_pe=0.0) for p in base]
+    elif kind == "no_capex":
+        out = [replace(p, c_capex=0.0) for p in base]
+    elif kind == "no_earnings":
+        out = [replace(p, earn_cut=1.0) for p in base]
+    elif kind == "vol_target_only":
+        out = [replace(p, c_px=0.0, c_pe=0.0, c_capex=0.0, earn_cut=1.0, base=1.0) for p in base]
+    else:
+        raise ValueError(kind)
+    return list(dict.fromkeys(out))
+
+
+TILT_VARIANT_LABELS = {
+    "full": "Full v3 (price-ext + P/E + Capex tilts, earnings cut, vol target)",
+    "no_vol_target": "Without vol targeting",
+    "no_price_ext": "Without price-extension tilt",
+    "no_pe": "Without P/E tilt",
+    "no_capex": "Without Capex tilt",
+    "no_earnings": "Without earnings cut",
+    "vol_target_only": "Vol targeting only",
+}
+
+
+@dataclass
+class ModelSpec:
+    key: str
+    label: str
+    variants: dict[str, tuple[str, list]]  # kind -> (label, params); must include "full"
+    sens_x: tuple[str, list]  # (param name, values)
+    sens_y: tuple[str, list]
+
+
+def regime_spec(grid: ParamGrid) -> ModelSpec:
+    return ModelSpec(
+        key="regime_v2", label="v2 regime model",
+        variants={k: (VARIANT_LABELS[k], variant_params(grid, k)) for k in VARIANT_LABELS},
+        sens_x=("overheat_threshold", list(grid.overheat_threshold)),
+        sens_y=("vix_threshold", list(grid.vix_threshold)),
+    )
+
+
+def tilt_spec(grid: TiltGrid) -> ModelSpec:
+    return ModelSpec(
+        key="tilt_v3", label="v3 tilt + vol-target model",
+        variants={k: (TILT_VARIANT_LABELS[k], tilt_variant_params(grid, k)) for k in TILT_VARIANT_LABELS},
+        sens_x=("c_pe", sorted(grid.c_pe)),
+        sens_y=("vol_target", sorted({vt for _, vt in grid.vol})),
+    )
+
+
 def subperiod_table(dates: pd.DatetimeIndex, series: dict[str, tuple[np.ndarray, np.ndarray]]) -> list[dict]:
     rows = []
     for name, (a, b) in SUBPERIODS.items():
@@ -244,15 +320,17 @@ def subperiod_table(dates: pd.DatetimeIndex, series: dict[str, tuple[np.ndarray,
 class ValidationRun:
     wf: WalkForward
     bh: SimResult
-    insample_params: RegimeParams
+    insample_params: Params
     insample_ret_oos: np.ndarray
     report: dict
 
 
-def full_validation(bt: BTData, cfg_grid: ParamGrid, bcfg: BacktestConfig, live_year: int) -> ValidationRun:
-    """Everything the dashboard's validation view needs."""
+def full_validation(bt: BTData, spec: ModelSpec | ParamGrid, bcfg: BacktestConfig, live_year: int) -> ValidationRun:
+    """Everything the dashboard's validation view needs, for one model."""
+    if isinstance(spec, ParamGrid):
+        spec = regime_spec(spec)
     cost = bcfg.cost_bps
-    grid_params = variant_params(cfg_grid, "full")
+    grid_params = spec.variants["full"][1]
     grid = run_grid(bt, grid_params, cost)
     wf = nested_walk_forward(bt, grid, bcfg, live_year)
     oos_mask = bt.dates >= wf.dates[0]
@@ -282,31 +360,27 @@ def full_validation(bt: BTData, cfg_grid: ParamGrid, bcfg: BacktestConfig, live_
 
     # Ablation: each variant gets its own nested walk-forward.
     ablation = []
-    for kind in ("full", "no_shock", "no_overheat", "no_digestion", "shock_only"):
-        if kind == "full":
-            w = wf
-        else:
-            g = run_grid(bt, variant_params(cfg_grid, kind), cost)
-            w = nested_walk_forward(bt, g, bcfg, live_year)
+    for kind, (label, plist) in spec.variants.items():
+        w = wf if kind == "full" else nested_walk_forward(bt, run_grid(bt, plist, cost), bcfg, live_year)
         m = metrics(w.sim.ret, safe_oos, w.sim.executed, w.sim.cost)
-        ablation.append({"variant": kind, "label": VARIANT_LABELS[kind], **_pick(m)})
+        ablation.append({"variant": kind, "label": label, **_pick(m)})
     ablation.append({"variant": "buy_hold", "label": "Buy & hold (XLK/NDX)", **_pick(m_bh)})
     ablation.append({"variant": "vol_matched_bh", "label": f"Vol-matched B&H ({c:.2f} risk / {1 - c:.2f} cash, ex-post)", **_pick(m_vm)})
 
-    # Sensitivity: Sharpe over (VIX threshold x overheat threshold), others at in-sample best.
-    vix_axis = list(cfg_grid.vix_threshold)
-    oh_axis = list(cfg_grid.overheat_threshold)
+    # Sensitivity: Sharpe over two parameters, others at in-sample best.
+    (xn, xs), (yn, ys) = spec.sens_x, spec.sens_y
     heat = []
-    for v in vix_axis:
+    for yv in ys:
         row = []
-        for o in oh_axis:
-            _, _, sim = run(bt, replace(p_is, vix_threshold=v, overheat_threshold=o), cost)
+        for xv in xs:
+            _, _, sim = run(bt, replace(p_is, **{xn: xv, yn: yv}), cost)
             row.append(metrics(sim.ret, bt.safe)["sharpe"])
         heat.append(row)
 
     subperiods = subperiod_table(wf.dates, {"strategy": (wf.sim.ret, safe_oos), "bh": (bh.ret, safe_oos)})
 
     report = {
+        "model": {"key": spec.key, "label": spec.label},
         "summary": {
             "oos_start": str(wf.dates[0].date()),
             "oos_end": str(wf.dates[-1].date()),
@@ -332,8 +406,7 @@ def full_validation(bt: BTData, cfg_grid: ParamGrid, bcfg: BacktestConfig, live_
         "ablation": ablation,
         "sensitivity": {
             "metric": "full-sample Sharpe (other params at in-sample best)",
-            "vix_threshold": vix_axis,
-            "overheat_threshold": oh_axis,
+            "x_name": xn, "x_values": xs, "y_name": yn, "y_values": ys,
             "sharpe": heat,
         },
         "subperiods": subperiods,

@@ -72,10 +72,22 @@ def build_panel(raw: RawData, cfg: FeatureConfig) -> pd.DataFrame:
     # Yield known at the previous month-end earns this month.
     p["safe_ret"] = tbill.shift(1) / 100.0 / 12.0
 
+    # --- Realized volatility of the risk asset (for vol targeting) -----------
+    px = raw.xlk["adjclose"].reindex(raw.ndx.index.union(raw.xlk.index))
+    ndx_close = raw.ndx["close"].reindex(px.index)
+    dret = np.log(px).diff().where(px.notna() & px.shift(1).notna(), np.log(ndx_close).diff())
+    for w in (21, 63):
+        rv = dret.rolling(w, min_periods=int(w * 0.8)).std() * np.sqrt(252)
+        p[f"rv{w}"] = _monthly_last(rv, months)
+
     # --- VIX -----------------------------------------------------------------
     vix = raw.vix.resample("ME")
     p["vix"] = (vix.mean() if cfg.vix_stat == "mean" else vix.last()).reindex(months)
     p["vix_last"] = vix.last().reindex(months)
+    # Tech vol implied by VIX: VIX x trailing median(realized tech vol / VIX).
+    ratio = (p["rv63"] / (p["vix_last"] / 100.0)).rolling(cfg.vix_ratio_months, min_periods=12).median()
+    p["vix_tech_ratio"] = ratio
+    p["vol_vix"] = p["vix_last"] / 100.0 * ratio
 
     # --- Valuation proxy: price extension vs long moving average -------------
     ndx = raw.ndx["close"]

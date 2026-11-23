@@ -293,3 +293,11 @@ table.heat th { text-align: center; }
 .note, .interp { overflow-wrap: anywhere; }
 .picker { max-width: 100%; flex-wrap: wrap; }
 .picker select { max-width: 100%; }
+.model-pick { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin: 0 0 0.75rem; }
+.model-pick button {
+  font: inherit; font-size: 0.82rem; padding: 0.3rem 0.75rem; border-radius: 6px;
+  border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer;
+}
+.model-pick button.active { background: var(--nav); color: #fff; border-color: var(--nav); }
+.model-pick button:disabled { opacity: 0.4; cursor: not-allowed; }
+.card.candidate { border-style: dashed; border-color: #9fb3cc; }

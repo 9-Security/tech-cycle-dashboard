@@ -1,6 +1,6 @@
 # Tech Cycle Dashboard
 
-Live research dashboard for a **tech Capex-cycle regime strategy** (Shock → Overheat → Digestion → Normal, lag-1), rebuilt as a point-in-time engine with **nested walk-forward** validation. Data refreshes every US trading day via GitHub Actions and deploys to GitHub Pages.
+Live research dashboard for a **tech Capex-cycle strategy**: the live v2 regime model (Shock → Overheat → Digestion → Normal, lag-1) and a v3 candidate (continuous valuation/Capex tilts + volatility targeting), both validated by **nested walk-forward** on a point-in-time engine. Data refreshes every US trading day via GitHub Actions and deploys to GitHub Pages.
 
 > Research only. Not investment advice. Not an auto-trading signal.
 
@@ -9,7 +9,7 @@ Live research dashboard for a **tech Capex-cycle regime strategy** (Shock → Ov
 | Page | Content |
 |------|---------|
 | [`index.html`](index.html) | Official regime + weight in force, month-to-date provisional regime, OOS metrics, NAV (OOS vs B&H vs in-sample), regime timeline, signals, Capex intensity |
-| [`validation.html`](validation.html) | OOS vs hindsight, DSR/PSR, ablation, crisis sub-periods, sensitivity heatmap, per-year fold parameters, DQ + data provenance |
+| [`validation.html`](validation.html) | v2 vs v3 model comparison; per model: OOS vs hindsight, DSR/PSR, ablation, crisis sub-periods, sensitivity heatmap, per-year fold parameters, DQ + data provenance |
 | [`signals.html`](signals.html) | Stand-alone tests of each signal: quintile returns / drawdown odds, Newey-West IC, era stability, threshold events |
 | [`scenarios.html`](scenarios.html) | Rule-based trigger distances and scenario cards from live parameters |
 
@@ -20,7 +20,8 @@ engine/                 Python engine (numpy, pandas, requests)
   tcd/sources/          Yahoo / FRED / SEC fetchers + hashed raw store
   tcd/fundamentals.py   SEC XBRL point-in-time quarterly + TTM + chain-linking
   tcd/features.py       monthly PIT panel (partial month flagged)
-  tcd/regime.py         regime rules
+  tcd/regime.py         v2 regime rules
+  tcd/model_tilt.py     v3 tilts + vol targeting
   tcd/backtest.py       lag-1 simulation + metrics
   tcd/validation.py     nested walk-forward, ablation, sensitivity, DSR/PSR
   tcd/signal_study.py   stand-alone signal tests (PIT quintiles, NW t, block bootstrap)

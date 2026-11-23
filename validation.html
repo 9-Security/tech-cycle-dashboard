@@ -20,6 +20,18 @@
   <div class="banner" id="banner">Loading data status…</div>
 
   <main>
+    <section class="panel">
+      <h2>Model comparison — v2 regime (live) vs v3 tilt + vol target (candidate)</h2>
+      <div class="table-wrap"><table id="modelTable"></table></div>
+      <p class="note" id="designNote"></p>
+    </section>
+
+    <div class="model-pick" id="modelPick" role="tablist" aria-label="Model">
+      <span class="muted small">Details for:</span>
+      <button class="active" data-model="regime_v2">v2 regime (live)</button>
+      <button data-model="tilt_v3">v3 candidate</button>
+    </div>
+
     <section class="interp" id="summary">Loading…</section>
 
     <section class="panel">
@@ -34,7 +46,7 @@
     </section>
 
     <section class="panel">
-      <h2>Valuation input — aggregate P/E vs price-extension proxy</h2>
+      <h2>Valuation input (v2 model) — aggregate P/E vs price-extension proxy</h2>
       <div class="table-wrap"><table id="valTable"></table></div>
       <p class="note">IC = correlation of the valuation z-score with the next 12-month log return of the risk asset, over the window where firm-level P/E exists (negative = high valuation preceded weaker returns). Overlapping windows: descriptive only, not a significance test.</p>
     </section>

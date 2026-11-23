@@ -13,10 +13,12 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from . import model_tilt
 from .config import REGIME_COLORS, REGIME_LABELS
 
 PANEL_COLUMNS = [
-    "risk_ret", "risk_src", "safe_ret", "tbill_pct", "vix", "vix_last", "val_ext", "val_z_proxy",
+    "risk_ret", "risk_src", "safe_ret", "tbill_pct", "vix", "vix_last", "rv21", "rv63", "vix_tech_ratio",
+    "vol_vix", "val_ext", "val_z_proxy",
     "pe_agg", "n_pe_names", "mcap_agg_bn", "val_z_pe", "val_z", "val_src",
     "capex_ratio_proxy", "capex_z_proxy", "capex_ratio_firm", "n_capex_names", "capex_z_firm",
     "capex_z", "capex_src", "earn_g_firm", "earn_score_firm", "earn_g_proxy", "earn_score_proxy",
@@ -25,7 +27,8 @@ PANEL_COLUMNS = [
 
 HISTORY_FIELDS = [
     "run_at", "panel_end", "regime", "executed_weight", "provisional_month", "provisional_regime",
-    "provisional_weight", "vix", "overheat_score", "earn_score", "oos_sharpe", "git_sha",
+    "provisional_weight", "vix", "overheat_score", "earn_score", "oos_sharpe", "v3_weight",
+    "v3_month_end_weight", "git_sha",
 ]
 
 
@@ -51,19 +54,21 @@ def _r(a, nd=6) -> list:
     return [None if (x is None or not np.isfinite(x)) else round(float(x), nd) for x in np.asarray(a, float)]
 
 
-def regime_spans(dates: pd.DatetimeIndex, codes: np.ndarray) -> list[dict]:
+def regime_spans(dates: pd.DatetimeIndex, codes: np.ndarray, labels: dict | None = None,
+                 colors: dict | None = None) -> list[dict]:
+    labels, colors = labels or REGIME_LABELS, colors or REGIME_COLORS
     spans = []
     start = 0
     for i in range(1, len(codes) + 1):
         if i == len(codes) or codes[i] != codes[start]:
             c = int(codes[start])
-            spans.append({"regime": c, "label": REGIME_LABELS[c], "color": REGIME_COLORS[c],
+            spans.append({"regime": c, "label": labels[c], "color": colors[c],
                           "start": str(dates[start].date()), "end": str(dates[i - 1].date())})
             start = i
     return spans
 
 
-def build_series(vrun, panel: pd.DataFrame, as_of: str) -> dict:
+def build_series(vrun, panel: pd.DataFrame, as_of: str, candidate=None) -> dict:
     wf = vrun.wf
     dates = wf.dates
     p = panel.reindex(dates)
@@ -92,6 +97,24 @@ def build_series(vrun, panel: pd.DataFrame, as_of: str) -> dict:
                     "bh_max_dd": rep["bh"]["max_dd"], "insample_sharpe": rep["insample_best"]["on_oos_window"]["sharpe"]},
         "regime_labels": {str(k): v for k, v in REGIME_LABELS.items()},
         "regime_colors": {str(k): v for k, v in REGIME_COLORS.items()},
+        "candidate": _candidate_series(candidate, dates, p) if candidate is not None else None,
+    }
+
+
+def _candidate_series(c, dates: pd.DatetimeIndex, p: pd.DataFrame) -> dict:
+    wf = c.wf
+    if not wf.dates.equals(dates):
+        raise ValueError("candidate OOS window differs from live model window")
+    return {
+        "model": "tilt_v3",
+        "strategy_nav": _r(wf.sim.nav),
+        "risk_weight": _r(wf.executed, 4),
+        "state": [int(x) for x in wf.codes],
+        "state_spans": regime_spans(dates, wf.codes, model_tilt.STATE_LABELS, model_tilt.STATE_COLORS),
+        "state_labels": {str(k): v for k, v in model_tilt.STATE_LABELS.items()},
+        "state_colors": {str(k): v for k, v in model_tilt.STATE_COLORS.items()},
+        "rv21": _r(p["rv21"], 4),
+        "metrics": c.report["oos"],
     }
 
 

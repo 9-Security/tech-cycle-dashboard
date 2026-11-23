@@ -1,4 +1,4 @@
-# Methodology — engine v2.2 (live, point-in-time, nested walk-forward)
+# Methodology — engine v3.0 (live, point-in-time, nested walk-forward)
 
 Engine source: [`engine/tcd/`](../engine/tcd). Rebuilt from the v1 specification in this folder; v1 documents are kept for history.
 
@@ -135,3 +135,39 @@ python -m pytest -q tests
 python -m tcd refresh --out ../data          # online
 python -m tcd refresh --offline --out ../data # reuse engine/.cache/raw
 ```
+
+
+## 8. v3 candidate — continuous tilts + volatility targeting (designed 2026-11-23)
+
+Module `engine/tcd/model_tilt.py`. Runs daily next to v2; **v2 remains the live posture**.
+
+```
+base_w = clip(base + c_px * px_z + c_pe * pe_z + c_capex * capex_z, 0, 1)
+base_w *= earn_cut              if earnings score < -1
+scale  = min(1, vol_target / sigma_hat)    sigma_hat: 21d / 63d realized tech vol, or VIX x trailing median(realized/VIX)
+weight = clip(base_w * scale, 0, 1), 5-pt no-trade band, lag-1, 15 bps
+```
+
+Design rules fixed *before* the v3 walk-forward was run:
+* Signs are **learned**, not imposed: each coefficient ∈ {0, −0.25, +0.25}; the grid lists 0 first so ties (e.g. P/E before it exists) resolve to the simplest model.
+* Price extension and P/E are **separate variables** (the v2 spliced `val_z` changes meaning in 2013). An initial v3 run with a single shared coefficient applied a momentum-learned sign to P/E (cutting exposure because P/E was *low*); that was a specification error and was corrected before any further evaluation. No other iteration was made on OOS results.
+* No leverage (weight ≤ 1). Grid: 1,080 configurations.
+
+### Results (OOS 2000-01 → 2026-10)
+
+| Model | Sharpe | CAGR | Vol | Max DD | Final NAV |
+|---|---:|---:|---:|---:|---:|
+| v2 regime (live) | 0.11 | 2.5% | 14.4% | −71.9% | 1.95 |
+| **v3 candidate** | **0.46** | 8.1% | 15.2% | **−56.6%** | 7.99 |
+| Buy & hold | 0.39 | 8.5% | 23.0% | −80.5% | 8.98 |
+| Vol-matched B&H (to v3, ex-post) | 0.39 | 6.9% | 15.2% | −62.8% | 5.98 |
+
+* v3 beats vol-matched buy & hold by ~0.07 Sharpe and ~6 pts of Max DD; PSR vs B&H Sharpe = 0.64 — **not statistically convincing**.
+* Ablation: the price-extension (momentum) tilt carries most of the value (removing it: 0.38); vol targeting adds ~0.05; the Capex tilt *hurts* (removing it: 0.53); P/E adds ~0.03.
+* Walk-forward chose c_px = +0.25 (momentum) from 2002 and c_pe = **+0.25** from 2015 — learned from only 2013–2014 P/E data, and opposite to the 12-month contrarian relation in the signal study. Treat the P/E coefficient as unreliable until more P/E history enters training.
+* Dot-com: v3 −52% (Max DD −57%) vs B&H −72.5% (−80.5%). 2000 was traded with parameters trained on 1993–1999 (no vol target), so most of the crash was not avoided.
+* Sensitivity (vol target × c_pe) is a smooth plateau, not an isolated peak.
+
+### Evaluation protocol from here
+* v3's design was informed by full-sample studies, so the table above is still optimistic. Months after **2026-11-23** are the only clean test; they are tracked in `validation.json → candidate.since_design` and `data/history.csv` (`v3_weight`).
+* Suggested promotion rule (to be decided by the owner, not automatically): ≥ 24 months after the design date with v3 ahead of vol-matched buy & hold on Sharpe, and no data-quality incidents.

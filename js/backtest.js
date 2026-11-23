@@ -33,6 +33,14 @@
       setText("p-prov-sub", "no month in progress");
     }
 
+    const c3 = status.candidate;
+    if (c3) {
+      setText("p-v3", fmt(c3.executed_weight, 2));
+      const me = c3.month_end, pv = c3.provisional;
+      setText("p-v3-sub", me.state.label + " · vol " + pct(me.vol_forecast, 0) + " → scale " + fmt(me.vol_scale, 2) +
+        " · tilt " + (me.tilt >= 0 ? "+" : "") + fmt(me.tilt, 2) + (pv ? " · MTD " + fmt(pv.weight, 2) : ""));
+    }
+
     // Metrics (fractions -> %)
     setText("m-sharpe", fmt(m.sharpe));
     setText("m-sharpe-sub", "B&H " + fmt(m.bh_sharpe) + " · in-sample " + fmt(m.insample_sharpe));
@@ -76,7 +84,7 @@
           line("Walk-forward strategy (OOS)", data.strategy_nav, "#2f6f4e", { borderWidth: 2.2 }),
           line("Buy & hold", data.benchmark_nav, "#6b6560", { borderDash: [4, 3] }),
           line("In-sample tuned (hindsight)", data.insample_nav, "#c45c26", { borderDash: [2, 3], borderWidth: 1.2 }),
-        ],
+        ].concat(data.candidate ? [line("v3 candidate (walk-forward)", data.candidate.strategy_nav, "#1e3a5f", { borderWidth: 1.8 })] : []),
       },
       options: { ...opts, scales: { ...opts.scales, y: { ...opts.scales.y, type: "logarithmic", title: { display: true, text: "NAV (log)" } } } },
     });

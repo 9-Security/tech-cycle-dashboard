@@ -25,6 +25,7 @@
       <div class="card"><div class="label">Official regime</div><div class="value" id="p-regime">—</div><div class="sub" id="p-regime-sub">—</div></div>
       <div class="card"><div class="label">Risk weight in force</div><div class="value" id="p-weight">—</div><div class="sub" id="p-weight-sub">—</div></div>
       <div class="card"><div class="label">Month-to-date (provisional)</div><div class="value" id="p-prov">—</div><div class="sub" id="p-prov-sub">—</div></div>
+      <div class="card candidate"><div class="label">v3 candidate weight</div><div class="value" id="p-v3">—</div><div class="sub" id="p-v3-sub">—</div></div>
     </section>
 
     <p class="basis" id="basis">Headline metrics are <strong>out-of-sample</strong>: parameters re-chosen every January using only prior data (nested walk-forward).</p>
@@ -36,9 +37,9 @@
     </section>
 
     <section class="panel">
-      <h2>NAV — walk-forward strategy vs buy &amp; hold vs in-sample (hindsight) tuning</h2>
+      <h2>NAV — v2 walk-forward (live) vs v3 candidate vs buy &amp; hold vs in-sample (hindsight)</h2>
       <div class="chart-wrap"><canvas id="navChart"></canvas></div>
-      <p class="note">The dashed "in-sample" line uses parameters picked with knowledge of the whole sample. The gap between it and the walk-forward line is the cost of hindsight.</p>
+      <p class="note">The dashed "in-sample" line uses parameters picked with knowledge of the whole sample; the gap to the walk-forward line is the cost of hindsight. The v3 candidate is also walk-forward, but its design was chosen on 2026-11-23 after seeing full-sample studies — see Validation.</p>
     </section>
 
     <section class="panel">
