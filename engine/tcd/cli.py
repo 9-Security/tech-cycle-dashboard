@@ -24,6 +24,7 @@ from .fetch import fetch_all
 from .quality import DataQualityError, enforce, run_checks
 from . import promotion
 from .risk_model import run_risk
+from .short_risk import run_short_risk
 from .signal_study import run_study
 from .sources.http import FetchError
 from .status import build_candidate_status, build_scenarios, build_status
@@ -169,6 +170,7 @@ def refresh(args: argparse.Namespace) -> int:
 
     signals = {**meta, **run_study(panel)}
     risk = {**meta, **run_risk(panel)}
+    risk["short_term"] = run_short_risk(raw)
     primary = risk["targets"][0]
     skill = primary["verdict"].startswith("skillful")
     cur = primary["current"].get("provisional") or primary["current"]["month_end"]
@@ -184,9 +186,12 @@ def refresh(args: argparse.Namespace) -> int:
         "vol_forecast_next_month": (risk["vol_forecast"]["current"].get("provisional")
                                     or risk["vol_forecast"]["current"]["month_end"]),
         "vol_forecast_oos_r2": risk["vol_forecast"]["oos_r2_vs_mean"],
+        "short_term": risk["short_term"]["current"],
+        "short_term_epu_verdict": risk["short_term"]["epu_verdict"],
     }
     history_row["p_dd20_12m_model"] = round(cur["p"], 4)
     history_row["vol_fcst_next_month"] = round(status["risk"]["vol_forecast_next_month"]["vol"], 4)
+    history_row["var95_1d"] = round(risk["short_term"]["current"]["var95_1d_simple_ret"], 5)
     series = build_series(vrun, panel, as_of, candidate=vrun3)
     written = write_all(Path(args.out), series=series, status=status, scenarios=scenarios,
                         validation=validation, health=health, panel=panel, history_row=history_row,
