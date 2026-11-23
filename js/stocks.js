@@ -17,6 +17,7 @@
   const dot = (lv) => '<span class="mini-dot ' + lv + '" title="' + esc(t("light.short." + lv)) + '"></span>' + esc(t("light.short." + lv));
 
   let DATA = null, selected = null, charts = [];
+  let REVIEW = null;
 
   function sorted(list, how) {
     const a = list.slice();
@@ -79,6 +80,12 @@
         rg: g(f.revenue_growth), ng: g(f.net_income_growth), pe: f.pe == null ? t("st.nm") : fmt(f.pe, 1),
         cx: f.capex_to_revenue == null ? "—" : pct(f.capex_to_revenue, 0) }));
     }
+    const lv = REVIEW && REVIEW.stocks ? REVIEW.stocks[s.symbol] : null;
+    if (lv) {
+      pts.push(t("st.d.live", { n: lv.n, k: lv.breaches, r: lv.breach_rate == null ? "—" : pct(lv.breach_rate, 1),
+        b: lv.backtest_breach_rate == null ? "—" : pct(lv.backtest_breach_rate, 1), min: REVIEW.settings.min_days_stock,
+        v: t("st.live.v." + lv.verdict) }));
+    }
     document.getElementById("d-points").innerHTML = pts.map((x) => "<li>" + esc(x) + "</li>").join("");
 
     charts.forEach((c) => c.destroy());
@@ -126,13 +133,37 @@
     });
   }
 
+  function renderLive(rv) {
+    const el = document.getElementById("liveTable");
+    if (!rv) { setText("live-note", t("st.live.none")); return; }
+    const hdr = cols("st.live.cols");
+    const ci = (a) => (a ? " [" + pct(a[0], 1) + ", " + pct(a[1], 1) + "]" : "");
+    const body = ["US", "TW"].map((mk) => {
+      const m = rv.markets[mk] || {};
+      return [esc(t("st.live.mk." + mk)), String(m.logged || 0) + (m.logged_since ? " (" + esc(t("st.live.since", { d: m.logged_since })) + ")" : ""),
+        String(m.n || 0) + " / " + (m.n_dates || 0), String(m.breaches || 0),
+        m.breach_rate == null ? "—" : pct(m.breach_rate, 1) + ci(m.breach_ci),
+        m.backtest_breach_rate_mean == null ? "—" : pct(m.backtest_breach_rate_mean, 1),
+        m.var_ratio == null ? "—" : fmt(m.var_ratio, 2) + (m.var_ratio_ci ? " [" + fmt(m.var_ratio_ci[0], 2) + ", " + fmt(m.var_ratio_ci[1], 2) + "]" : ""),
+        m.dm_t_vs_ewma == null ? "—" : fmt(m.dm_t_vs_ewma, 2),
+        "<strong>" + esc(t("st.live.v." + (m.verdict || "insufficient"))) + "</strong>"];
+    });
+    el.innerHTML = "<thead><tr>" + hdr.map((h) => "<th>" + esc(h) + "</th>").join("") + "</tr></thead><tbody>" +
+      body.map((r) => "<tr>" + r.map((c) => "<td>" + c + "</td>").join("") + "</tr>").join("") + "</tbody>";
+    const st = rv.settings || {};
+    setHTML("live-note", t("st.live.note", { d: st.min_dates_pooled, n: st.min_days_stock, r: st.rolling_dates }));
+  }
+
   async function boot() {
-    const [d, health] = await Promise.all([loadJSON("data/stocks.json"), loadJSON("data/health.json").catch(() => null)]);
+    const [d, health, review] = await Promise.all([loadJSON("data/stocks.json"), loadJSON("data/health.json").catch(() => null),
+      loadJSON("data/forecast_review.json").catch(() => null)]);
     DATA = d;
+    REVIEW = review;
     document.body.dataset.ready = "1";
     renderBanner(health);
     setHTML("asof-line", t("st.asof", { asof: esc(d.as_of) }));
     renderUpdated(d);
+    renderLive(review);
     document.getElementById("sortPick").addEventListener("change", renderTables);
     renderTables();
     if (d.stocks.length) showDetail(d.stocks[0].symbol, false);

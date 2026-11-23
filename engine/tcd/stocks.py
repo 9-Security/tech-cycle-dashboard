@@ -172,7 +172,8 @@ def current_risk(df: pd.DataFrame, cfg: StockConfig) -> dict:
     pctl = float((hist <= vol_ann).mean())
     return {"vol_1d_ann": vol_ann, "daily_move": sqrt(fv), "var95": float(1 - np.exp(q * sqrt(fv))),
             "vol_percentile": pctl, "vol_median": float(hist.median()), "vol_ratio": vol_ann / float(hist.median()),
-            "level": level_for(pctl), "hist_start": str(hist.index[0].date())}
+            "level": level_for(pctl), "hist_start": str(hist.index[0].date()),
+            "har_var": fv, "ewma_var": float(df["ewma"].iloc[-1])}  # next-day variance forecasts (ledger)
 
 
 def market_stats(close: pd.Series, bench: pd.Series | None) -> dict:

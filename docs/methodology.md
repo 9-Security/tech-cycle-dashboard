@@ -299,3 +299,30 @@ Module `engine/tcd/stocks.py`; list in `engine/watchlist.json` (edit it to add o
 * **Data fixes found on the first real run (numerical, not tuned on results):** Yahoo carries Taiwan prices forward through halts and gaps (runs of unchanged closes up to 272 days) and has unadjusted corporate actions (a −80% day). Runs of ≥ 5 unchanged closes are removed, Taiwan daily moves beyond ±25% (impossible under the ±7%/10% limits) are dropped, the daily HAR term is floored at 5% of its 22-day mean, and the model is fitted on the next-5-day average variance. Before these fixes two stocks showed forecasts above 2,000% annualized.
 * **First results (2026-11-23):** HAR beats EWMA (DM t > 0) for most names, but only **7/28 VaRs are verified** (MSFT, GOOGL, META, NVDA, INTC, AVGO, 3711). Most Taiwan failures are "breaches cluster": large moves come in runs (limit-down days follow each other), which a one-day model cannot anticipate. The page shows the failing reason per stock.
 * **Known limits:** jumps around earnings releases are not forecastable; Taiwan names use prices only (no MOPS fundamentals); the list reflects today's leaders.
+
+## 14. Live forecast ledger and reconciliation (stocks)
+
+Module `engine/tcd/ledger.py`; files `data/forecasts/stocks_ledger.csv` (append-only), `data/forecasts/stocks_outcomes.csv` (regenerated), `data/forecast_review.json`; section "Live track record" on `stocks.html`.
+
+**Why.** The walk-forward backtest of section 13 is pseudo out-of-sample: it re-runs the current model over the past, and changes whenever the model changes. The ledger is the real record: forecasts written before the outcome exists.
+
+**Ledger rules.**
+* Every refresh (22:15 UTC full run and 07:07 UTC Taiwan run) appends, for each freshly analysed stock, the forecast for the next trading day: `origin_date` (date of the last close used), 1-day 95% VaR, HAR and EWMA next-day variance, risk light, engine version and `model_id` (sha256 of `stocks.py` + `StockConfig`, 12 hex).
+* Key `(symbol, origin_date)`; the first forecast written wins. Existing bytes are never rewritten (checked before every write: the new file must start with the old file verbatim). Rows kept from a previous run (`stale`) are not forecasts and are not logged.
+* A forecast is logged only if its bar is final: local time past 14:30 Asia/Taipei (TWSE closes 13:30) or 16:30 America/New_York. A manual run during trading hours logs nothing for that market.
+* The ledger is committed by the daily job; the git commit time proves each forecast predates its outcome. No backfill: the record starts with the first run after this change.
+
+**Scoring.** Each forecast is matched with the stock's next bar (adjusted close): log return `r`, breach if `exp(r) − 1 < −VaR`, QLIKE of the HAR and EWMA variances, variance ratio `r² / HAR variance`. Not scored: next bar not yet available (`pending`), more than 10 calendar days away (`gap`), Taiwan `|r| > 25%` (`data_error`, same rule as the model), origin bar missing from the source.
+
+**Pre-registered review rules** (fixed now, before any live outcome exists; changing them is a documented, versioned change):
+
+| Level | Minimum sample | Test | Verdicts |
+|---|---|---|---|
+| Market (US, Taiwan pooled) | 60 scored trading days | breach rate with a 90% CI clustered by date (names breach on the same days, so they are not independent) | CI above 5% → too many breaches; below → too few; contains 5% → consistent |
+| Single stock | 250 scored days | Kupiec and Christoffersen, p ≥ 0.05 | consistent / coverage rejected / breaches cluster |
+
+Also reported (descriptive, no verdict): variance ratio with clustered 90% CI (target 1.0), HAR vs EWMA per-date mean QLIKE difference with a Newey-West t, the last 60 days separately, and realized vs forecast volatility by risk-light level.
+
+**No automatic recalibration.** Results never feed back into the model. If a verdict says the VaR is miscalibrated, a fix is a code change with a new `model_id`; the old rows stay in the ledger and the new model's record starts from zero.
+
+Expected timing: market verdicts after about 3 months, single-stock verdicts after about 1 year. Until then the page shows "not enough data yet", which is not evidence for or against the model.

@@ -384,6 +384,25 @@
   add("st.us.h2", "US mega-cap tech", "美股大型科技股");
   add("st.tw.h2", "Taiwan AI supply chain", "台股 AI 供應鏈");
   add("st.upd", "Prices through <strong>{d}</strong> · updated {u}", "股價資料截至 <strong>{d}</strong> · 更新時間 {u}");
+  add("st.live.h2", "Live track record (forecast ledger)", "上線後實際表現（預測帳本）");
+  add("st.live.intro", "Every refresh writes each stock's next-day forecast to an append-only ledger (data/forecasts/stocks_ledger.csv) before the outcome exists; the first forecast for a day is kept and never changed. The next close then scores it. Unlike the backtest above, this cannot be rewritten with hindsight.",
+    "每次更新都會在結果出來之前，把每檔個股的明日預測寫進只能新增的帳本（data/forecasts/stocks_ledger.csv）；同一天只保留第一次寫入的預測，之後不會被修改。隔天收盤後再自動對帳。和上方的回測不同，這份紀錄無法事後改寫。");
+  add("st.live.cols", "Market|Forecasts logged|Scored (forecasts / days)|VaR breaches|Breach rate (target 5%) [90% CI]|Backtest breach rate|Variance ratio (target 1.0) [90% CI]|HAR vs EWMA (t, >0 = HAR better)|Verdict",
+    "市場|已記錄預測|已對帳（筆數／天數）|超過 VaR 次數|實際超過比例（目標 5%）[90% 信賴區間]|回測超過比例|變異數比（目標 1.0）[90% 信賴區間]|HAR 對 EWMA（t 值，>0 代表 HAR 較好）|判定");
+  add("st.live.mk.US", "US", "美股");
+  add("st.live.mk.TW", "Taiwan", "台股");
+  add("st.live.since", "since {d}", "自 {d} 起");
+  add("st.live.v.insufficient", "Not enough data yet", "樣本不足，尚不判定");
+  add("st.live.v.consistent", "Consistent with 5%", "符合 5% 目標");
+  add("st.live.v.too_many", "Too many breaches (VaR too low)", "超過次數過多（VaR 低估風險）");
+  add("st.live.v.too_few", "Too few breaches (VaR too cautious)", "超過次數過少（VaR 過度保守）");
+  add("st.live.v.coverage_rejected", "Breach rate rejected", "超過比例未通過檢定");
+  add("st.live.v.breaches_cluster", "Breaches cluster", "超過日過度集中");
+  add("st.live.note", "Rules fixed in advance: a market verdict needs at least {d} scored trading days (the confidence interval accounts for several stocks breaching on the same day); a single stock needs {n} scored days (Kupiec and Christoffersen tests). Variance ratio = realized squared return / forecast variance. Last {r} days are tracked separately. Nothing here changes the model automatically.",
+    "事前固定的規則：市場層級至少要累積 {d} 個已對帳交易日才判定（信賴區間已考慮多檔個股同一天一起超過、彼此不獨立）；單一個股要 {n} 個交易日才判定（Kupiec 與 Christoffersen 檢定）。變異數比＝實際報酬平方／預測變異數。另外追蹤最近 {r} 天。這裡的結果不會自動修改模型。");
+  add("st.live.none", "No ledger yet: it starts with the next refresh.", "帳本尚未建立，下一次更新後開始累積。");
+  add("st.d.live", "Live record: {n} forecasts scored, {k} VaR breaches ({r}; backtest {b}). Verdict after {min} days: {v}.",
+    "上線後紀錄：已對帳 {n} 筆，超過 VaR {k} 次（{r}；回測為 {b}）。累積 {min} 筆後判定：{v}。");
   add("st.upd.stale", "{n} name(s) kept from the previous update (fetch failed)", "{n} 檔沿用上次資料（本次抓取失敗）");
   add("st.cols.common", "Stock|Segment|Light|Close|1M|From 52w high|Next-day vol (ann.)|1-day 95% VaR|VaR check|Beta 1y",
     "個股|環節|燈號|收盤價|近 1 月|距 52 週高點|明日波動（年化）|1 日 95% VaR|VaR 驗證|Beta（1 年）");
