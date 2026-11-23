@@ -45,6 +45,18 @@ from .validation import _pick, full_validation, prepare, tilt_spec, valuation_co
 log = logging.getLogger("tcd")
 
 
+def _raw_archive(scope: str) -> dict | None:
+    """Where this run's raw inputs are archived (private R2 bucket, written by
+    tools/archive_raw.py after the refresh; blobs/<sha256>.gz per manifest hash).
+    The index key is deterministic, so it can be published before the upload;
+    whether the upload succeeded is reported by the workflow (raw-archive issue)."""
+    run_id, attempt = os.environ.get("GITHUB_RUN_ID"), os.environ.get("GITHUB_RUN_ATTEMPT", "1")
+    if not run_id or not os.environ.get("RAW_ARCHIVE_ENABLED"):
+        return None
+    return {"store": "r2 (private)", "index": f"runs/{run_id}-{attempt}-{scope}.json",
+            "blobs": "blobs/<sha256>.gz", "restore": "engine/tools/restore_raw.py"}
+
+
 def _git_sha() -> str | None:
     """Commit of the code actually checked out (GITHUB_SHA names the triggering
     ref, which differs for manual runs from another branch or delayed runs)."""
@@ -191,6 +203,7 @@ def refresh(args: argparse.Namespace) -> int:
         "label": ("Offline re-run from cached data" if args.offline else "Live - GitHub Actions daily refresh")
                  + (" (staleness gate relaxed)" if args.allow_stale else ""),
         "report_issues": issues,  # filled below; the list object is shared
+        "raw_archive": _raw_archive("full"),
     }
     prov = status.get("provisional") or {}
     history_row = {
@@ -396,7 +409,8 @@ def stocks_refresh(args: argparse.Namespace) -> int:
     except Exception as exc:  # noqa: BLE001
         _issue(issues, "forecast_ledger", exc)
     # Report-only problems of this market run are published with the stock data.
-    merged["run_issues"] = {**(merged.get("run_issues") or {}), args.market: {"as_of": as_of, "issues": issues}}
+    merged["run_issues"] = {**(merged.get("run_issues") or {}), args.market: {"as_of": as_of, "issues": issues,
+                                                                              "raw_archive": _raw_archive(args.market.lower())}}
     _write_json_atomic(out, merged)
     log.info("stocks %s: %d analysed, %d verified, skipped %s", args.market, len(fresh["stocks"]),
              sum(r["backtest"]["verified"] for r in fresh["stocks"]), fresh["skipped"])

@@ -35,6 +35,8 @@ engine/                 Python engine (numpy, pandas, requests)
   tcd/light.py          daily risk light (codes + numbers; text rendered per language)
   tcd/ledger.py         live stock forecast ledger (append-only) + reconciliation
   tools/validate_data.py pre-commit checks of data/ (strict JSON/CSV, append-only ledger, no e-mail)
+  tools/archive_raw.py  archive raw inputs to a private R2 bucket (content-addressed)
+  tools/restore_raw.py  rebuild a raw cache from an archive index
   tools/check_pit.py    manual future-invariance check on real cached data (no look-ahead)
   tcd/market_ledger.py  live forecast ledger for the market VaR / volatility (append-only)
   tcd/tw_calendar.py    removes Yahoo bars on Taiwan market holidays before the stock model
