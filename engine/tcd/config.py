@@ -227,15 +227,30 @@ class BacktestConfig:
     min_train_months: int = 84
 
 
+GENERIC_USER_AGENT = "tech-cycle-dashboard/2.0 research"
+
+
+def sec_user_agent() -> str:
+    """SEC_USER_AGENT secret ("<org/app> <contact email>"), stripped and checked.
+
+    A value with control characters (e.g. a trailing newline pasted into the
+    secret) makes requests raise an error that quotes the header value, which
+    could then reach logs or outputs. Such values are rejected (generic agent
+    used, value never printed)."""
+    v = os.environ.get("SEC_USER_AGENT", "").strip()
+    if not v:
+        return GENERIC_USER_AGENT
+    if any(ord(c) < 32 or ord(c) == 127 for c in v):
+        import logging
+        logging.getLogger(__name__).warning("SEC_USER_AGENT contains control characters; using the generic agent")
+        return GENERIC_USER_AGENT
+    return v
+
+
 @dataclass(frozen=True)
 class FetchConfig:
-    user_agent: str = field(
-        default_factory=lambda: os.environ.get(
-            "SEC_USER_AGENT",
-            # SEC asks for "<org/app> <contact email>"; set SEC_USER_AGENT in CI.
-            "tech-cycle-dashboard/2.0 research",
-        )
-    )
+    # SEC asks for "<org/app> <contact email>"; set the SEC_USER_AGENT secret in CI.
+    user_agent: str = field(default_factory=sec_user_agent)
     timeout_s: float = 60.0
     retries: int = 4
     sec_pause_s: float = 0.25  # SEC fair-access: well under 10 req/s

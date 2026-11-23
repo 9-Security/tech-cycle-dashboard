@@ -34,6 +34,7 @@ engine/                 Python engine (numpy, pandas, requests)
   tcd/cross_market.py   pre-registered out-of-domain test of v3 on 9 other markets
   tcd/light.py          daily risk light (codes + numbers; text rendered per language)
   tcd/ledger.py         live stock forecast ledger (append-only) + reconciliation
+  tools/validate_data.py pre-commit checks of data/ (strict JSON/CSV, append-only ledger, no e-mail)
   tools/check_pit.py    manual future-invariance check on real cached data (no look-ahead)
   tcd/tw_calendar.py    removes Yahoo bars on Taiwan market holidays before the stock model
   tcd/official_check.py second-source closes: TW vs TWSE / TPEx, US vs Nasdaq (report only)
@@ -52,7 +53,7 @@ docs/methodology.md     method, results, limitations
 
 ```bash
 cd engine
-pip install -r requirements-dev.txt
+pip install --require-hashes -r requirements-dev.lock
 python -m pytest -q tests
 python -m tcd refresh --out ../data
 ```

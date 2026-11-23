@@ -144,9 +144,12 @@ def append_ledger(path: Path, rows: list[dict]) -> int:
     elif not old.endswith("\n"):
         raise ValueError("ledger does not end with a newline; refusing to append")
     w.writerows(add)
-    new = old + buf.getvalue()
-    assert new.startswith(old)
-    _atomic_write(path, new)
+    _atomic_write(path, old + buf.getvalue())
+    # Re-read: the file on disk must still start with the previous bytes
+    # (guards against a concurrent writer; the workflow also checks the
+    # committed file against the previous commit before pushing).
+    if not path.read_text().startswith(old):
+        raise ValueError("ledger append check failed: existing rows changed")
     return len(add)
 
 

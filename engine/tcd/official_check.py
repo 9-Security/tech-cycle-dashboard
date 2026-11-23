@@ -138,11 +138,21 @@ def run(prices: dict[str, pd.DataFrame], watchlist: dict, store: RawStore, as_of
 
 
 def merge(existing: dict | None, new: dict, markets: tuple[str, ...], watchlist: dict) -> dict:
-    """Replace the rows of `markets`, keep the other markets' rows; summaries per market."""
+    """Replace the rows of `markets`, keep the other markets' rows; summaries per market.
+
+    A name whose check failed this run ("unavailable") keeps its last good
+    result, marked stale, so an outage of the second source neither erases the
+    comparison nor the non-trading days the forecast ledger relies on. A market
+    stamp only advances when at least one of its names was actually checked."""
     old = (existing or {}).get("stocks", {})
     mk_of = {x["symbol"]: x["market"] for x in watchlist["stocks"]}
     stocks = {s: v for s, v in old.items() if mk_of.get(s, v.get("market")) not in markets}
-    stocks.update(new["stocks"])
+    for s, v in new["stocks"].items():
+        prev = old.get(s)
+        if v["status"] == "unavailable" and prev and prev.get("status") != "unavailable":
+            stocks[s] = {**prev, "stale": True, "last_error": v.get("reason")}
+        else:
+            stocks[s] = v
     order = [x["symbol"] for x in watchlist["stocks"] if x["symbol"] in stocks]
     stocks = {s: {**stocks[s], "market": mk_of.get(s, stocks[s].get("market"))} for s in order}
     by = {}
@@ -155,7 +165,9 @@ def merge(existing: dict | None, new: dict, markets: tuple[str, ...], watchlist:
         # Files written before per-market stamps: the other market was checked at the old as_of.
         if m not in markets and m not in updated and (existing or {}).get("as_of"):
             updated[m] = existing["as_of"]
-    updated.update(new["updated"])
+    for m, stamp in new["updated"].items():
+        if any(v.get("market") == m and v["status"] != "unavailable" for v in new["stocks"].values()):
+            updated[m] = stamp
     return {**new, "stocks": stocks, "summary_by_market": by, "updated": updated,
             "summary": {k: int(v) for k, v in pd.Series([v["status"] for v in stocks.values()]).value_counts().items()} if stocks else {},
             "n": len(stocks)}

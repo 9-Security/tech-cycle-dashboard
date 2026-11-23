@@ -125,17 +125,24 @@ Implications (not implemented — they would be design changes that need their o
 
 ## 7. Operations
 
-* `.github/workflows/refresh.yml`: Mon–Fri 22:15 UTC → tests → fetch → DQ gates → walk-forward → commit `data/` → deploy GitHub Pages. A second run, Mon–Fri 07:07 UTC (15:07 Taiwan time, after the TWSE close), refreshes only the Taiwan stocks of the Stocks page (`python -m tcd stocks --market TW`); manual runs pick `full` or `tw`. Any failure stops before commit/deploy (fail-closed); the site keeps the last good data and its banner turns **stale** after 4 days.
+* `.github/workflows/refresh.yml`: Mon–Fri 22:15 UTC → tests → fetch → DQ gates → walk-forward → commit `data/` → deploy GitHub Pages. A second run, Mon–Fri 07:07 UTC (15:07 Taiwan time, after the TWSE close), refreshes only the Taiwan stocks of the Stocks page (`python -m tcd stocks --market TW`); manual runs pick `full` or `tw`.
+* **Failure handling.** The core model is fail-closed: a fetch failure, a failed data-quality gate or a crash stops the run before commit/deploy, the site keeps the last good data and its banner turns **stale** after 4 days. Report-only blocks (cross-market test, stock monitor, second-source check, forecast ledger) never block the core model; since 2026-11-23 their failures are recorded in `health.json → report_issues` (`degraded: true`) and shown in the banner, and a second-source outage keeps the last good comparison (marked `stale`) instead of overwriting it. The Taiwan-only run refuses to write when `^TWII`'s last bar is older than 7 days and writes nothing when there is no new bar (holiday); its issues go to `stocks.json → run_issues`.
+* **Before every commit** `engine/tools/validate_data.py` checks that all JSON/CSV parse (no NaN), that the forecast ledger is a byte-prefix extension of the committed one (re-checked after any rebase), and that no e-mail address appears anywhere in `data/`.
+* **Supply chain.** Dependencies are installed from `engine/requirements-dev.lock` (exact versions that passed the tests, SHA-256 hashes, `--require-hashes`). The write token is not persisted in `.git/config` while dependencies, tests and the engine run; it is passed only to the push. `SEC_USER_AGENT` is stripped, rejected if it contains control characters, and request errors never echo header values. GitHub Actions are pinned by major tag, not commit SHA (not changed in this round).
+* **Concurrency.** Data refreshes queue in their own group and Pages deploys in another, so a push-triggered redeploy can no longer cancel a pending scheduled refresh.
 * Partial (in-progress) month: shown as **provisional** regime; never enters the backtest.
 * Walk-forward parameters for the live month = the fold for the current year (trained through last December), so live posture and backtest use the same rule.
-* Provenance: `data/health.json` holds DQ results, per-source latest dates and a SHA-256 manifest of every raw file; `data/history.csv` logs one row per run day.
+* Provenance: `data/health.json` holds DQ results, per-source latest dates, the git commit actually checked out, the run mode (`live` / `offline`, `allow_stale`) and a SHA-256 manifest of the core raw files with full request URLs (headers are never recorded); the stock, cross-market and second-source files carry their own manifests or source URLs. Raw files themselves are not archived, so hashes document what was used rather than allow re-verification. `data/history.csv` logs one row per run day.
 
 ```bash
 cd engine
-pip install -r requirements-dev.txt
+pip install --require-hashes -r requirements-dev.lock
 python -m pytest -q tests
-python -m tcd refresh --out ../data          # online
-python -m tcd refresh --offline --out ../data # reuse engine/.cache/raw
+python -m tcd refresh --out ../data                                   # online
+python -m tcd refresh --offline --out /tmp/tcd-out                    # reuse engine/.cache/raw; do not commit
+python tools/validate_data.py --data ../data                           # the pre-commit checks
+# Lockfile: edit requirements*.txt, then re-pin to versions that pass the tests:
+#   pip-compile --generate-hashes --allow-unsafe --strip-extras -c <tested versions> -o requirements-dev.lock requirements-dev.txt
 ```
 
 
@@ -393,6 +400,8 @@ Four independent reviewers (point-in-time correctness, statistical methods, stoc
 
 **v3 pre-registration.** The point-in-time fix changes `fundamentals.py`, which is part of the frozen v3 specification. Following the promotion rule (C5: a spec change resets the design date), the design date is reset to 2026-11-23 — the same day, so the first counted month stays 2026-12 and no post-design evidence existed yet. The fingerprint changes from `88e42dfd…ab61d` to `6855f924…fdb98e`; see the changelog in [model-promotion.md](model-promotion.md).
 
-**Found, not yet fixed** (no effect on published numbers, or operational): report-only blocks swallow failures and health.json does not record them; push-deploy runs share the refresh concurrency group (a pending scheduled refresh can be cancelled); unpinned dependencies in a job holding a write token; no freshness gate on the Taiwan-only run; ledger edge cases (holiday-dated origins, outcomes wiped on a failed fetch, model_id dtype on read-back, verdicts pooling model ids). Minor: Sortino definition, `r2_log` diagnostic, BDay-based cutoffs ignoring exchange holidays, BSS verdict sensitivity to block length, partial-month flag on holiday month-ends.
+**Fixed in the second round (operations and security, no effect on published numbers):** report-only failures recorded in health.json and the banner; second-source outages keep the last good results; per-job concurrency groups; hash-pinned dependencies and no persisted write token; ci.yml with read-only permissions; freshness and no-new-bar gates on the Taiwan-only run; secret sanitising and redacted request errors; pre-commit data validation (strict JSON/CSV, append-only ledger against the previous commit, no e-mail addresses); git commit and run mode recorded; full request URLs in manifests; a real append check in the ledger. Not done: pinning Actions by commit SHA.
+
+**Found, not yet fixed:** ledger edge cases (holiday-dated origins, outcomes wiped on a failed fetch, model_id dtype on read-back, verdicts pooling model ids, stale-run origin dates). Minor: Sortino definition, `r2_log` diagnostic, BDay-based cutoffs ignoring exchange holidays, BSS verdict sensitivity to block length, partial-month flag on holiday month-ends, no CSP header, a few engine-generated values inserted into HTML without escaping.
 
 **Known limitations, unchanged:** survivorship (today's ten leaders), design choices made after full-sample work, macro proxies from the latest FRED vintage. The market VaR, although it passes over 2000–2026 (4.76%), breached 7.15% of days over the last three years (Kupiec p 0.011); per the decision to judge stock and market VaR changes on live data, this is monitored, not tuned on the backtest.

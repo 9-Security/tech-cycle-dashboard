@@ -23,29 +23,38 @@ on:
 # Least privilege: each job declares only what it needs.
 permissions: {}
 
-concurrency:
-  group: refresh-and-pages
-  cancel-in-progress: false
+# Concurrency is per job, not per workflow. GitHub cancels a *pending* run when
+# a newer one joins the same group, so a shared group let a push-triggered
+# redeploy cancel a queued scheduled refresh. Data refreshes now queue only
+# among themselves, and Pages deploys only among themselves (a newer deploy
+# replacing a pending older one is harmless: every build checks out the latest
+# main, data included).
 
 jobs:
   refresh:
     # Pushes only redeploy; data refresh runs on schedule / manual dispatch.
     if: github.event_name != 'push'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
+    concurrency:
+      group: data-refresh
+      cancel-in-progress: false
     permissions:
       contents: write  # commit refreshed data/
     steps:
       - uses: actions/checkout@v4
         with:
           ref: main
+          # Do not leave the write token in .git/config while third-party code
+          # (pip install, tests, the engine) runs; it is used only in the push step.
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
-          cache-dependency-path: engine/requirements-dev.txt
-      - name: Install
-        run: pip install -r engine/requirements-dev.txt
+          cache-dependency-path: engine/requirements-dev.lock
+      - name: Install (pinned versions, hash-checked)
+        run: pip install --require-hashes -r engine/requirements-dev.lock
       - name: Unit tests (look-ahead / lag-1 guards)
         working-directory: engine
         run: python -m pytest -q tests
@@ -74,9 +83,14 @@ jobs:
           # details is used.
           SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}
         run: python -m tcd refresh --out ../data --cache .cache/raw
+      - name: Validate outputs before commit
+        working-directory: engine
+        run: python tools/validate_data.py --data ../data --base-ref HEAD
       - name: Commit refreshed data
         env:
           SCOPE: ${{ steps.scope.outputs.scope }}
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -90,8 +104,16 @@ jobs:
           else
             git commit -m "data: daily refresh $(date -u +%Y-%m-%d)"
           fi
+          REMOTE="https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"
           for i in 1 2 3; do
-            git pull --rebase origin main && git push origin HEAD:main && exit 0
+            if git pull --rebase "$REMOTE" main; then
+              # Re-validate after the rebase: the merged files must still be valid
+              # and the ledger still append-only against the new base.
+              (cd engine && python tools/validate_data.py --data ../data --base-ref HEAD~1) || exit 1
+              git push "$REMOTE" HEAD:main && exit 0
+            else
+              git rebase --abort || true
+            fi
             sleep $((i * 10))
           done
           exit 1
@@ -109,6 +131,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: main  # includes the data commit pushed by the refresh job
+          persist-credentials: false
       - name: Stage static site
         run: |
           mkdir -p _site
@@ -131,6 +154,9 @@ jobs:
     if: always() && needs.build.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    concurrency:
+      group: pages-deploy
+      cancel-in-progress: false
     permissions:
       pages: write
       id-token: write

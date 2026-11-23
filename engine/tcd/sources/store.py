@@ -44,8 +44,9 @@ class RawStore:
             tmp.write_bytes(data)
             tmp.replace(path)
             fetched_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        from urllib.parse import urlencode
         self.manifest[name] = {
-            "url": url,
+            "url": url + ("?" + urlencode(params) if params else ""),
             "sha256": hashlib.sha256(data).hexdigest(),
             "bytes": len(data),
             "fetched_at": fetched_at,

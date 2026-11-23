@@ -44,6 +44,8 @@
   add("banner.stale", "Stale data.", "資料已過期。");
   add("banner.body", "Last refresh {run} · market data through <strong>{through}</strong> · monthly panel through {panel} · DQ {pass}/{total} pass",
     "最後更新 {run} · 市場資料截至 <strong>{through}</strong> · 月度資料截至 {panel} · 資料品質檢查 {pass}/{total} 通過");
+  add("banner.offline", " · offline re-run from cached data.", " · 以快取資料離線重跑。");
+  add("banner.issues", " · <strong>not updated this run:</strong> {list} (previous results shown).", " · <strong>本次未更新：</strong>{list}（顯示的是先前的結果）。");
   add("banner.staleNote", " · the daily refresh has not succeeded for {days} days.", " · 每日自動更新已 {days} 天未成功。");
   add("regime.1", "Overheat", "過熱");
   add("regime.2", "Shock", "衝擊");
