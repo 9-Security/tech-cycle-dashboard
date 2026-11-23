@@ -65,6 +65,12 @@ def _issue(issues: list, component: str, exc: Exception) -> None:
     log.error("%s failed (published as a report issue): %s", component, msg)
 
 
+def session_in_progress(market: str, last_bar: pd.Timestamp, now_utc: datetime) -> bool:
+    """True when the latest daily bar is still being traded (its close is not
+    final), e.g. a manual run during the US or Taiwan session."""
+    return not ledger.bar_is_final(market, str(pd.Timestamp(last_bar).date()), now_utc)
+
+
 def refresh(args: argparse.Namespace) -> int:
     cfg = EngineConfig()
     issues: list[dict] = []  # failures of report-only blocks; the core model is fail-closed
@@ -75,6 +81,13 @@ def refresh(args: argparse.Namespace) -> int:
 
     log.info("fetching raw data (offline=%s) into %s", args.offline, args.cache)
     raw = fetch_all(Path(args.cache), cfg, offline=args.offline)
+    last_bar = raw.ndx.index.max()
+    if session_in_progress("US", last_bar, now) and not args.allow_intraday:
+        # Publishing now would show (and model) an unfinished day until the next
+        # run. Nothing is written; the job ends normally (no commit, no alert).
+        log.warning("US session in progress (last bar %s is not final): nothing written. "
+                    "Re-run after the close, or pass --allow-intraday.", last_bar.date())
+        return 0
     log.info("building PIT monthly panel")
     panel = build_panel(raw, cfg.features)
     bt = prepare(panel, cfg.backtest)
@@ -333,6 +346,12 @@ def stocks_refresh(args: argparse.Namespace) -> int:
     syms = [x["symbol"] for x in wl["stocks"] if x["market"] in markets] + [wl["benchmarks"][m] for m in markets]
     cfg = EngineConfig()
     prices, manifest, warns = fetch_stock_prices(Path(args.cache), args.offline, cfg.fetch.timeout_s, cfg.fetch.retries, syms)
+    bench_px = prices.get(wl["benchmarks"][args.market])
+    if bench_px is not None and not args.allow_intraday and \
+            session_in_progress(args.market, bench_px["close"].dropna().index.max(), now):
+        log.warning("%s session in progress: nothing written. Re-run after the close, or pass --allow-intraday.",
+                    args.market)
+        return 0
     for w in warns:
         log.warning("fetch: %s", w)
     raw_prices = prices
@@ -392,6 +411,8 @@ def main(argv: list[str] | None = None) -> int:
     r.add_argument("--cache", default=".cache/raw", help="raw download cache")
     r.add_argument("--offline", action="store_true", help="use cached raw files only")
     r.add_argument("--allow-stale", action="store_true", help="skip market freshness gate (backfills/tests)")
+    r.add_argument("--allow-intraday", action="store_true",
+                   help="publish even while the US session is in progress (unfinished bar)")
     r.add_argument("--max-staleness-days", type=int, default=7)
     r.add_argument("--run-date", help="override run date (YYYY-MM-DD) for freshness checks")
     r.add_argument("-v", "--verbose", action="store_true")
@@ -401,6 +422,8 @@ def main(argv: list[str] | None = None) -> int:
     st.add_argument("--cache", default=".cache/raw")
     st.add_argument("--offline", action="store_true")
     st.add_argument("--allow-stale", action="store_true", help="skip the benchmark freshness gate")
+    st.add_argument("--allow-intraday", action="store_true",
+                    help="publish even while the market's session is in progress (unfinished bar)")
     st.add_argument("--max-staleness-days", type=int, default=7)
     st.add_argument("-v", "--verbose", action="store_true")
     args = ap.parse_args(argv)
