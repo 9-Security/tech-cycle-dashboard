@@ -78,7 +78,7 @@ jobs:
       - name: Stage static site
         run: |
           mkdir -p _site
-          cp -r index.html validation.html signals.html risk.html scenarios.html css js static data _site/
+          cp -r index.html validation.html signals.html risk.html stocks.html scenarios.html css js static data _site/
           touch _site/.nojekyll
           # Cache-busting: Pages lets browsers cache assets (~10 min). Version every
           # local js/css/static URL with the deployed commit so a new page never

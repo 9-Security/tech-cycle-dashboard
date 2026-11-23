@@ -25,6 +25,7 @@ from .quality import DataQualityError, enforce, run_checks
 from . import promotion
 from .cross_market import fetch_markets, run_cross_market
 from .light import build_light
+from .stocks import fetch_prices as fetch_stock_prices, load_watchlist, run_stocks
 from .risk_model import run_risk
 from .short_risk import run_short_risk
 from .signal_study import run_study
@@ -181,6 +182,20 @@ def refresh(args: argparse.Namespace) -> int:
     except Exception as exc:  # noqa: BLE001 - report-only block
         log.warning("cross-market test skipped: %s", exc)
 
+    # Per-stock risk monitoring (report only; never blocks the refresh).
+    stocks = None
+    try:
+        wl = load_watchlist()
+        syms = [x["symbol"] for x in wl["stocks"]] + [b for b in wl["benchmarks"].values() if b != "^NDX"]
+        sprices, smanifest, swarn = fetch_stock_prices(Path(args.cache), args.offline, cfg.fetch.timeout_s, cfg.fetch.retries,
+                                                       syms, already_fetched=set(raw.prices))
+        sprices["^NDX"] = raw.ndx
+        stocks = {**meta, **run_stocks(sprices, raw, wl), "fetch_warnings": swarn, "raw_manifest": smanifest}
+        log.info("stocks: %d analysed, %d verified VaR, skipped %s", len(stocks["stocks"]),
+                 sum(r["backtest"]["verified"] for r in stocks["stocks"]), stocks["skipped"])
+    except Exception as exc:  # noqa: BLE001 - report-only block
+        log.warning("stock monitoring skipped: %s", exc)
+
     signals = {**meta, **run_study(panel)}
     risk = {**meta, **run_risk(panel)}
     risk["short_term"] = run_short_risk(raw)
@@ -210,7 +225,7 @@ def refresh(args: argparse.Namespace) -> int:
     series = build_series(vrun, panel, as_of, candidate=vrun3)
     written = write_all(Path(args.out), series=series, status=status, scenarios=scenarios,
                         validation=validation, health=health, panel=panel, history_row=history_row,
-                        signals=signals, risk=risk, cross_market=cross)
+                        signals=signals, risk=risk, cross_market=cross, stocks=stocks)
     log.info("wrote %d files to %s in %.1fs", len(written), args.out, time.time() - t0)
     log.info("v2 regime %s | weight %.2f | OOS Sharpe %.2f | BH Sharpe %.2f",
              status["regime"]["label"], status["weights"]["executed_weight"],

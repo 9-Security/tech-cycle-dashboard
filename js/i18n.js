@@ -368,6 +368,64 @@
   add("mkt.EWU", "United Kingdom (EWU)", "英國（EWU）");
   add("mkt.EEM", "Emerging markets (EEM)", "新興市場（EEM）");
 
+  // ------------------------------------------------------------- stocks
+  add("nav.stocks", "Stocks", "個股");
+  add("st.title", "Tech Cycle — Stocks", "科技週期 — 個股");
+  add("st.asof", "Per-stock risk monitoring · US mega caps + Taiwan AI supply chain · as of <strong>{asof}</strong>",
+    "個股風險監控 · 美股大型科技股＋台股 AI 供應鏈 · 資料時間 <strong>{asof}</strong>");
+  add("st.intro", "Risk monitoring only — not buy or sell recommendations. Each stock gets its own risk light (same rule as the market light, measured against the stock's own history), next-day volatility and a 1-day 95% VaR from a model checked out-of-sample. 'Verified' means the VaR passed both backtests; many Taiwan names fail because big moves cluster (limit-down days follow each other), which a one-day model cannot anticipate. US names also show point-in-time SEC fundamentals.",
+    "僅供風險監控，不是買賣建議。每檔個股都有自己的風險燈號（規則與大盤燈號相同，但以個股自己的歷史為基準）、明日波動，以及經過樣本外回測的 1 日 95% VaR。「已驗證」代表 VaR 通過兩項回測；許多台股沒通過，原因是大跌容易連續發生（跌停後常再跌停），單日模型無法預期。美股另外顯示依申報時點計算的 SEC 財報數字。");
+  add("st.sort", "Sort by", "排序");
+  add("st.sort.list", "Watchlist order", "清單順序");
+  add("st.sort.light", "Risk light (red first)", "風險燈號（紅燈優先）");
+  add("st.sort.vol", "Next-day volatility", "明日波動");
+  add("st.sort.ret1m", "1-month return", "近 1 個月漲跌");
+  add("st.sort.dd", "Drop from 52-week high", "距 52 週高點跌幅");
+  add("st.us.h2", "US mega-cap tech", "美股大型科技股");
+  add("st.tw.h2", "Taiwan AI supply chain", "台股 AI 供應鏈");
+  add("st.cols.common", "Stock|Segment|Light|Close|1M|From 52w high|Next-day vol (ann.)|1-day 95% VaR|VaR check|Beta 1y",
+    "個股|環節|燈號|收盤價|近 1 月|距 52 週高點|明日波動（年化）|1 日 95% VaR|VaR 驗證|Beta（1 年）");
+  add("st.cols.fund", "P/E|Revenue YoY|Net income YoY|Capex / revenue|Last filing", "本益比|營收年增|淨利年增|Capex／營收|最新申報");
+  add("st.nm", "n/m", "無意義");
+  add("st.vr.ok", "verified", "已驗證");
+  add("st.vr.short history", "short history", "歷史太短");
+  add("st.vr.coverage rejected", "coverage off", "涵蓋率不足");
+  add("st.vr.breaches cluster", "breaches cluster", "突破集中");
+  add("st.vr.insufficient history", "insufficient data", "資料不足");
+  add("st.vr.tip", "OOS {n} days since {d}: breach rate {r} (target 5%), Kupiec p {k}, Christoffersen p {c}; vs EWMA DM t {dm}",
+    "樣本外 {n} 個交易日（自 {d} 起）：突破率 {r}（目標 5%），Kupiec p {k}，Christoffersen p {c}；相對 EWMA 的 DM t {dm}");
+  add("st.click", "Select a row for details.", "點選任一列查看詳細資料。");
+  add("st.d.title", "{name} ({sym}) — {seg}", "{name}（{sym}）— {seg}");
+  add("st.d.light.green", "Green: relatively calm for this stock", "綠燈：以這檔股票自身而言相對平靜");
+  add("st.d.light.yellow", "Yellow: volatility elevated for this stock", "黃燈：以這檔股票自身而言波動偏高");
+  add("st.d.light.red", "Red: turbulent for this stock, short-term risk clearly elevated", "紅燈：以這檔股票自身而言處於動盪期，短期風險明顯偏高");
+  add("st.d.vol", "Expected volatility is about {r}× this stock's usual level (higher than {p} of its trading days since {y}); daily moves of ±{m} are ordinary right now.",
+    "預估波動約是這檔股票平常的 {r} 倍（高於 {y} 年以來 {p} 的交易日）；現在單日漲跌 ±{m} 都算正常範圍。");
+  add("st.d.var", "About 1 trading day in 20 could see a loss larger than {v}.", "每 20 個交易日中，大約有 1 天可能跌超過 {v}。");
+  add("st.d.var.unverified", "This VaR did not pass its backtest ({why}); treat it as a rough guide.", "這個 VaR 沒有通過回測（{why}），只能當作粗略參考。");
+  add("st.d.mkt", "Last close {c} on {d}; {r1} over 1 month; {dd} from the 52-week high; beta {b} to {bench}.",
+    "{d} 收盤 {c}；近 1 個月 {r1}；距 52 週高點 {dd}；相對 {bench} 的 Beta 為 {b}。");
+  add("st.d.fund", "SEC filings (latest {f}): TTM revenue ${rev}B ({rg} YoY), TTM net income ${ni}B ({ng} YoY), trailing P/E {pe}, Capex / revenue {cx}.",
+    "SEC 申報（最新 {f}）：近四季營收 {rev_yi} 億美元（年增 {rg}），近四季淨利 {ni_yi} 億美元（年增 {ng}），本益比 {pe}，Capex／營收 {cx}。");
+  add("st.d.price", "Price (last 12 months)", "股價（近 12 個月）");
+  add("st.d.ret", "Daily return", "每日報酬");
+  add("st.d.varline", "−95% VaR (set the evening before)", "−95% VaR（前一晚設定）");
+  add("st.footer", "Model: log-HAR on each stock's own daily returns (fitted on next-5-day variance; stale price runs and impossible Taiwan moves removed), EWMA baseline · VaR verified if ≥ 500 OOS days and Kupiec and Christoffersen p ≥ 0.05 · beta vs ^NDX (US) or ^TWII (Taiwan) · engine {ver}",
+    "模型：以個股自身日報酬估計的 log-HAR（以未來 5 日變異數擬合；已剔除價格停滯期與台股不可能出現的漲跌），以 EWMA 為對照 · VaR「已驗證」需樣本外 ≥ 500 天且 Kupiec 與 Christoffersen p ≥ 0.05 · Beta 對照 ^NDX（美股）或 ^TWII（台股）· 引擎 {ver}");
+  add("seg.mega_cap", "Mega-cap tech", "大型科技股");
+  add("seg.foundry", "Foundry", "晶圓代工");
+  add("seg.ic_design", "IC design / ASIC", "IC 設計／ASIC");
+  add("seg.server_odm", "AI server ODM", "AI 伺服器組裝");
+  add("seg.power", "Power", "電源");
+  add("seg.thermal", "Thermal", "散熱");
+  add("seg.rails", "Server rails", "伺服器滑軌");
+  add("seg.networking", "Networking", "網通交換器");
+  add("seg.pcb", "PCB / substrates", "PCB 材料／載板");
+  add("seg.packaging", "Packaging / equipment", "封測／設備");
+  add("light.short.green", "green", "綠");
+  add("light.short.yellow", "yellow", "黃");
+  add("light.short.red", "red", "紅");
+
   // ------------------------------------------------------------ signals
   add("sig.title", "Tech Cycle — Signals", "科技週期 — 訊號");
   add("sig.asof", "Stand-alone signal tests · as of <strong>{asof}</strong>", "單一訊號檢驗 · 資料時間 <strong>{asof}</strong>");
