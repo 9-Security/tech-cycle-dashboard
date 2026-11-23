@@ -41,6 +41,8 @@ jobs:
       cancel-in-progress: false
     permissions:
       contents: write  # commit refreshed data/
+    outputs:
+      scope: ${{ steps.scope.outputs.scope }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -168,3 +170,65 @@ jobs:
       - uses: actions/configure-pages@v5
       - id: deployment
         uses: actions/deploy-pages@v4
+
+  notify:
+    # Report the run's state as GitHub issues (the owner is notified of new
+    # issues and comments by default): failure -> open / comment, success ->
+    # close. Report-only components that failed (health.json / stocks.json)
+    # get their own "degraded" issue. Labels are per scope, so a Taiwan-only
+    # success never closes a failure of the full refresh.
+    needs: [refresh, build, deploy]
+    if: always() && github.event_name != 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main  # latest data, including this run's commit
+          persist-credentials: false
+      - name: Report run state as issues
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          R_REFRESH: ${{ needs.refresh.result }}
+          R_BUILD: ${{ needs.build.result }}
+          R_DEPLOY: ${{ needs.deploy.result }}
+          SCOPE: ${{ needs.refresh.outputs.scope || 'full' }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          today=$(date -u +%Y-%m-%d)
+          failed=""
+          for j in "refresh:$R_REFRESH" "build:$R_BUILD" "deploy:$R_DEPLOY"; do
+            case "${j#*:}" in failure|cancelled) failed="$failed ${j%%:*}" ;; esac
+          done
+          if [ -n "$failed" ]; then
+            bash .github/scripts/notify.sh "refresh-failure-$SCOPE" fail "Data refresh ($SCOPE) failed" \
+              "Run $RUN_URL ($today) failed in:$failed. Nothing was published; the site keeps the last good data and its banner turns stale after 4 days. This issue closes itself after the next successful $SCOPE refresh."
+            exit 0
+          fi
+          bash .github/scripts/notify.sh "refresh-failure-$SCOPE" ok "" "Recovered: run $RUN_URL ($today) succeeded."
+          # Report-only components that failed in this run (names only).
+          comps=$(SCOPE="$SCOPE" python3 - <<'PY'
+          import json, os
+          scope = os.environ["SCOPE"]
+          names = []
+          try:
+              if scope == "full":
+                  names += [i["component"] for i in json.load(open("data/health.json")).get("report_issues", [])]
+              else:
+                  run = json.load(open("data/stocks.json")).get("run_issues", {}).get("TW", {})
+                  names += [i["component"] for i in run.get("issues", [])]
+          except (OSError, ValueError):
+              names.append("status-file-unreadable")
+          print(" ".join(sorted(set(names))))
+          PY
+          )
+          if [ -n "$comps" ]; then
+            bash .github/scripts/notify.sh "refresh-degraded-$SCOPE" fail "Data refresh ($SCOPE): report-only components failed" \
+              "Run $RUN_URL ($today) published, but these report-only components were not updated: $comps. Their previous results stay on the site, marked in the banner. Closes itself when a $SCOPE refresh has no such failures."
+          else
+            bash .github/scripts/notify.sh "refresh-degraded-$SCOPE" ok "" "Recovered: run $RUN_URL ($today) had no report-only failures."
+          fi
