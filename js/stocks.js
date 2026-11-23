@@ -104,12 +104,35 @@
     if (scroll) box.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
+  // "20261123T085808Z" -> "2026-11-23 16:58 (UTC+8)"; display in Taiwan time for both markets.
+  function stampFmt(st) {
+    const m = /^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})/.exec(st || "");
+    if (!m) return st || "—";
+    const dt = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]) + 8 * 3600e3);
+    const p = (n) => String(n).padStart(2, "0");
+    return dt.getUTCFullYear() + "-" + p(dt.getUTCMonth() + 1) + "-" + p(dt.getUTCDate()) + " " +
+      p(dt.getUTCHours()) + ":" + p(dt.getUTCMinutes()) + " (UTC+8)";
+  }
+
+  function renderUpdated(d) {
+    const upd = d.updated || {};
+    ["US", "TW"].forEach((mk) => {
+      const rows = d.stocks.filter((s) => s.market === mk);
+      const dates = rows.filter((s) => !s.stale).map((s) => s.last_date).filter(Boolean).sort();
+      const stale = rows.filter((s) => s.stale).length;
+      let txt = t("st.upd", { d: esc(dates.length ? dates[dates.length - 1] : "—"), u: esc(stampFmt(upd[mk] || d.as_of)) });
+      if (stale) txt += " · " + t("st.upd.stale", { n: stale });
+      setHTML("upd-" + mk.toLowerCase(), txt);
+    });
+  }
+
   async function boot() {
     const [d, health] = await Promise.all([loadJSON("data/stocks.json"), loadJSON("data/health.json").catch(() => null)]);
     DATA = d;
     document.body.dataset.ready = "1";
     renderBanner(health);
     setHTML("asof-line", t("st.asof", { asof: esc(d.as_of) }));
+    renderUpdated(d);
     document.getElementById("sortPick").addEventListener("change", renderTables);
     renderTables();
     if (d.stocks.length) showDetail(d.stocks[0].symbol, false);

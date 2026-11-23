@@ -97,3 +97,16 @@ def test_analyze_stock_shape():
     row = analyze_stock(spec, px, px["adjclose"], StockConfig())
     assert row["level"] in {"green", "yellow", "red"} and len(row["chart"]["dates"]) == 252
     assert row["fundamentals"] is None and 0 < row["var95"] < 0.5
+
+
+def test_merge_keeps_other_market_and_stale_rows():
+    from tcd.stocks import merge_stocks
+    wl = {"stocks": [{"symbol": "A", "market": "US"}, {"symbol": "B", "market": "TW"}, {"symbol": "C", "market": "TW"}]}
+    existing = {"stocks": [{"symbol": "A", "market": "US", "v": 1}, {"symbol": "B", "market": "TW", "v": 1},
+                           {"symbol": "C", "market": "TW", "v": 1}], "updated": {"US": "t0", "TW": "t0"}}
+    new = {"stocks": [{"symbol": "B", "market": "TW", "v": 2}], "skipped": ["C"]}
+    m = merge_stocks(existing, new, ("TW",), wl, "t1")
+    by = {r["symbol"]: r for r in m["stocks"]}
+    assert [r["symbol"] for r in m["stocks"]] == ["A", "B", "C"]
+    assert by["A"]["v"] == 1 and by["B"]["v"] == 2 and by["C"]["v"] == 1 and by["C"]["stale"] is True
+    assert m["updated"] == {"US": "t0", "TW": "t1"}

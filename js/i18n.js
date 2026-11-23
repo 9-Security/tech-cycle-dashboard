@@ -383,6 +383,8 @@
   add("st.sort.dd", "Drop from 52-week high", "距 52 週高點跌幅");
   add("st.us.h2", "US mega-cap tech", "美股大型科技股");
   add("st.tw.h2", "Taiwan AI supply chain", "台股 AI 供應鏈");
+  add("st.upd", "Prices through <strong>{d}</strong> · updated {u}", "股價資料截至 <strong>{d}</strong> · 更新時間 {u}");
+  add("st.upd.stale", "{n} name(s) kept from the previous update (fetch failed)", "{n} 檔沿用上次資料（本次抓取失敗）");
   add("st.cols.common", "Stock|Segment|Light|Close|1M|From 52w high|Next-day vol (ann.)|1-day 95% VaR|VaR check|Beta 1y",
     "個股|環節|燈號|收盤價|近 1 月|距 52 週高點|明日波動（年化）|1 日 95% VaR|VaR 驗證|Beta（1 年）");
   add("st.cols.fund", "P/E|Revenue YoY|Net income YoY|Capex / revenue|Last filing", "本益比|營收年增|淨利年增|Capex／營收|最新申報");
