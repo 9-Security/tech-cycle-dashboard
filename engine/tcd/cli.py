@@ -271,7 +271,8 @@ def refresh(args: argparse.Namespace) -> int:
             _issue(issues, "forecast_ledger", exc)
     try:  # market-level live forecast ledger (report only)
         market_ledger.update(Path(args.out), raw, panel, risk["short_term"]["current"], risk["vol_forecast"]["current"],
-                             status["light"].get("level"), as_of, datetime.now(timezone.utc), __version__)
+                             status["light"].get("level"), as_of, datetime.now(timezone.utc), __version__,
+                             challenger=risk["short_term"].get("challenger"))
     except Exception as exc:  # noqa: BLE001
         _issue(issues, "market_ledger", exc)
     health["degraded"] = bool(issues)

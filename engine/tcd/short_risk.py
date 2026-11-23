@@ -365,6 +365,9 @@ def run_short_risk(raw: RawData, cfg: ShortRiskConfig | None = None) -> dict:
     rn = df["r_next"].reindex(tail.index)
     q = tail[f"q_{live_model}"]
     var_line = -(q * np.sqrt(tail[f"{live_model}_1"]))
+    cur = current(df, cfg, live_model, fc)
+    from . import var_challenger  # registered challenger, logged side by side (not used live)
+    challenger = var_challenger.run(df, fc, live_model, cfg.oos_start_year, cur["vol_1d"] ** 2)
     return {
         "settings": {"models": MODEL_LABELS, "horizons": list(cfg.horizons), "oos_start_year": cfg.oos_start_year,
                      "var": "1-day 95%, filtered historical simulation (EWMA: normal); quantile of standardized returns of earlier out-of-sample forecasts (expanding window, >= 500 days)" if cfg.var_quantile == "oos" else "1-day 95%, filtered historical simulation (EWMA: normal); in-sample quantile",
@@ -377,7 +380,8 @@ def run_short_risk(raw: RawData, cfg: ShortRiskConfig | None = None) -> dict:
         "epu_verdict": verdict,
         "live_model": live_model,
         "coefficients": {m: c[-5:] for m, c in coefs.items()},
-        "current": current(df, cfg, live_model, fc),
+        "current": cur,
+        "challenger": challenger,
         "chart": {"dates": [str(d.date()) for d in tail.index],
                   "next_day_return": [None if pd.isna(v) else round(float(v), 5) for v in rn],
                   "var95": [None if pd.isna(v) else round(float(v), 5) for v in var_line]},

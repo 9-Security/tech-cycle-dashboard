@@ -446,3 +446,20 @@ Module `engine/tcd/market_ledger.py`; files `data/forecasts/market_ledger.csv` (
 **Pre-registered review rules** (fixed before any outcome exists): `var_1d` verdict after 250 scored days (Kupiec and Christoffersen, p ≥ 0.05 = consistent); `vol_1m` verdict after 24 months (90% band coverage within 80–97% = consistent, roughly the binomial 90% range at n = 24); `vol_5d` descriptive only. The last 60 days of `var_1d` are shown separately. Outcomes `scored` are final; verdicts use only the current model (`model_id`: hash of the forecasting code path and config — for `var_1d`/`vol_5d` also the name of the live HAR model; for `vol_1m` the monthly regression). No backfill; nothing feeds back into the models.
 
 **First rows (2026-11-23):** `var_1d` and `vol_5d` from the 2026-11-20 close, `vol_1m` from the 2026-10-31 month-end. A `var_1d` verdict is due after about one year, the first `vol_1m` verdict after two. The recent under-coverage of the market VaR (§ 16: 7.15% over the last three years) will be judged on this record, not on the backtest.
+
+## 18. Pre-registered challenger for the market VaR (2026-11-23)
+
+Module `engine/tcd/var_challenger.py`; registered in commit `a6f4a2e` (2026-11-23 13:58 UTC) **before any result of the challenger was computed**.
+
+* **Problem.** The live VaR's quantile comes from an expanding window of earlier out-of-sample standardized returns, updated yearly. It covers over 2000–2026 (4.76%) but breached 7.15% of days over the last three years (Kupiec p 0.011, § 16).
+* **Challenger (the only one).** Same HAR+VIX variance; quantile = 5% quantile of the last **500** out-of-sample standardized returns (≈ 2 years), updated daily. 500 was fixed on that principle and will not be tuned; a different window would be a new challenger with a new registration.
+* **Live comparison.** Both are logged in the market ledger (§ 17) as `var_1d` and `var_1d_challenger` with their own `model_id`s and scored on the same days.
+* **Decision rule (fixed at registration).** After ≥ 250 live days scored for both: recommend switching **only if** the incumbent fails (Kupiec or Christoffersen p < 0.05) **and** the challenger passes both; otherwise keep the incumbent. The owner decides; nothing switches automatically. Shown in `forecast_review_market.json → challenger_comparison` and on the risk page.
+* **Backtest — context only, not evidence** (the same window was used to find the problem, so the challenger is expected to look better on it):
+
+| Window | Incumbent | Challenger |
+|---|---|---|
+| 2000-01 → 2026-11 (6,762 days) | 4.76%, Kupiec p 0.37, Christoffersen p 0.09 | 5.31%, p 0.25, p 0.47 |
+| Last 3 years (756 days) | 7.14%, p 0.011 | 6.22%, p 0.14 |
+
+Current 1-day VaR (2026-11-20): incumbent 5.50%, challenger 5.98%. The site keeps showing the incumbent.

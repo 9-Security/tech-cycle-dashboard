@@ -38,7 +38,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from . import risk_model, short_risk
+from . import risk_model, short_risk, var_challenger
 from .ledger import FINAL_STATUSES, _atomic_write, append_ledger, bar_is_final
 from .short_risk import christoffersen, diebold_mariano, kupiec, qlike
 
@@ -74,6 +74,11 @@ def short_model_id(live_model: str) -> str:
     return _fp(f, asdict(short_risk.ShortRiskConfig()), live_model)
 
 
+def challenger_model_id(live_model: str) -> str:
+    return _fp([var_challenger.rolling_quantile, var_challenger.run], {"window": var_challenger.WINDOW,
+               "level": var_challenger.LEVEL}, short_model_id(live_model))
+
+
 def month_model_id() -> str:
     return _fp([risk_model.vol_forecast], asdict(risk_model.RiskConfig()))
 
@@ -83,7 +88,7 @@ def _num(x, fmt: str) -> str:
 
 
 def forecast_rows(short_current: dict, vol_current: dict, light_level: str | None, issued_at: str,
-                  now_utc: datetime, engine_version: str) -> list[dict]:
+                  now_utc: datetime, engine_version: str, challenger: dict | None = None) -> list[dict]:
     rows = []
     d = short_current["date"]
     if bar_is_final("US", d, now_utc):
@@ -94,6 +99,12 @@ def forecast_rows(short_current: dict, vol_current: dict, light_level: str | Non
         rows.append({**base, "target": "var_1d", "var95": _num(short_current["var95_1d_simple_ret"], ".8f"),
                      "har_var": _num(short_current["vol_1d"] ** 2, ".10e"), "ewma_var": _num(ewma, ".10e"),
                      "level": light_level or ""})
+        ch = (challenger or {}).get("current") or {}
+        if ch.get("var95_1d_simple_ret") is not None:
+            rows.append({**base, "target": "var_1d_challenger", "model_id": challenger_model_id(short_current["model"]),
+                         "var95": _num(ch["var95_1d_simple_ret"], ".8f"),
+                         "har_var": _num(short_current["vol_1d"] ** 2, ".10e"), "ewma_var": _num(ewma, ".10e"),
+                         "level": light_level or ""})
         rows.append({**base, "target": "vol_5d", "var95": "",
                      "har_var": _num(short_current["vol_5d"] ** 2 / 5, ".10e"), "ewma_var": _num(ewma, ".10e"),
                      "level": ""})
@@ -128,8 +139,8 @@ def evaluate(ledger: pd.DataFrame, r: pd.Series, panel: pd.DataFrame, skip: set)
                                      "band_lo", "band_hi", "level", "model_id")}
         rec.update(target_end=None, status="pending", realized=None, breach=None, qlike_har=None,
                    qlike_ewma=None, ratio=None, log_error=None, in_band=None)
-        if f["target"] in ("var_1d", "vol_5d"):
-            h = 1 if f["target"] == "var_1d" else 5
+        if f["target"] in ("var_1d", "var_1d_challenger", "vol_5d"):
+            h = 5 if f["target"] == "vol_5d" else 1
             nxt = r[r.index > o]
             if len(nxt) >= h:
                 w = nxt.iloc[:h]
@@ -203,12 +214,13 @@ def _summ_1m(s: pd.DataFrame, cfg: MarketReviewConfig) -> dict:
 
 def update(out_dir: Path, raw, panel: pd.DataFrame, short_current: dict, vol_current: dict,
            light_level: str | None, issued_at: str, now_utc: datetime, engine_version: str,
-           cfg: MarketReviewConfig | None = None) -> dict:
+           cfg: MarketReviewConfig | None = None, challenger: dict | None = None) -> dict:
     cfg = cfg or MarketReviewConfig()
     out_dir = Path(out_dir)
     lp = out_dir / "forecasts" / "market_ledger.csv"
     op = out_dir / "forecasts" / "market_outcomes.csv"
-    added = append_ledger(lp, forecast_rows(short_current, vol_current, light_level, issued_at, now_utc, engine_version),
+    added = append_ledger(lp, forecast_rows(short_current, vol_current, light_level, issued_at, now_utc, engine_version,
+                                            challenger),
                           COLUMNS, ("target", "origin_date"))
     led = _read(lp, COLUMNS)
     old = _read(op, OUTCOME_COLUMNS)
@@ -221,18 +233,29 @@ def update(out_dir: Path, raw, panel: pd.DataFrame, short_current: dict, vol_cur
     _atomic_write(op, outcomes.to_csv(index=False, lineterminator="\n"))
 
     current = {"var_1d": short_model_id(short_current["model"]), "vol_5d": short_model_id(short_current["model"]),
-               "vol_1m": month_model_id()}
+               "vol_1m": month_model_id(), "var_1d_challenger": challenger_model_id(short_current["model"])}
     sc = outcomes[outcomes["status"] == "scored"]
     review = {"as_of": issued_at, "settings": asdict(cfg), "current_models": current, "targets": {},
               "last_run": {"forecasts_added": added}}
     for t, mid in current.items():
         lt = led[led["target"] == t]
         st = sc[(sc["target"] == t) & (sc["model_id"] == mid)]
-        summ = _summ_var(st, cfg) if t == "var_1d" else _summ_5d(st) if t == "vol_5d" else _summ_1m(st, cfg)
+        summ = (_summ_var(st, cfg) if t in ("var_1d", "var_1d_challenger") else _summ_5d(st) if t == "vol_5d"
+                else _summ_1m(st, cfg))
         review["targets"][t] = {**summ, "logged": int((lt["model_id"] == mid).sum()),
                                 "logged_since": lt.loc[lt["model_id"] == mid, "origin_date"].min() if len(lt) else None,
                                 "other_models": {k: int(v) for k, v in lt.loc[lt["model_id"] != mid, "model_id"].value_counts().items()},
                                 "pending": int(((outcomes["target"] == t) & (outcomes["status"] == "pending")).sum())}
+    # Registered challenger vs incumbent, on days scored for both (methodology section 18).
+    a = sc[(sc["target"] == "var_1d") & (sc["model_id"] == current["var_1d"])]
+    b = sc[(sc["target"] == "var_1d_challenger") & (sc["model_id"] == current["var_1d_challenger"])]
+    common = sorted(set(a["origin_date"]) & set(b["origin_date"]))
+    inc = _summ_var(a[a["origin_date"].isin(common)], cfg)
+    chs = _summ_var(b[b["origin_date"].isin(common)], cfg)
+    review["challenger_comparison"] = {"common_days": len(common), "incumbent": inc, "challenger": chs,
+                                       "decision": var_challenger.live_decision(chs, inc),
+                                       "rule": "after >= 250 common live days: recommend switching only if the incumbent "
+                                               "fails Kupiec or Christoffersen and the challenger passes both"}
     from .export import clean
     _atomic_write(out_dir / "forecast_review_market.json", json.dumps(clean(review), indent=1, allow_nan=False) + "\n")
     log.info("market ledger: +%d forecasts (total %d); scored %d", added, len(led), len(sc))
