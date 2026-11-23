@@ -63,3 +63,18 @@ def extract_facts(companyfacts: dict, tags: tuple[str, ...], unit: str = "USD") 
         df[c] = pd.to_datetime(df[c])
     df["val"] = df["val"].astype(float)
     return df
+
+
+def extract_share_facts(companyfacts: dict, tags: tuple[str, ...]) -> pd.DataFrame:
+    """Share-count facts (duration or instant). Columns: end, val, filed, priority."""
+    gaap = companyfacts.get("facts", {}).get("us-gaap", {})
+    rows = []
+    for priority, tag in enumerate(tags):
+        for item in gaap.get(tag, {}).get("units", {}).get("shares", []):
+            if item.get("form") not in SEC_FORMS or not item.get("val"):
+                continue
+            rows.append({"end": item["end"], "val": float(item["val"]), "filed": item["filed"], "priority": priority})
+    df = pd.DataFrame(rows, columns=["end", "val", "filed", "priority"])
+    for c in ("end", "filed"):
+        df[c] = pd.to_datetime(df[c])
+    return df

@@ -52,6 +52,12 @@
     </section>
 
     <section class="panel">
+      <h2>Valuation — aggregate mega-cap trailing P/E (market cap / TTM net income, point-in-time)</h2>
+      <div class="chart-wrap short"><canvas id="peChart"></canvas></div>
+      <p class="note">Σ market cap ÷ Σ TTM net income across names with positive earnings, chain-linked. Share counts from SEC filings, scaled for splits after each filing date. Before firm-level data exists the overheat score uses a price-extension proxy.</p>
+    </section>
+
+    <section class="panel">
       <h2>Capex intensity — mega-cap TTM Capex / revenue (SEC XBRL, point-in-time)</h2>
       <div class="chart-wrap short"><canvas id="capexChart"></canvas></div>
     </section>

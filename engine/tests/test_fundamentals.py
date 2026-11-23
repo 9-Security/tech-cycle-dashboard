@@ -63,3 +63,27 @@ def test_chain_link_has_no_jump_when_name_enters():
     # Raw ratio jumps from 0.1 to 53/130 when D enters; chained level does not.
     assert np.allclose(level.values, 0.1)
     assert list(n) == [3, 3, 4, 4]
+
+
+def test_shares_split_adjustment_keeps_market_cap_continuous():
+    # 4:1 split on 2020-06-15. Raw price 400 -> 100; raw shares 100 -> 400.
+    splits = pd.Series([4.0], index=pd.DatetimeIndex(["2020-06-15"]))
+    facts = pd.DataFrame({
+        "end": pd.to_datetime(["2020-03-31", "2020-06-30"]),
+        "val": [100.0, 400.0],  # Q2 filing already on post-split basis
+        "filed": pd.to_datetime(["2020-05-01", "2020-08-01"]),
+        "priority": [0, 0],
+    })
+    months = pd.date_range("2020-05-31", "2020-08-31", freq="ME")
+    sh = fx.monthly_shares(facts, splits, months)
+    yahoo_close = pd.Series([100.0, 100.0, 100.0, 100.0], index=months)  # split-adjusted, raw 400 -> 100
+    mcap = yahoo_close * sh
+    assert np.allclose(mcap.values, 40_000.0)
+
+
+def test_split_between_period_end_and_filing_is_not_double_counted():
+    splits = pd.Series([10.0], index=pd.DatetimeIndex(["2024-06-10"]))
+    facts = pd.DataFrame({"end": [pd.Timestamp("2024-04-28")], "val": [2_460.0],  # retroactively adjusted in filing
+                          "filed": [pd.Timestamp("2024-08-28")], "priority": [0]})
+    sh = fx.monthly_shares(facts, splits, pd.DatetimeIndex(["2024-08-31"]))
+    assert sh.iloc[0] == 2_460.0

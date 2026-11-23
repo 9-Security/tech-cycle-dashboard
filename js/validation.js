@@ -48,6 +48,11 @@
       ["PSR OOS vs B&H", fmt(st.psr_oos_vs_bh_sharpe, 3), "P(true Sharpe > B&H Sharpe)"],
     ].map(([l, val, sub]) => '<div class="card"><div class="label">' + esc(l) + '</div><div class="value">' + val + '</div><div class="sub">' + esc(sub) + "</div></div>").join("");
 
+    const vlabel = { pe: "Aggregate P/E (default)", price_ext: "Price extension proxy (v2.0)" };
+    table("valTable", ["Valuation input", "OOS Sharpe", "OOS Max DD", "OOS Final NAV", "Overheat months (OOS)", "IC vs next 12m", "IC window"],
+      (v.valuation_comparison || []).map((r) => [esc(vlabel[r.valuation] || r.valuation), fmt(r.oos_sharpe), pct(r.oos_max_dd), fmt(r.oos_final_nav, 2),
+        r.overheat_months_oos, fmt(r.ic_val_z_fwd12m, 3), esc(r.ic_window || "—")]));
+
     table("ablTable", ["Variant", "Sharpe", "CAGR", "Max DD", "Calmar", "Final NAV", "Turnover/yr"],
       v.ablation.map((a) => [esc(a.label), fmt(a.sharpe), pct(a.cagr, 2), pct(a.max_dd), fmt(a.calmar), fmt(a.final_nav, 2), fmt(a.ann_turnover, 2)]));
 

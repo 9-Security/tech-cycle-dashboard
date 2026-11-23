@@ -346,3 +346,31 @@ def _pick(m: dict) -> dict:
     keys = ("sharpe", "sortino", "cagr", "ann_vol", "max_dd", "calmar", "final_nav",
             "period_return", "ann_turnover", "avg_weight", "total_cost", "months")
     return {k: m.get(k) for k in keys if k in m}
+
+
+def valuation_comparison(panels: dict[str, pd.DataFrame], cfg_grid: ParamGrid, bcfg: BacktestConfig, live_year: int) -> list[dict]:
+    """Same nested walk-forward under alternative valuation inputs, plus a
+    simple information coefficient (valuation z vs next-12m log return of the
+    risk asset) over the common window where firm-level P/E exists.
+    Overlapping 12m windows: the IC is descriptive, not a significance test."""
+    pe_panel = panels.get("pe")
+    window = None
+    if pe_panel is not None and (pe_panel["val_src"] == "PE").any():
+        pe_idx = pe_panel.index[(pe_panel["val_src"] == "PE") & ~pe_panel["partial"].astype(bool)]
+        window = (pe_idx[0], pe_idx[-1])
+    rows = []
+    for mode, panel in panels.items():
+        bt = prepare(panel, bcfg)
+        wf = nested_walk_forward(bt, run_grid(bt, variant_params(cfg_grid, "full"), bcfg.cost_bps), bcfg, live_year)
+        m = metrics(wf.sim.ret, bt.safe[bt.dates >= wf.dates[0]], wf.sim.executed, wf.sim.cost)
+        row = {"valuation": mode, "oos_sharpe": m["sharpe"], "oos_max_dd": m["max_dd"],
+               "oos_final_nav": m["final_nav"], "overheat_months_oos": int((wf.codes == 1).sum()),
+               "ic_val_z_fwd12m": None, "ic_window": None}
+        if window is not None:
+            c = panel[~panel["partial"].astype(bool)]
+            logp = np.log1p(c["risk_ret"].fillna(0.0)).cumsum()
+            fwd = (logp.shift(-12) - logp).loc[window[0]:window[1]]
+            row["ic_val_z_fwd12m"] = float(c["val_z"].loc[window[0]:window[1]].corr(fwd))
+            row["ic_window"] = f"{window[0].date()} -> {window[1].date()}"
+        rows.append(row)
+    return rows

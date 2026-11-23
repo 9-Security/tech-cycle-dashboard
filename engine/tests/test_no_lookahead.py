@@ -11,7 +11,7 @@ from tcd.features import build_panel
 from tcd.validation import nested_walk_forward, prepare, run, run_grid
 
 CFG = EngineConfig()
-SIGNALS = ["risk_ret", "safe_ret", "vix", "val_z", "capex_z", "earn_score", "overheat_score"]
+SIGNALS = ["risk_ret", "safe_ret", "vix", "pe_agg", "val_z", "capex_z", "earn_score", "overheat_score"]
 
 
 @pytest.fixture(scope="module")
@@ -19,7 +19,7 @@ def full_panel(raw):
     return build_panel(raw, CFG.features)
 
 
-@pytest.mark.parametrize("cutoff", ["2008-06-17", "2015-02-10", "2021-09-03"])
+@pytest.mark.parametrize("cutoff", ["2008-06-17", "2015-02-10", "2018-03-02", "2021-09-03"])
 def test_panel_is_future_invariant(raw, full_panel, cutoff):
     cut = build_panel(truncate(raw, cutoff), CFG.features)
     complete = cut[~cut["partial"]]
@@ -57,3 +57,10 @@ def test_walk_forward_choice_ignores_test_year_returns(full_panel):
     for f1, f2 in zip(wf1.folds, wf2.folds):
         if f1["test_year"] <= 2005:
             assert f1["params"] == f2["params"], f1["test_year"]
+
+
+def test_pe_valuation_is_used_once_available(full_panel):
+    src = full_panel["val_src"]
+    first_pe = src[src == "PE"].index.min()
+    assert first_pe is not None and (src[src.index >= first_pe] == "PE").all()
+    assert src[src.index < first_pe].isin(["PX", "NA"]).all()

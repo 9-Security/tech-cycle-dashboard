@@ -24,7 +24,9 @@ from .fetch import fetch_all
 from .quality import DataQualityError, enforce, run_checks
 from .sources.http import FetchError
 from .status import build_scenarios, build_status
-from .validation import full_validation, prepare
+from dataclasses import replace
+
+from .validation import full_validation, prepare, valuation_comparison
 
 log = logging.getLogger("tcd")
 
@@ -54,6 +56,11 @@ def refresh(args: argparse.Namespace) -> int:
     log.info("nested walk-forward over %d configs (live year %d)", len(cfg.grid), live_year)
     vrun = full_validation(bt, cfg.grid, cfg.backtest, live_year)
     params = vrun.wf.live_params
+
+    alt_mode = "price_ext" if cfg.features.valuation == "pe" else "pe"
+    alt_panel = build_panel(raw, replace(cfg.features, valuation=alt_mode))
+    vrun.report["valuation_comparison"] = valuation_comparison(
+        {cfg.features.valuation: panel, alt_mode: alt_panel}, cfg.grid, cfg.backtest, live_year)
 
     status = build_status(panel, params, live_year)
     git_sha = os.environ.get("GITHUB_SHA", "")[:12] or None

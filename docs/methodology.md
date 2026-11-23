@@ -1,4 +1,4 @@
-# Methodology — engine v2 (live, point-in-time, nested walk-forward)
+# Methodology — engine v2.1 (live, point-in-time, nested walk-forward)
 
 Engine source: [`engine/tcd/`](../engine/tcd). Rebuilt from the v1 specification in this folder; v1 documents are kept for history.
 
@@ -13,7 +13,8 @@ Can a regime rule built on the **tech Capex cycle** (valuation extension, Capex 
 | Risk asset | Yahoo `XLK` adjusted close; `^NDX` before 1998-12 | 1985→ | month-end close |
 | Cash leg | FRED `DTB3` | 1954→ | yield at previous month-end earns this month |
 | VIX | Yahoo `^VIX` (FRED `VIXCLS` fills gaps / fallback) | 1990→ | monthly **mean** (configurable) |
-| Valuation proxy | `^NDX` close / 252-day MA − 1, rolling 120m z-score | 1991→ | daily → month-end |
+| **Valuation (firm)** | Aggregate trailing P/E of the 10 names: Σ market cap / Σ TTM net income, log, rolling 120m z-score | mid-2013→ | price at month-end × share count known at month-end |
+| Valuation (proxy) | `^NDX` close / 252-day MA − 1, rolling 120m z-score | 1991→ | daily → month-end |
 | Capex intensity (firm) | SEC XBRL companyfacts, 10 names: TTM Capex / TTM revenue | ~2011→ | first-reported value, available on `filed` date |
 | Capex intensity (macro proxy) | FRED `A679RC1Q027SBEA` / `GDP` | 1947→ | quarter end + 90 days |
 | Earnings momentum (firm) | SEC XBRL TTM net income, 3m growth / rolling std | ~2011→ | same as Capex |
@@ -24,6 +25,11 @@ Can a regime rule built on the **tech Capex cycle** (valuation extension, Capex 
 2. Quarterly values come from 3-month facts, or from year-to-date differences (H1 − Q1, 9M − H1, FY − 9M); a derived quarter is available on the later filing date.
 3. At each month-end a company's TTM uses only quarters filed by then; quarters must be consecutive and not older than 200 days.
 4. Cross-company aggregates are **chain-linked** over names valid in consecutive months, so a name entering the sample causes no jump.
+
+**Aggregate P/E** (`fundamentals.monthly_shares`, `features.py`):
+1. Shares: `WeightedAverageNumberOfSharesOutstandingBasic`, else `CommonStockSharesOutstanding` (Alphabet before 2022, all classes combined); first-reported, available on filing date, stale after 200 days.
+2. Yahoo `close` is retroactively split-adjusted, so each share count is multiplied by the splits **after its filing date** (a filing already reflects earlier splits under ASC 260). Tested across NVDA's 2021/2024 and AAPL's 2020 splits; per-name market caps match public figures (e.g. AAPL ≈ $2.30T, NVDA ≈ $322B at 2020-12).
+3. Names with negative TTM earnings drop out for that month; the ratio is chain-linked like Capex.
 
 **Splicing**: firm-level z-scores replace the macro proxies once they are first valid (~2012–2013). The `capex_src` / `earn_src` columns in `data/panel_monthly.csv` record which source drove each month.
 
@@ -65,12 +71,28 @@ Findings:
 3. Ablation: removing the Shock (VIX) rule *raises* OOS Sharpe to 0.39 ≈ buy & hold; VIX-only keeps Max DD at −37% with Sharpe 0.38. The Overheat / Digestion layers have not shown OOS value yet.
 4. In-sample DSR (0.99) looks convincing while OOS fails — a reminder that DSR assumes i.i.d. returns and cannot detect regime-dependent overfitting with only ~2–3 cycles.
 
+### v2.1 — aggregate P/E (2026-11-23)
+
+| Valuation input | OOS Sharpe | OOS Max DD | IC vs next-12m return (2013-06 → 2026-10) |
+|---|---:|---:|---:|
+| Aggregate P/E (default) | 0.11 | −71.9% | **−0.26** |
+| Price extension (v2.0) | 0.11 | −71.9% | −0.15 |
+
+P/E is the better valuation signal (stronger negative relation with forward returns; IC on overlapping windows is descriptive only), but strategy results barely move because:
+1. Walk-forward keeps choosing overheat thresholds of 1.5–2.0: training data is mostly the pre-2013 proxy era, where defending in "overheat" was costly.
+2. Shock (VIX > ~18, ~40% of months) has priority and masks Overheat.
+
+So the binding constraint is the rule structure, not the valuation input. Changing the rules to make the P/E "work" would be fitting the answer; the next research step is to test the Overheat signal on its own (forward returns by signal bucket), separately from the regime machinery.
+
+Live regime effect: at 2026-10-31 the P/E-based valuation z is −1.27 (P/E 18.4×, falling as earnings catch up with Capex), so the official regime moved from Overheat (price proxy) to **Normal**.
+
 These numbers update daily; see the Validation page for the current values.
 
 ## 6. Known limitations
 
 * **Survivorship**: the 10-name universe is today's leaders.
-* **Valuation** is a price-extension proxy, not P/E. An aggregate mega-cap P/E (price × shares / TTM earnings) is the obvious next step.
+* **Valuation before mid-2013** is still the price-extension proxy (no XBRL); the dot-com OOS result cannot benefit from P/E.
+* P/E uses trailing GAAP earnings (no forward consensus); loss-making names are excluded rather than netted.
 * **Macro proxies** use latest-vintage FRED data (revisions are a residual look-ahead; ALFRED vintages would remove it).
 * **Pre-1998-12** risk returns are NDX price returns (no dividends).
 * Only 2–3 full Capex cycles exist; statistical power is low whatever the method.

@@ -131,3 +131,35 @@ def chain_link(
         prev_row = row
     level[n < min_names] = np.nan
     return level, n
+
+
+def split_factor_after(splits: pd.Series, when: pd.Timestamp) -> float:
+    """Product of split ratios strictly after `when` (filing date)."""
+    if splits is None or splits.empty:
+        return 1.0
+    return float(splits[splits.index > when].prod())
+
+
+def monthly_shares(facts: pd.DataFrame, splits: pd.Series, months: pd.DatetimeIndex, stale_days: int = 200) -> pd.Series:
+    """Share count known at each month-end, expressed on Yahoo's current split basis.
+
+    A filing already reflects splits that happened before it was issued
+    (ASC 260 retroactive adjustment), so only splits AFTER the filing date
+    are applied.
+    """
+    out = pd.Series(np.nan, index=months, dtype=float)
+    if facts.empty:
+        return out
+    # One value per period end: preferred tag, then its earliest (first-reported) filing.
+    rec = facts.sort_values(["end", "priority", "filed"]).drop_duplicates("end", keep="first").copy()
+    rec["adj"] = [v * split_factor_after(splits, f) for v, f in zip(rec["val"], rec["filed"])]
+    rec = rec.sort_values("end")
+    for m in months:
+        known = rec[rec["filed"] <= m]
+        if known.empty:
+            continue
+        last = known.iloc[-1]
+        if (m - last["end"]).days > stale_days:
+            continue
+        out[m] = float(last["adj"])
+    return out

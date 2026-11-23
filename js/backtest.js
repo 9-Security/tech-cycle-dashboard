@@ -19,7 +19,8 @@
     // Posture
     const w = status.weights || {};
     document.getElementById("p-regime").innerHTML = regimeBadge(status.regime);
-    setText("p-regime-sub", "month-end " + status.panel_end);
+    const sg = status.signals || {};
+    setText("p-regime-sub", "month-end " + status.panel_end + (sg.pe_agg ? " · P/E " + fmt(sg.pe_agg, 1) + "x" : ""));
     setText("p-weight", fmt(w.executed_weight, 2));
     setText("p-weight-sub", "held through " + (w.in_force_month || "—"));
     const prov = status.provisional;
@@ -108,6 +109,15 @@
       data: { labels: data.dates, datasets: [line("TTM Capex / revenue (chain-linked)", capex, "#1e3a5f", { fill: true, backgroundColor: "rgba(30,58,95,0.08)", spanGaps: false })] },
       options: { ...opts, scales: { ...opts.scales, y: { ...opts.scales.y, ticks: { ...opts.scales.y.ticks, callback: (v) => (v * 100).toFixed(0) + "%" } } } },
     });
+
+    if (data.pe_agg) {
+      const pe = data.pe_agg.map((v, i) => (data.val_src && data.val_src[i] === "PE" ? v : null));
+      new Chart(document.getElementById("peChart"), {
+        type: "line",
+        data: { labels: data.dates, datasets: [line("Aggregate trailing P/E", pe, "#c45c26", { fill: true, backgroundColor: "rgba(196,92,38,0.08)" })] },
+        options: { ...opts, scales: { ...opts.scales, y: { ...opts.scales.y, title: { display: true, text: "P/E (x)" } } } },
+      });
+    }
 
     const preview = document.getElementById("scenarioPreview");
     (scenarios.scenarios || []).forEach((s) => {

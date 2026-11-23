@@ -62,6 +62,23 @@ def make_raw(seed: int = 7, end: str = "2026-11-20") -> RawData:
     }
     fred["vix_fred"] = vix
     sec = {f"C{i}": _sec_facts(rng, 2009 + i, end_ts, 100.0 * (i + 1)) for i in range(5)}
+
+    # Per-company prices (Yahoo-style: retroactively split-adjusted), splits and
+    # share-count facts reported on the raw (pre-split) basis.
+    prices, splits, shares = {}, {}, {}
+    for i, t in enumerate(sec):
+        raw_px = _daily(f"{2008 + i}-01-02", end, rng, p0=50.0 * (i + 1))
+        sp = pd.Series([4.0], index=pd.DatetimeIndex(["2018-06-15"])) if i == 0 else pd.Series(dtype=float, index=pd.DatetimeIndex([]))
+        rows = []
+        for q_end in pd.date_range(f"{2009 + i}-03-31", end_ts, freq="QE"):
+            factor_before = float(sp[sp.index <= q_end].prod()) if len(sp) else 1.0
+            rows.append({"end": q_end, "val": 1e9 * (i + 1) * factor_before, "filed": q_end + pd.Timedelta(days=35), "priority": 0})
+        sh = pd.DataFrame(rows)
+        shares[t] = sh[sh["filed"] <= end_ts].reset_index(drop=True)
+        adj = raw_px.copy()
+        for d, r in sp.items():
+            adj[adj.index < d] /= r
+        prices[t], splits[t] = adj, sp
     return RawData(
         ndx=pd.DataFrame({"close": ndx, "adjclose": ndx}),
         xlk=pd.DataFrame({"close": xlk_s, "adjclose": xlk_s}),
@@ -69,6 +86,9 @@ def make_raw(seed: int = 7, end: str = "2026-11-20") -> RawData:
         fred=fred,
         sec_facts=sec,
         manifest={},
+        prices=prices,
+        splits=splits,
+        shares=shares,
     )
 
 
@@ -82,6 +102,11 @@ def truncate(raw: RawData, cutoff: str) -> RawData:
         fred={k: v[v.index <= c] for k, v in raw.fred.items()},
         sec_facts={t: {m: f[f["filed"] <= c] for m, f in fs.items()} for t, fs in raw.sec_facts.items()},
         manifest={},
+        # A run on `cutoff` sees prices on that day's split basis: undo later splits.
+        prices={t: px[px.index <= c] * float(raw.splits[t][raw.splits[t].index > c].prod() if len(raw.splits[t]) else 1.0)
+                for t, px in raw.prices.items()},
+        splits={t: sp[sp.index <= c] for t, sp in raw.splits.items()},
+        shares={t: sh[sh["filed"] <= c] for t, sh in raw.shares.items()},
     )
 
 

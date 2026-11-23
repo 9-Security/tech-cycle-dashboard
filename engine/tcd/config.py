@@ -11,7 +11,7 @@ from dataclasses import asdict, dataclass, field
 from itertools import product
 from typing import Iterator
 
-ENGINE_VERSION = "2.0.0"
+ENGINE_VERSION = "2.1.0"
 
 REGIME_LABELS = {1: "Overheat", 2: "Shock", 3: "Digestion", 4: "Normal"}
 REGIME_COLORS = {1: "#c45c26", 2: "#8b1e3f", 3: "#b08900", 4: "#2f6f4e"}
@@ -56,6 +56,14 @@ SEC_TAGS: dict[str, tuple[str, ...]] = {
         "ProfitLoss",
     ),
 }
+
+# Share counts (unit "shares"), priority order. Duration (weighted average)
+# and instant (period-end) facts are both accepted.
+SEC_SHARE_TAGS: tuple[str, ...] = (
+    "WeightedAverageNumberOfSharesOutstandingBasic",
+    "WeightedAverageNumberOfShareOutstandingBasicAndDiluted",
+    "CommonStockSharesOutstanding",
+)
 
 SEC_FORMS = ("10-Q", "10-K", "10-Q/A", "10-K/A", "10-KT")
 
@@ -112,6 +120,12 @@ class ParamGrid:
 
 @dataclass(frozen=True)
 class FeatureConfig:
+    # Valuation: "pe" = aggregate mega-cap P/E (SEC + Yahoo) where available,
+    # price-extension proxy before; "price_ext" = proxy only (v2.0 behaviour).
+    valuation: str = "pe"
+    pe_z_window: int = 120
+    pe_z_min: int = 36
+    shares_stale_days: int = 200
     # Valuation proxy: price extension = close / MA(ma_days) - 1, z-scored.
     val_ma_days: int = 252
     val_z_window: int = 120

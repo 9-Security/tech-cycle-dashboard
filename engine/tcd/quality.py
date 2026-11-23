@@ -71,6 +71,12 @@ def run_checks(
         sec_age = (run_date.normalize() - latest_filed.normalize()).days
         add("sec_freshness", sec_age <= 150, f"latest SEC Capex filing {latest_filed.date()} ({sec_age}d old)")
 
+    if "n_pe_names" in complete:
+        n_pe = int(complete["n_pe_names"].iloc[-1])
+        add("pe_coverage", n_pe >= min_sec_names, f"{n_pe}/10 names in aggregate P/E at {complete.index[-1].date()}")
+        pe = float(complete["pe_agg"].iloc[-1])
+        add("pe_range", 5 <= pe <= 150, f"aggregate P/E {pe:.1f}")
+
     src = complete["capex_src"].iloc[-1]
     add("capex_source_current", src == "SEC", f"latest capex signal source = {src}")
 

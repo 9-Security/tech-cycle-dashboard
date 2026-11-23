@@ -81,7 +81,7 @@ def build_panel(raw: RawData, cfg: FeatureConfig) -> pd.DataFrame:
     ndx = raw.ndx["close"]
     ext = ndx / ndx.rolling(cfg.val_ma_days, min_periods=cfg.val_ma_days).mean() - 1.0
     p["val_ext"] = _monthly_last(ext, months)
-    p["val_z"] = rolling_z(p["val_ext"], cfg.val_z_window, cfg.val_z_min)
+    p["val_z_proxy"] = rolling_z(p["val_ext"], cfg.val_z_window, cfg.val_z_min)
 
     # --- Capex intensity --------------------------------------------------------
     it = raw.fred["it_invest"]
@@ -118,6 +118,28 @@ def build_panel(raw: RawData, cfg: FeatureConfig) -> pd.DataFrame:
     p["earn_g_proxy"] = g_proxy
     p["earn_score_proxy"] = g_proxy / g_proxy.rolling(cfg.earn_std_window, min_periods=cfg.earn_std_min_proxy).std()
     p["earn_score"], p["earn_src"] = _splice(p["earn_score_firm"], p["earn_score_proxy"])
+
+    # --- Valuation: aggregate mega-cap P/E (market cap / TTM net income) ------
+    mcap = {}
+    for ticker, px in raw.prices.items():
+        if ticker not in ni_df.columns:
+            continue
+        sh = fx.monthly_shares(raw.shares.get(ticker, pd.DataFrame(columns=["end", "val", "filed", "priority"])),
+                               raw.splits.get(ticker), months, cfg.shares_stale_days)
+        mcap[ticker] = _monthly_last(px, months) * sh
+    mcap_df = pd.DataFrame(mcap, index=months).reindex(columns=ni_df.columns)
+    pe, n_pe = fx.chain_link(mcap_df, ni_df, cfg.sec_min_names)
+    p["pe_agg"] = pe
+    p["n_pe_names"] = n_pe
+    p["mcap_agg_bn"] = mcap_df.where(ni_df > 0).sum(axis=1, min_count=1) / 1e9
+    p["val_z_pe"] = rolling_z(np.log(pe), cfg.pe_z_window, cfg.pe_z_min)
+    if cfg.valuation == "pe":
+        p["val_z"], p["val_src"] = _splice(p["val_z_pe"], p["val_z_proxy"])
+        p["val_src"] = p["val_src"].replace({"SEC": "PE", "FRED": "PX"})
+    elif cfg.valuation == "price_ext":
+        p["val_z"], p["val_src"] = p["val_z_proxy"], pd.Series("PX", index=months)
+    else:
+        raise ValueError(f"unknown valuation mode {cfg.valuation!r}")
 
     # --- Composite --------------------------------------------------------------
     p["overheat_score"] = (p["val_z"] + p["capex_z"]) / 2.0
