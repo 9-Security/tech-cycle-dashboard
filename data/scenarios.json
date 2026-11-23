@@ -1,9 +1,9 @@
 {
- "as_of": "20261123T102929Z",
+ "as_of": "20261123T123930Z",
  "DATA_SOURCE": "REAL",
  "data_source": "REAL",
- "engine_version": "3.6.0",
- "git_sha": "d8b795201a44",
+ "engine_version": "3.7.0",
+ "git_sha": "eb38f8c91868",
  "n_months": 322,
  "panel_start": "2000-01-31",
  "panel_end": "2026-10-31",
@@ -14,14 +14,15 @@
  "signals": {
   "vix": 16.895909222689543,
   "vix_last": 19.420000076293945,
-  "overheat_score": 1.3423173586589616,
-  "val_z": -1.270029668760816,
+  "overheat_score": 1.2779993211797613,
+  "val_z": -1.4277079599973905,
   "val_src": "PE",
-  "pe_agg": 18.387694656321784,
-  "capex_z": 3.954664386078739,
-  "capex_ratio_firm": 0.3054628418036458,
+  "pe_agg": 24.549838983524463,
+  "pe_level": 24.869595318820025,
+  "capex_z": 3.983706602356913,
+  "capex_ratio_firm": 0.3130971431037045,
   "capex_src": "SEC",
-  "earn_score": 0.6793777456793308,
+  "earn_score": 0.6793777456793338,
   "earn_src": "SEC",
   "shock_flag": 0
  },
@@ -38,30 +39,30 @@
   {
    "id": "shock",
    "signal": "VIX (monthly mean)",
-   "value": 23.418124794960022,
+   "value": 23.474374771118164,
    "threshold": 18.0,
    "direction": "above",
-   "distance": -5.418124794960022,
+   "distance": -5.474374771118164,
    "active": true,
    "weight": 0.25
   },
   {
    "id": "overheat",
    "signal": "Overheat score",
-   "value": 0.815108272547914,
+   "value": 0.7424564379436462,
    "threshold": 1.5,
    "direction": "above",
-   "distance": 0.684891727452086,
+   "distance": 0.7575435620563538,
    "active": false,
    "weight": 0.75
   },
   {
    "id": "digestion",
    "signal": "Earnings momentum score",
-   "value": 0.27154020877324897,
-   "threshold": -1.0,
+   "value": 0.27154020877325175,
+   "threshold": -1.5,
    "direction": "below",
-   "distance": 1.271540208773249,
+   "distance": 1.7715402087732517,
    "active": false,
    "weight": 0.5
   }
@@ -72,9 +73,9 @@
    "horizon": "1-3 months",
    "thesis": "Signals stay on their current side of every threshold; regime remains Shock.",
    "flip_conditions": [
-    "VIX 23.42 vs Shock threshold 18.00",
-    "Overheat 0.82 vs threshold 1.50",
-    "Earnings score 0.27 vs Digestion threshold -1.00"
+    "VIX 23.47 vs Shock threshold 18.00",
+    "Overheat 0.74 vs threshold 1.50",
+    "Earnings score 0.27 vs Digestion threshold -1.50"
    ],
    "suggested_defensive_posture": {
     "risk_weight": 0.25,
@@ -84,7 +85,7 @@
   {
    "id": "overheat",
    "horizon": "1-3 months",
-   "thesis": "Valuation extension + Capex intensity lift the overheat score by 0.68 to cross 1.50 while VIX stays below 18.00.",
+   "thesis": "Valuation extension + Capex intensity lift the overheat score by 0.76 to cross 1.50 while VIX stays below 18.00.",
    "flip_conditions": [
     "Overheat score > threshold",
     "Shock not active (Shock has priority)"
@@ -97,7 +98,7 @@
   {
    "id": "shock",
    "horizon": "1-3 months",
-   "thesis": "Shock trigger already active (monthly-average VIX 23.42 > 18.00); Shock overrides every other regime.",
+   "thesis": "Shock trigger already active (monthly-average VIX 23.47 > 18.00); Shock overrides every other regime.",
    "flip_conditions": [
     "Monthly mean VIX > threshold"
    ],
@@ -109,7 +110,7 @@
   {
    "id": "digestion",
    "horizon": "1-3 months",
-   "thesis": "Aggregate TTM earnings momentum drops 1.27 std units to below -1.00 (Capex digestion / earnings downgrade cycle).",
+   "thesis": "Aggregate TTM earnings momentum drops 1.77 std units to below -1.50 (Capex digestion / earnings downgrade cycle).",
    "flip_conditions": [
     "Earnings score < threshold",
     "Neither Shock nor Overheat active"

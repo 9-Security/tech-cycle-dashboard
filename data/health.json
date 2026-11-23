@@ -1,13 +1,14 @@
 {
  "ok": true,
  "mode": "live",
- "as_of": "20261123T102929Z",
- "run_at": "2026-11-23T10:29:29Z",
- "engine_version": "3.6.0",
- "git_sha": "d8b795201a44",
+ "allow_stale": false,
+ "as_of": "20261123T123930Z",
+ "run_at": "2026-11-23T12:39:30Z",
+ "engine_version": "3.7.0",
+ "git_sha": "eb38f8c91868",
  "panel_end": "2026-10-31",
  "data_through": "2026-11-20",
- "runtime_s": 20.0,
+ "runtime_s": 22.3,
  "checks": [
   {
    "name": "market_freshness",
@@ -57,7 +58,7 @@
   {
    "name": "pe_range",
    "status": "PASS",
-   "detail": "aggregate P/E 18.4"
+   "detail": "aggregate P/E 24.9"
   },
   {
    "name": "epu_freshness",
@@ -93,179 +94,181 @@
  },
  "raw_manifest": {
   "yahoo_IDX_NDX.json": {
-   "url": "https://query1.finance.yahoo.com/v8/finance/chart/%5ENDX",
-   "sha256": "122d7cf1bfd712afaf15801fba9e6f9adcfd57673b4f3b480341f6bb9d8fae6f",
+   "url": "https://query1.finance.yahoo.com/v8/finance/chart/%5ENDX?period1=0&period2=9999999999&interval=1d&events=div%2Csplit",
+   "sha256": "b4150ea47f5efbc0b361451ace1324ccb1e7f25ed0bdbf6ca52fc5f548f4ecb1",
    "bytes": 1102074,
-   "fetched_at": "2026-11-23T10:29:29Z"
+   "fetched_at": "2026-11-23T12:39:30Z"
   },
   "yahoo_XLK.json": {
-   "url": "https://query1.finance.yahoo.com/v8/finance/chart/XLK",
-   "sha256": "910062f57e46c3f2d507b63e9b8e6017b6366fe2fb28069e1dcc6d6a6508deb2",
-   "bytes": 750973,
-   "fetched_at": "2026-11-23T10:29:30Z"
+   "url": "https://query1.finance.yahoo.com/v8/finance/chart/XLK?period1=0&period2=9999999999&interval=1d&events=div%2Csplit",
+   "sha256": "34934e714353706092ff28c9cda64cff021bb6b2bdd67419375c2297063bd2ab",
+   "bytes": 750947,
+   "fetched_at": "2026-11-23T12:39:30Z"
   },
   "fred_DTB3.csv": {
-   "url": "https://fred.stlouisfed.org/graph/fredgraph.csv",
+   "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DTB3",
    "sha256": "f161d9aa7335792298ba356743ce588e9b3015a1f5851674e8eeac5478b6e3ed",
    "bytes": 301757,
-   "fetched_at": "2026-11-23T10:29:30Z"
+   "fetched_at": "2026-11-23T12:39:31Z"
   },
   "fred_A679RC1Q027SBEA.csv": {
-   "url": "https://fred.stlouisfed.org/graph/fredgraph.csv",
+   "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=A679RC1Q027SBEA",
    "sha256": "96755a515fe6f3b308a2c1b7bed5bf3e30e29d4bc330ceb0989e0bfbf695fd18",
    "bytes": 5891,
-   "fetched_at": "2026-11-23T10:29:30Z"
+   "fetched_at": "2026-11-23T12:39:31Z"
   },
   "fred_GDP.csv": {
-   "url": "https://fred.stlouisfed.org/graph/fredgraph.csv",
+   "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=GDP",
    "sha256": "209e45690e4a85a6e99578c0a2ad6f1860875f61824dd2f67f9cba25386abd9e",
    "bytes": 6419,
-   "fetched_at": "2026-11-23T10:29:30Z"
+   "fetched_at": "2026-11-23T12:39:31Z"
   },
   "fred_CP.csv": {
-   "url": "https://fred.stlouisfed.org/graph/fredgraph.csv",
+   "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=CP",
    "sha256": "9635ee3f1640203bd02994c31baddc1a75fd716f6e3b1a61212976008b0c79fd",
    "bytes": 6041,
-   "fetched_at": "2026-11-23T10:29:30Z"
+   "fetched_at": "2026-11-23T12:39:31Z"
   },
   "fred_VIXCLS.csv": {
-   "url": "https://fred.stlouisfed.org/graph/fredgraph.csv",
+   "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=VIXCLS",
    "sha256": "5fdb14015c8fee857f1aae7ea54d799fe8e2eebc1b4dcab047cc7ac70e3a78a0",
    "bytes": 162037,
-   "fetched_at": "2026-11-23T10:29:30Z"
+   "fetched_at": "2026-11-23T12:39:31Z"
   },
   "fred_USEPUINDXD.csv": {
-   "url": "https://fred.stlouisfed.org/graph/fredgraph.csv",
+   "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=USEPUINDXD",
    "sha256": "def35ea51cd6051923fc0c534e02871ff176f0405ee18c85e30b5b623c657cb5",
    "bytes": 267013,
-   "fetched_at": "2026-11-23T10:29:31Z"
+   "fetched_at": "2026-11-23T12:39:31Z"
   },
   "yahoo_IDX_VIX.json": {
-   "url": "https://query1.finance.yahoo.com/v8/finance/chart/%5EVIX",
-   "sha256": "3c036ef75e90aa53ae0fd1f1e3a06953bb341c01c8452475e0489d0cfca7aef2",
-   "bytes": 974801,
-   "fetched_at": "2026-11-23T10:29:31Z"
+   "url": "https://query1.finance.yahoo.com/v8/finance/chart/%5EVIX?period1=0&period2=9999999999&interval=1d&events=div%2Csplit",
+   "sha256": "2e2567de070869f958e2a86333c41dcff6af66a964714471a08089991914e621",
+   "bytes": 974799,
+   "fetched_at": "2026-11-23T12:39:31Z"
   },
   "sec_AAPL.json": {
    "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000320193.json",
    "sha256": "f085735b4d08fb116ade18d24247ffabe11df8eb52eae6556b165831f15ef1ad",
    "bytes": 3859564,
-   "fetched_at": "2026-11-23T10:29:31Z"
+   "fetched_at": "2026-11-23T12:39:32Z"
   },
   "yahoo_AAPL.json": {
-   "url": "https://query1.finance.yahoo.com/v8/finance/chart/AAPL",
-   "sha256": "15ffae3cda0f1598a94cdd111cb165033b19f74a06cd3f0a62e8b8ae22a650e7",
-   "bytes": 1308661,
-   "fetched_at": "2026-11-23T10:29:32Z"
+   "url": "https://query1.finance.yahoo.com/v8/finance/chart/AAPL?period1=0&period2=9999999999&interval=1d&events=div%2Csplit",
+   "sha256": "94a4208cbd17b2988a2c7a817b5d73e1e33046d0c4c3c41aed2314b072f7869c",
+   "bytes": 1308632,
+   "fetched_at": "2026-11-23T12:39:32Z"
   },
   "sec_MSFT.json": {
    "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000789019.json",
    "sha256": "8c1903c041f5c27e86ed15f37debb1f41882b7904bba129ef9edc76478b1e8ea",
    "bytes": 4938072,
-   "fetched_at": "2026-11-23T10:29:32Z"
+   "fetched_at": "2026-11-23T12:39:32Z"
   },
   "yahoo_MSFT.json": {
-   "url": "https://query1.finance.yahoo.com/v8/finance/chart/MSFT",
-   "sha256": "629418a99ca0710068b9b7e9ad20a102b71ccc522edc905c4906979a3bf3e4bc",
-   "bytes": 1063741,
-   "fetched_at": "2026-11-23T10:29:32Z"
+   "url": "https://query1.finance.yahoo.com/v8/finance/chart/MSFT?period1=0&period2=9999999999&interval=1d&events=div%2Csplit",
+   "sha256": "1ca0882f3cbdadc3b7f1f7b6ccd820573dd94820c790e15bfb8333193614a319",
+   "bytes": 1063710,
+   "fetched_at": "2026-11-23T12:39:33Z"
   },
   "sec_AMZN.json": {
    "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001018724.json",
    "sha256": "acddb7c0a6973a1fd08372de3b292298a34eae7f42a7eedc4bdebd3ac659c8fd",
    "bytes": 4554378,
-   "fetched_at": "2026-11-23T10:29:32Z"
+   "fetched_at": "2026-11-23T12:39:34Z"
   },
   "yahoo_AMZN.json": {
-   "url": "https://query1.finance.yahoo.com/v8/finance/chart/AMZN",
-   "sha256": "516f1682c9c70fb7feafc9198c7a314a47aee0537ca449d0ca74fc67b1f0a17c",
+   "url": "https://query1.finance.yahoo.com/v8/finance/chart/AMZN?period1=0&period2=9999999999&interval=1d&events=div%2Csplit",
+   "sha256": "d5abd5a28bdebf4d505f7440c2b2a1fae3b6528fb938c15ae324aa09361072d6",
    "bytes": 819662,
-   "fetched_at": "2026-11-23T10:29:33Z"
+   "fetched_at": "2026-11-23T12:39:35Z"
   },
   "sec_GOOGL.json": {
    "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001652044.json",
-   "sha256": "f87bc183f74b45ecf9a0933e0e0a1b6b97ead51a9d29367a7dae436574e1c1d0",
-   "bytes": 3250837,
-   "fetched_at": "2026-11-23T10:29:33Z"
+   "sha256": "e4b7685f57b8d6fc9be74c23dc891dfd81de5716d0551338914385fa11bf43a6",
+   "bytes": 3251685,
+   "fetched_at": "2026-11-23T12:39:35Z"
   },
   "yahoo_GOOGL.json": {
-   "url": "https://query1.finance.yahoo.com/v8/finance/chart/GOOGL",
-   "sha256": "25baa7ca2fc618f772608b20616c76be55f867d2fe0976cf7c8d6db3f92f61b1",
-   "bytes": 624890,
-   "fetched_at": "2026-11-23T10:29:34Z"
+   "url": "https://query1.finance.yahoo.com/v8/finance/chart/GOOGL?period1=0&period2=9999999999&interval=1d&events=div%2Csplit",
+   "sha256": "a0e6b322822b92ffc931e61ed095904cc45860887a9f0aaa0398ab234f22d8d7",
+   "bytes": 624943,
+   "fetched_at": "2026-11-23T12:39:35Z"
   },
   "sec_META.json": {
    "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001326801.json",
    "sha256": "f8e539cea9d363752df2f9bb33078c19ae897ff7f34d49fe4d9a732d032b94f7",
    "bytes": 2810958,
-   "fetched_at": "2026-11-23T10:29:34Z"
+   "fetched_at": "2026-11-23T12:39:36Z"
   },
   "yahoo_META.json": {
-   "url": "https://query1.finance.yahoo.com/v8/finance/chart/META",
-   "sha256": "76d6a87d1a88731fb6993aa6e6368346e8233cf1c476bbc5c29ff7e93397bf11",
-   "bytes": 393350,
-   "fetched_at": "2026-11-23T10:29:34Z"
+   "url": "https://query1.finance.yahoo.com/v8/finance/chart/META?period1=0&period2=9999999999&interval=1d&events=div%2Csplit",
+   "sha256": "839c01a34b4465981786cd3e7f3119bfd70e0704d5eb1dc5b5942e576cb2b722",
+   "bytes": 393500,
+   "fetched_at": "2026-11-23T12:39:36Z"
   },
   "sec_NVDA.json": {
    "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001045810.json",
    "sha256": "19ef503a5770f5660964b3c3aea6937579d9b359da344afe6a9adf59c63d26ff",
    "bytes": 4092966,
-   "fetched_at": "2026-11-23T10:29:34Z"
+   "fetched_at": "2026-11-23T12:39:36Z"
   },
   "yahoo_NVDA.json": {
-   "url": "https://query1.finance.yahoo.com/v8/finance/chart/NVDA",
-   "sha256": "4009ca55c2df264ccaec7eb486ddc8234d15b2ade3b22b8906bcc1e9f7b57392",
-   "bytes": 812374,
-   "fetched_at": "2026-11-23T10:29:35Z"
+   "url": "https://query1.finance.yahoo.com/v8/finance/chart/NVDA?period1=0&period2=9999999999&interval=1d&events=div%2Csplit",
+   "sha256": "8b8dc03482da1ed5221d383696c998db2c0af9b2fcf7da39a10074256daac6a7",
+   "bytes": 812499,
+   "fetched_at": "2026-11-23T12:39:37Z"
   },
   "sec_ORCL.json": {
    "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001341439.json",
    "sha256": "fe93b258bc0ba8f3076ddebb5d8bb91c46deaa1f7b06d2ff2e3eaed85fee8a63",
    "bytes": 3964639,
-   "fetched_at": "2026-11-23T10:29:35Z"
+   "fetched_at": "2026-11-23T12:39:37Z"
   },
   "yahoo_ORCL.json": {
-   "url": "https://query1.finance.yahoo.com/v8/finance/chart/ORCL",
-   "sha256": "83b508e21bcfae1a30375d91521eea58abd58ef7ba5bc4c3792e039e636653c9",
-   "bytes": 1109401,
-   "fetched_at": "2026-11-23T10:29:36Z"
+   "url": "https://query1.finance.yahoo.com/v8/finance/chart/ORCL?period1=0&period2=9999999999&interval=1d&events=div%2Csplit",
+   "sha256": "1b983f94b9ac2b429186e2514bb95a9ee46435cb895a9de50bdd6a8094cfd7bf",
+   "bytes": 1109450,
+   "fetched_at": "2026-11-23T12:39:38Z"
   },
   "sec_AMD.json": {
    "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000002488.json",
    "sha256": "4c29484ff062a77b0dde3a0d0b3439f807ccd2d44f9b568a52b5eabbc2b2464c",
    "bytes": 3732993,
-   "fetched_at": "2026-11-23T10:29:36Z"
+   "fetched_at": "2026-11-23T12:39:38Z"
   },
   "yahoo_AMD.json": {
-   "url": "https://query1.finance.yahoo.com/v8/finance/chart/AMD",
-   "sha256": "99064942d5c151dd7ee6592a0d0a0cb98fd7fe092aa2f1cc2ad9586c3d3acec7",
-   "bytes": 996678,
-   "fetched_at": "2026-11-23T10:29:36Z"
+   "url": "https://query1.finance.yahoo.com/v8/finance/chart/AMD?period1=0&period2=9999999999&interval=1d&events=div%2Csplit",
+   "sha256": "7adf29fb161fe36c4ab8359dbc8c555f0e3a82de7bbee4c18e8122632f840ac0",
+   "bytes": 996679,
+   "fetched_at": "2026-11-23T12:39:38Z"
   },
   "sec_INTC.json": {
    "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000050863.json",
    "sha256": "9c568557a91cfbc234c999183d6434f8bbf7b8ebf2f29577f28d761a9becb59d",
    "bytes": 4363467,
-   "fetched_at": "2026-11-23T10:29:37Z"
+   "fetched_at": "2026-11-23T12:39:39Z"
   },
   "yahoo_INTC.json": {
-   "url": "https://query1.finance.yahoo.com/v8/finance/chart/INTC",
-   "sha256": "37ee2cbab36244e3969b42f65df6bd8d1ed35f755a3803c2d13e3eb2a0fbe6c7",
-   "bytes": 1193372,
-   "fetched_at": "2026-11-23T10:29:37Z"
+   "url": "https://query1.finance.yahoo.com/v8/finance/chart/INTC?period1=0&period2=9999999999&interval=1d&events=div%2Csplit",
+   "sha256": "986c54fe5e0e96d0ac03cadd54e01382d0bdfef276b9c9de2b168976e56de066",
+   "bytes": 1193121,
+   "fetched_at": "2026-11-23T12:39:39Z"
   },
   "sec_AVGO.json": {
    "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001730168.json",
    "sha256": "3bdb6644c12addf1e63c4dc861008d7804fbf3d3f5aa6eb9b97f72c0e89a7adf",
    "bytes": 2351559,
-   "fetched_at": "2026-11-23T10:29:37Z"
+   "fetched_at": "2026-11-23T12:39:39Z"
   },
   "yahoo_AVGO.json": {
-   "url": "https://query1.finance.yahoo.com/v8/finance/chart/AVGO",
-   "sha256": "ad8bdcf1cdebc8c122c075935f44295ec6c7b05ff6bd2968e371a9f715f6fe83",
-   "bytes": 484953,
-   "fetched_at": "2026-11-23T10:29:38Z"
+   "url": "https://query1.finance.yahoo.com/v8/finance/chart/AVGO?period1=0&period2=9999999999&interval=1d&events=div%2Csplit",
+   "sha256": "398366db31e155c528ef8929adec53d5a6f3636594c3e33d94ffa7c097f86f7e",
+   "bytes": 484925,
+   "fetched_at": "2026-11-23T12:39:40Z"
   }
  },
- "label": "Live - GitHub Actions daily refresh"
+ "label": "Live - GitHub Actions daily refresh",
+ "report_issues": [],
+ "degraded": false
 }
