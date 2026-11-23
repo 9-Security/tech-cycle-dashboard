@@ -5,6 +5,7 @@
 | Doc | Topic |
 |-----|--------|
 | [methodology.md](methodology.md) | **Start here.** Data, point-in-time rules, regimes, nested walk-forward, first live results, limitations, operations |
+| [model-promotion.md](model-promotion.md) | Pre-registered rule for switching the live model from v2 to the v3 candidate |
 
 Live numbers are in `data/validation.json` and on the Validation page; they change daily.
 

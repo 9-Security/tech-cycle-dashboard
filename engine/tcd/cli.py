@@ -22,6 +22,7 @@ from .export import build_series, write_all
 from .features import build_panel
 from .fetch import fetch_all
 from .quality import DataQualityError, enforce, run_checks
+from . import promotion
 from .risk_model import run_risk
 from .signal_study import run_study
 from .sources.http import FetchError
@@ -78,12 +79,24 @@ def refresh(args: argparse.Namespace) -> int:
                         "v3": _pick(metrics(vrun3.wf.sim.ret[post], safe_post)) if post.sum() >= 2 else
                               {"period_return": float(vrun3.wf.sim.ret[post][0])},
                         "bh": _pick(metrics(bh_post, safe_post)) if post.sum() >= 2 else {"period_return": float(bh_post[0])}}
+    oos_mask = bt.dates >= vrun3.wf.dates[0]
+    promo = promotion.evaluate(
+        dates=vrun3.wf.dates, v3_ret=vrun3.wf.sim.ret, bh_ret=vrun3.bh.ret, safe=bt.safe[oos_mask],
+        full_v3_sharpe=vrun3.report["oos"]["sharpe"], full_bh_sharpe=vrun3.report["bh"]["sharpe"],
+        design_date=V3_DESIGN_DATE, rule=cfg.promotion,
+        current_fingerprint=promotion.spec_fingerprint(cfg.tilt_grid, cfg.features, cfg.backtest),
+        max_gap_days=promotion.refresh_gaps(Path(args.out) / "history.csv",
+                                            pd.Timestamp(V3_DESIGN_DATE), pd.Timestamp(now.date())),
+    )
+    log.info("v3 promotion rule: %s - %s", promo["state"], promo["note"])
     # Weight in force now = v3 target at the last complete month (lag-1, after band).
     cand_now = float(vrun3.wf.target[-1])
 
     status = build_status(panel, params, live_year)
     status["candidate"] = build_candidate_status(panel, vrun3.wf.live_params, live_year, cand_now,
                                                  V3_DESIGN_DATE, since_design)
+    status["candidate"]["promotion"] = {"state": promo["state"], "note": promo["note"], "months": promo["months"],
+                                        "earliest_decision_after": promo["earliest_decision_after"]}
     git_sha = os.environ.get("GITHUB_SHA", "")[:12] or None
     meta = {
         "as_of": as_of,
@@ -103,7 +116,8 @@ def refresh(args: argparse.Namespace) -> int:
 
     m2, m3 = vrun.report["oos"], vrun3.report["oos"]
     validation = {**meta, **vrun.report, "config": cfg.to_dict(),
-                  "candidate": {**vrun3.report, "design_date": V3_DESIGN_DATE, "since_design": since_design},
+                  "candidate": {**vrun3.report, "design_date": V3_DESIGN_DATE, "since_design": since_design,
+                                "promotion": promo},
                   "model_comparison": [
                       {"model": "regime_v2", "label": "v2 regime (live)", **m2},
                       {"model": "tilt_v3", "label": "v3 tilt + vol target (candidate)", **m3},

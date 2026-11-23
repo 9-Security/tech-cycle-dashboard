@@ -1,7 +1,7 @@
 {
  "source": "Nested walk-forward OOS - Yahoo (XLK/^NDX/^VIX) + FRED + SEC XBRL",
  "snapshot_label": "Live - refreshed daily by GitHub Actions",
- "as_of": "20261123T064932Z",
+ "as_of": "20261123T065233Z",
  "dates": [
   "2000-01-31",
   "2000-02-29",

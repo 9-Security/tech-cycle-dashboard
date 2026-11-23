@@ -93,6 +93,15 @@
         (sd ? ": " + sd.months + " month(s) so far, v3 " + pct(sd.v3.period_return) + " vs B&H " + pct(sd.bh.period_return) + "." : ": none yet."));
     }
 
+    const pr = cand && cand.promotion;
+    if (pr) {
+      document.getElementById("promoState").innerHTML = "<strong>State: " + esc(pr.state) + ".</strong> " + esc(pr.note) +
+        " Evaluation window starts " + esc(pr.first_month) + "; earliest decision after " + esc(pr.earliest_decision_after) +
+        "; retire if still failing after " + esc(pr.retire_after) + ".";
+      const st = (p) => p === true ? '<span class="dq PASS">pass</span>' : p === false ? '<span class="dq FAIL">fail</span>' : '<span class="dq WARN">pending</span>';
+      table("promoTable", ["#", "Criterion", "Status", "Detail"], pr.criteria.map((c) => [esc(c.id), esc(c.name), st(c.id === "C1" && pr.state === "collecting" ? null : c.pass), esc(c.detail)]));
+    }
+
     const valRows = (v.valuation_comparison || []);
     const vlabel = { pe: "Aggregate P/E (default)", price_ext: "Price extension proxy (v2.0)" };
     table("valTable", ["Valuation input (v2 model)", "OOS Sharpe", "OOS Max DD", "OOS Final NAV", "Overheat months (OOS)", "IC vs next 12m", "IC window"],

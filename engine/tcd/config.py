@@ -11,7 +11,7 @@ from dataclasses import asdict, dataclass, field
 from itertools import product
 from typing import Iterator
 
-ENGINE_VERSION = "3.1.0"
+ENGINE_VERSION = "3.1.1"
 
 REGIME_LABELS = {1: "Overheat", 2: "Shock", 3: "Digestion", 4: "Normal"}
 REGIME_COLORS = {1: "#c45c26", 2: "#8b1e3f", 3: "#b08900", 4: "#2f6f4e"}
@@ -166,6 +166,20 @@ V3_DESIGN_DATE = "2026-11-23"
 
 
 @dataclass(frozen=True)
+class PromotionRule:
+    """Pre-registered rule for promoting v3 to the live model (docs/model-promotion.md).
+    The engine only REPORTS the status; it never switches models."""
+
+    min_months: int = 24  # post-design months before any decision
+    retire_months: int = 36  # still failing at this point -> retire the candidate
+    mdd_tolerance: float = 0.05  # v3 MDD may be at most 5 pts worse than vol-matched B&H
+    max_refresh_gap_days: int = 7  # longest allowed gap between successful daily refreshes
+    # Fingerprint of the frozen v3 specification at the design date. Any change
+    # to it resets the evaluation clock (new design date + new fingerprint).
+    spec_fingerprint: str = "88e42dfdbee76632762785a306dab4136ce7ebdacf2aa8fd9941c8c23faab61d"
+
+
+@dataclass(frozen=True)
 class FeatureConfig:
     # Valuation: "pe" = aggregate mega-cap P/E (SEC + Yahoo) where available,
     # price-extension proxy before; "price_ext" = proxy only (v2.0 behaviour).
@@ -233,6 +247,7 @@ class EngineConfig:
     backtest: BacktestConfig = field(default_factory=BacktestConfig)
     grid: ParamGrid = field(default_factory=ParamGrid)
     tilt_grid: TiltGrid = field(default_factory=TiltGrid)
+    promotion: PromotionRule = field(default_factory=PromotionRule)
     fetch: FetchConfig = field(default_factory=FetchConfig)
 
     def to_dict(self) -> dict:

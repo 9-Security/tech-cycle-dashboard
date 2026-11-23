@@ -305,3 +305,4 @@ table.heat th { text-align: center; }
 @media (max-width: 640px) {
   .nav-links a { padding: 0.3rem 0.55rem; font-size: 0.8rem; }
 }
+#promoTable td:nth-child(2), #promoTable th:nth-child(2) { text-align: left; white-space: normal; }

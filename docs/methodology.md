@@ -170,7 +170,7 @@ Design rules fixed *before* the v3 walk-forward was run:
 
 ### Evaluation protocol from here
 * v3's design was informed by full-sample studies, so the table above is still optimistic. Months after **2026-11-23** are the only clean test; they are tracked in `validation.json → candidate.since_design` and `data/history.csv` (`v3_weight`).
-* Suggested promotion rule (to be decided by the owner, not automatically): ≥ 24 months after the design date with v3 ahead of vol-matched buy & hold on Sharpe, and no data-quality incidents.
+* Promotion is governed by the pre-registered rule in [model-promotion.md](model-promotion.md) (adopted 2026-11-23): ≥ 24 post-design months, v3 Sharpe above vol-matched buy & hold, Max DD within 5 pts, unchanged spec, reliable daily refresh. Status is computed daily; the switch is an owner decision.
 
 
 ## 9. Risk estimation — what is and is not predictable (2026-11-23)

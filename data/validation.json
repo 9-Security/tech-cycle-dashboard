@@ -1,8 +1,8 @@
 {
- "as_of": "20261123T064932Z",
+ "as_of": "20261123T065233Z",
  "DATA_SOURCE": "REAL",
  "data_source": "REAL",
- "engine_version": "3.1.0",
+ "engine_version": "3.1.1",
  "git_sha": null,
  "n_months": 322,
  "panel_start": "2000-01-31",
@@ -995,6 +995,13 @@
    ],
    "n_combinations": 1080
   },
+  "promotion": {
+   "min_months": 24,
+   "retire_months": 36,
+   "mdd_tolerance": 0.05,
+   "max_refresh_gap_days": 7,
+   "spec_fingerprint": "88e42dfdbee76632762785a306dab4136ce7ebdacf2aa8fd9941c8c23faab61d"
+  },
   "fetch": {
    "timeout_s": 60.0,
    "retries": 4,
@@ -1892,7 +1899,56 @@
    }
   ],
   "design_date": "2026-11-23",
-  "since_design": null
+  "since_design": null,
+  "promotion": {
+   "design_date": "2026-11-23",
+   "first_month": "2026-12",
+   "months": 0,
+   "min_months": 24,
+   "earliest_decision_after": "2028-11",
+   "retire_after": "2029-11",
+   "criteria": [
+    {
+     "id": "C1",
+     "name": "At least 24 post-design months",
+     "pass": false,
+     "detail": "0/24"
+    },
+    {
+     "id": "C2",
+     "name": "v3 Sharpe > vol-matched B&H Sharpe (post-design)",
+     "pass": null,
+     "detail": "needs >= 2 months"
+    },
+    {
+     "id": "C3",
+     "name": "v3 Max DD no worse than vol-matched B&H by > 5%",
+     "pass": null,
+     "detail": "needs >= 2 months"
+    },
+    {
+     "id": "C4",
+     "name": "Full OOS history (2000+): v3 Sharpe >= B&H Sharpe",
+     "pass": true,
+     "detail": "0.46 vs 0.39"
+    },
+    {
+     "id": "C5",
+     "name": "v3 specification unchanged since design date",
+     "pass": true,
+     "detail": "fingerprint matches"
+    },
+    {
+     "id": "C6",
+     "name": "No gap > 7 days between successful daily refreshes",
+     "pass": true,
+     "detail": "longest gap 0 d"
+    }
+   ],
+   "post_window": null,
+   "state": "collecting",
+   "note": "Collecting post-design evidence: 0/24 months. No decision before 2028-11."
+  }
  },
  "model_comparison": [
   {

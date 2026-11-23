@@ -1,8 +1,8 @@
 {
- "as_of": "20261123T064932Z",
+ "as_of": "20261123T065233Z",
  "DATA_SOURCE": "REAL",
  "data_source": "REAL",
- "engine_version": "3.1.0",
+ "engine_version": "3.1.1",
  "git_sha": null,
  "n_months": 322,
  "panel_start": "2000-01-31",
@@ -111,7 +111,13 @@
    "vol_scale": 0.40099594661849547
   },
   "since_design": null,
-  "note": "Candidate only. Live posture remains the v2 regime model until v3 earns out-of-sample evidence after its design date."
+  "note": "Candidate only. Live posture remains the v2 regime model until v3 earns out-of-sample evidence after its design date.",
+  "promotion": {
+   "state": "collecting",
+   "note": "Collecting post-design evidence: 0/24 months. No decision before 2028-11.",
+   "months": 0,
+   "earliest_decision_after": "2028-11"
+  }
  },
  "metrics": {
   "sharpe": 0.1123219357944076,
