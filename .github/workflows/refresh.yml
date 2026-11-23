@@ -80,6 +80,12 @@ jobs:
           mkdir -p _site
           cp -r index.html validation.html signals.html risk.html scenarios.html css js static data _site/
           touch _site/.nojekyll
+          # Cache-busting: Pages lets browsers cache assets (~10 min). Version every
+          # local js/css/static URL with the deployed commit so a new page never
+          # runs against a stale cached script.
+          V=$(git rev-parse --short=12 HEAD)
+          sed -i -E "s#(src|href)=\"((js|css|static)/[^\"?]+)\"#\1=\"\2?v=${V}\"#g" _site/*.html
+          grep -c "?v=${V}" _site/*.html
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
