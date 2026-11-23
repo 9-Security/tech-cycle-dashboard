@@ -1,5 +1,5 @@
 {
- "as_of": "20261123T094631Z",
+ "as_of": "20261123T101618Z",
  "settings": {
   "tolerance": 0.005,
   "months": 2,
@@ -8,7 +8,198 @@
   "max_listed": 10
  },
  "stocks": {
+  "AAPL": {
+   "market": "US",
+   "venue": "Nasdaq",
+   "window": [
+    "2026-10-01",
+    "2026-11-20"
+   ],
+   "official_last": "2026-11-20",
+   "compared": 37,
+   "max_abs_diff": 1.4410773824469203e-05,
+   "mismatches": [],
+   "n_mismatch": 0,
+   "missing": [],
+   "n_missing": 0,
+   "extra": [],
+   "n_extra": 0,
+   "not_yet": [],
+   "status": "ok"
+  },
+  "MSFT": {
+   "market": "US",
+   "venue": "Nasdaq",
+   "window": [
+    "2026-10-01",
+    "2026-11-20"
+   ],
+   "official_last": "2026-11-20",
+   "compared": 37,
+   "max_abs_diff": 9.603996761864408e-06,
+   "mismatches": [],
+   "n_mismatch": 0,
+   "missing": [],
+   "n_missing": 0,
+   "extra": [],
+   "n_extra": 0,
+   "not_yet": [],
+   "status": "ok"
+  },
+  "AMZN": {
+   "market": "US",
+   "venue": "Nasdaq",
+   "window": [
+    "2026-10-01",
+    "2026-11-20"
+   ],
+   "official_last": "2026-11-20",
+   "compared": 37,
+   "max_abs_diff": 5.6801107151116526e-08,
+   "mismatches": [],
+   "n_mismatch": 0,
+   "missing": [],
+   "n_missing": 0,
+   "extra": [],
+   "n_extra": 0,
+   "not_yet": [],
+   "status": "ok"
+  },
+  "GOOGL": {
+   "market": "US",
+   "venue": "Nasdaq",
+   "window": [
+    "2026-10-01",
+    "2026-11-20"
+   ],
+   "official_last": "2026-11-20",
+   "compared": 37,
+   "max_abs_diff": 1.4690410100381968e-05,
+   "mismatches": [],
+   "n_mismatch": 0,
+   "missing": [],
+   "n_missing": 0,
+   "extra": [],
+   "n_extra": 0,
+   "not_yet": [],
+   "status": "ok"
+  },
+  "META": {
+   "market": "US",
+   "venue": "Nasdaq",
+   "window": [
+    "2026-10-01",
+    "2026-11-20"
+   ],
+   "official_last": "2026-11-20",
+   "compared": 37,
+   "max_abs_diff": 7.073048100325607e-06,
+   "mismatches": [],
+   "n_mismatch": 0,
+   "missing": [],
+   "n_missing": 0,
+   "extra": [],
+   "n_extra": 0,
+   "not_yet": [],
+   "status": "ok"
+  },
+  "NVDA": {
+   "market": "US",
+   "venue": "Nasdaq",
+   "window": [
+    "2026-10-01",
+    "2026-11-20"
+   ],
+   "official_last": "2026-11-20",
+   "compared": 37,
+   "max_abs_diff": 4.447447787825354e-08,
+   "mismatches": [],
+   "n_mismatch": 0,
+   "missing": [],
+   "n_missing": 0,
+   "extra": [],
+   "n_extra": 0,
+   "not_yet": [],
+   "status": "ok"
+  },
+  "ORCL": {
+   "market": "US",
+   "venue": "Nasdaq",
+   "window": [
+    "2026-10-01",
+    "2026-11-20"
+   ],
+   "official_last": "2026-11-20",
+   "compared": 37,
+   "max_abs_diff": 5.304714090215157e-08,
+   "mismatches": [],
+   "n_mismatch": 0,
+   "missing": [],
+   "n_missing": 0,
+   "extra": [],
+   "n_extra": 0,
+   "not_yet": [],
+   "status": "ok"
+  },
+  "AMD": {
+   "market": "US",
+   "venue": "Nasdaq",
+   "window": [
+    "2026-10-01",
+    "2026-11-20"
+   ],
+   "official_last": "2026-11-20",
+   "compared": 37,
+   "max_abs_diff": 5.5143944965863056e-08,
+   "mismatches": [],
+   "n_mismatch": 0,
+   "missing": [],
+   "n_missing": 0,
+   "extra": [],
+   "n_extra": 0,
+   "not_yet": [],
+   "status": "ok"
+  },
+  "INTC": {
+   "market": "US",
+   "venue": "Nasdaq",
+   "window": [
+    "2026-10-01",
+    "2026-11-20"
+   ],
+   "official_last": "2026-11-20",
+   "compared": 37,
+   "max_abs_diff": 3.349286059606271e-08,
+   "mismatches": [],
+   "n_mismatch": 0,
+   "missing": [],
+   "n_missing": 0,
+   "extra": [],
+   "n_extra": 0,
+   "not_yet": [],
+   "status": "ok"
+  },
+  "AVGO": {
+   "market": "US",
+   "venue": "Nasdaq",
+   "window": [
+    "2026-10-01",
+    "2026-11-20"
+   ],
+   "official_last": "2026-11-20",
+   "compared": 37,
+   "max_abs_diff": 4.262727704151814e-08,
+   "mismatches": [],
+   "n_mismatch": 0,
+   "missing": [],
+   "n_missing": 0,
+   "extra": [],
+   "n_extra": 0,
+   "not_yet": [],
+   "status": "ok"
+  },
   "2330.TW": {
+   "market": "TW",
    "venue": "TWSE",
    "window": [
     "2026-10-01",
@@ -29,6 +220,7 @@
    "status": "warn"
   },
   "2454.TW": {
+   "market": "TW",
    "venue": "TWSE",
    "window": [
     "2026-10-01",
@@ -49,6 +241,7 @@
    "status": "warn"
   },
   "3661.TW": {
+   "market": "TW",
    "venue": "TWSE",
    "window": [
     "2026-10-01",
@@ -69,6 +262,7 @@
    "status": "warn"
   },
   "3443.TW": {
+   "market": "TW",
    "venue": "TWSE",
    "window": [
     "2026-10-01",
@@ -89,6 +283,7 @@
    "status": "warn"
   },
   "2317.TW": {
+   "market": "TW",
    "venue": "TWSE",
    "window": [
     "2026-10-01",
@@ -109,6 +304,7 @@
    "status": "warn"
   },
   "2382.TW": {
+   "market": "TW",
    "venue": "TWSE",
    "window": [
     "2026-10-01",
@@ -129,6 +325,7 @@
    "status": "warn"
   },
   "3231.TW": {
+   "market": "TW",
    "venue": "TWSE",
    "window": [
     "2026-10-01",
@@ -149,6 +346,7 @@
    "status": "warn"
   },
   "6669.TW": {
+   "market": "TW",
    "venue": "TWSE",
    "window": [
     "2026-10-01",
@@ -169,6 +367,7 @@
    "status": "warn"
   },
   "2356.TW": {
+   "market": "TW",
    "venue": "TWSE",
    "window": [
     "2026-10-01",
@@ -189,6 +388,7 @@
    "status": "warn"
   },
   "2308.TW": {
+   "market": "TW",
    "venue": "TWSE",
    "window": [
     "2026-10-01",
@@ -209,6 +409,7 @@
    "status": "warn"
   },
   "3017.TW": {
+   "market": "TW",
    "venue": "TWSE",
    "window": [
     "2026-10-01",
@@ -229,6 +430,7 @@
    "status": "warn"
   },
   "3324.TWO": {
+   "market": "TW",
    "venue": "TPEx",
    "window": [
     "2026-10-01",
@@ -249,6 +451,7 @@
    "status": "warn"
   },
   "2059.TW": {
+   "market": "TW",
    "venue": "TWSE",
    "window": [
     "2026-10-01",
@@ -269,6 +472,7 @@
    "status": "warn"
   },
   "2345.TW": {
+   "market": "TW",
    "venue": "TWSE",
    "window": [
     "2026-10-01",
@@ -289,6 +493,7 @@
    "status": "warn"
   },
   "2383.TW": {
+   "market": "TW",
    "venue": "TWSE",
    "window": [
     "2026-10-01",
@@ -309,6 +514,7 @@
    "status": "warn"
   },
   "3037.TW": {
+   "market": "TW",
    "venue": "TWSE",
    "window": [
     "2026-10-01",
@@ -329,6 +535,7 @@
    "status": "warn"
   },
   "3711.TW": {
+   "market": "TW",
    "venue": "TWSE",
    "window": [
     "2026-10-01",
@@ -349,6 +556,7 @@
    "status": "warn"
   },
   "3131.TWO": {
+   "market": "TW",
    "venue": "TPEx",
    "window": [
     "2026-10-01",
@@ -369,12 +577,26 @@
    "status": "warn"
   }
  },
- "summary": {
-  "warn": 18
+ "updated": {
+  "US": "20261123T101618Z",
+  "TW": "20261123T101618Z"
  },
- "n": 18,
  "source": {
   "TWSE": "https://www.twse.com.tw/rwd/zh/afterTrading/STOCK_DAY",
-  "TPEx": "https://www.tpex.org.tw/www/zh-tw/afterTrading/tradingStock"
- }
+  "TPEx": "https://www.tpex.org.tw/www/zh-tw/afterTrading/tradingStock",
+  "Nasdaq": "https://api.nasdaq.com/api/quote/{symbol}/historical"
+ },
+ "summary_by_market": {
+  "US": {
+   "ok": 10
+  },
+  "TW": {
+   "warn": 18
+  }
+ },
+ "summary": {
+  "warn": 18,
+  "ok": 10
+ },
+ "n": 28
 }

@@ -1,9 +1,9 @@
 {
- "as_of": "20261123T094631Z",
+ "as_of": "20261123T101618Z",
  "DATA_SOURCE": "REAL",
  "data_source": "REAL",
  "engine_version": "3.6.0",
- "git_sha": "45b6ea0a9aad",
+ "git_sha": "c62b03793ac7",
  "n_months": 322,
  "panel_start": "2000-01-31",
  "panel_end": "2026-10-31",
@@ -38,10 +38,10 @@
   {
    "id": "shock",
    "signal": "VIX (monthly mean)",
-   "value": 23.42562484741211,
+   "value": 23.42937481403351,
    "threshold": 18.0,
    "direction": "above",
-   "distance": -5.425624847412109,
+   "distance": -5.429374814033508,
    "active": true,
    "weight": 0.25
   },
