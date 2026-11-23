@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tech Cycle — Risk</title>
+  <link rel="stylesheet" href="css/app.css" />
+  <script src="static/chart.umd.min.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <h1>Tech Cycle — Risk</h1>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="index.html">Backtest</a>
+      <a href="validation.html">Validation</a>
+      <a href="signals.html">Signals</a>
+      <a class="active" href="risk.html">Risk</a>
+      <a href="scenarios.html">Scenarios</a>
+    </nav>
+  </header>
+  <div class="subbar" id="asof-line">Loading…</div>
+  <div class="banner" id="banner">Loading data status…</div>
+
+  <main>
+    <section class="interp" id="summary">Loading…</section>
+
+    <section class="metrics">
+      <div class="card"><div class="label">Next-month volatility forecast</div><div class="value" id="r-vol">—</div><div class="sub" id="r-vol-sub">—</div></div>
+      <div class="card"><div class="label" id="r-dd-label">P(drawdown &gt; 20% in 12m)</div><div class="value" id="r-dd">—</div><div class="sub" id="r-dd-sub">—</div></div>
+      <div class="card"><div class="label">Model estimate (reference only)</div><div class="value" id="r-model">—</div><div class="sub" id="r-model-sub">—</div></div>
+    </section>
+
+    <section class="panel">
+      <h2>Volatility forecast — out-of-sample (predictable)</h2>
+      <div class="chart-wrap"><canvas id="volChart"></canvas></div>
+      <p class="note" id="volNote"></p>
+    </section>
+
+    <section class="panel">
+      <h2>Drawdown-event model — out-of-sample skill vs the base rate</h2>
+      <div class="table-wrap"><table id="skillTable"></table></div>
+      <p class="note">Brier skill score (BSS) = 1 − Brier(model) / Brier(base rate). Above 0 means better than always forecasting the historical frequency. 90% CI from a 12-month moving-block bootstrap. "Episodes" counts separate runs of event months: overlapping 12-month windows make many event months from one crash.</p>
+    </section>
+
+    <section class="panel">
+      <h2>By era (12-month, −20% target)</h2>
+      <div class="table-wrap"><table id="eraTable"></table></div>
+    </section>
+
+    <section class="panel">
+      <h2>Out-of-sample probability vs what happened</h2>
+      <label class="picker">Target <select id="tgtPick"></select></label>
+      <div class="chart-wrap"><canvas id="probChart"></canvas></div>
+    </section>
+
+    <section class="panel">
+      <h2>Reliability (calibration) — predicted vs observed frequency</h2>
+      <div class="chart-wrap short"><canvas id="relChart"></canvas></div>
+      <div class="table-wrap"><table id="relTable"></table></div>
+    </section>
+
+    <section class="panel">
+      <h2>Current model drivers (log-odds contribution vs average)</h2>
+      <div class="table-wrap"><table id="drvTable"></table></div>
+    </section>
+  </main>
+
+  <footer id="footer">Loading…</footer>
+  <script src="js/common.js"></script>
+  <script src="js/risk.js"></script>
+</body>
+</html>

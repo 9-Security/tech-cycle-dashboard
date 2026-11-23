@@ -11,6 +11,7 @@ Live research dashboard for a **tech Capex-cycle strategy**: the live v2 regime 
 | [`index.html`](index.html) | Official regime + weight in force, month-to-date provisional regime, OOS metrics, NAV (OOS vs B&H vs in-sample), regime timeline, signals, Capex intensity |
 | [`validation.html`](validation.html) | v2 vs v3 model comparison; per model: OOS vs hindsight, DSR/PSR, ablation, crisis sub-periods, sensitivity heatmap, per-year fold parameters, DQ + data provenance |
 | [`signals.html`](signals.html) | Stand-alone tests of each signal: quintile returns / drawdown odds, Newey-West IC, era stability, threshold events |
+| [`risk.html`](risk.html) | Next-month volatility forecast (forecastable) and drawdown-event probability with out-of-sample skill vs the base rate (not skillful; base rate shown as headline) |
 | [`scenarios.html`](scenarios.html) | Rule-based trigger distances and scenario cards from live parameters |
 
 ## Layout
@@ -25,6 +26,7 @@ engine/                 Python engine (numpy, pandas, requests)
   tcd/backtest.py       lag-1 simulation + metrics
   tcd/validation.py     nested walk-forward, ablation, sensitivity, DSR/PSR
   tcd/signal_study.py   stand-alone signal tests (PIT quintiles, NW t, block bootstrap)
+  tcd/risk_model.py     walk-forward drawdown probability (logistic) + volatility forecast
   tcd/quality.py        fail-closed data-quality gates
   tcd/status.py         live posture + scenarios
   tcd/export.py         dashboard JSON / CSV (atomic swap)

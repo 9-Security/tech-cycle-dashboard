@@ -301,3 +301,7 @@ table.heat th { text-align: center; }
 .model-pick button.active { background: var(--nav); color: #fff; border-color: var(--nav); }
 .model-pick button:disabled { opacity: 0.4; cursor: not-allowed; }
 .card.candidate { border-style: dashed; border-color: #9fb3cc; }
+.nav-links { flex-wrap: wrap; }
+@media (max-width: 640px) {
+  .nav-links a { padding: 0.3rem 0.55rem; font-size: 0.8rem; }
+}

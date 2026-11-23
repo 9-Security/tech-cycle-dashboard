@@ -41,6 +41,17 @@
         " · tilt " + (me.tilt >= 0 ? "+" : "") + fmt(me.tilt, 2) + (pv ? " · MTD " + fmt(pv.weight, 2) : ""));
     }
 
+    const rk = status.risk;
+    if (rk) {
+      const vf = rk.vol_forecast_next_month;
+      setText("p-vol", pct(vf.vol, 0));
+      document.getElementById("p-vol-sub").innerHTML = "90% " + pct(vf.band90[0], 0) + "–" + pct(vf.band90[1], 0) +
+        " · P(DD&gt;20%, 12m): base rate " + pct(rk.base_rate, 0) + " (model not skillful) · <a href='risk.html'>Risk</a>";
+      if (rk.headline_source === "model")
+        document.getElementById("p-vol-sub").innerHTML = "90% " + pct(vf.band90[0], 0) + "–" + pct(vf.band90[1], 0) +
+          " · P(DD&gt;20%, 12m) " + pct(rk.headline_p, 0) + " · <a href='risk.html'>Risk</a>";
+    }
+
     // Metrics (fractions -> %)
     setText("m-sharpe", fmt(m.sharpe));
     setText("m-sharpe-sub", "B&H " + fmt(m.bh_sharpe) + " · in-sample " + fmt(m.insample_sharpe));

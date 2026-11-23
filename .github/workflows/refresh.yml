@@ -78,7 +78,7 @@ jobs:
       - name: Stage static site
         run: |
           mkdir -p _site
-          cp -r index.html validation.html signals.html scenarios.html css js static data _site/
+          cp -r index.html validation.html signals.html risk.html scenarios.html css js static data _site/
           touch _site/.nojekyll
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

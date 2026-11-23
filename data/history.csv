@@ -1,2 +1,2 @@
-run_at,panel_end,regime,executed_weight,provisional_month,provisional_regime,provisional_weight,vix,overheat_score,earn_score,oos_sharpe,v3_weight,v3_month_end_weight,git_sha
-20261123T063605Z,2026-10-31,Normal,1.0,2026-11,Shock,0.25,22.9693,0.8151,0.2715,0.1123,0.1913,0.1913,
+run_at,panel_end,regime,executed_weight,provisional_month,provisional_regime,provisional_weight,vix,overheat_score,earn_score,oos_sharpe,v3_weight,v3_month_end_weight,p_dd20_12m_model,vol_fcst_next_month,git_sha
+20261123T064932Z,2026-10-31,Normal,1.0,2026-11,Shock,0.25,22.9693,0.8151,0.2715,0.1123,0.1913,0.1913,0.3381,0.3513,

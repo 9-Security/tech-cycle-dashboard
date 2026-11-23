@@ -1,4 +1,4 @@
-# Methodology — engine v3.0 (live, point-in-time, nested walk-forward)
+# Methodology — engine v3.1 (live, point-in-time, nested walk-forward)
 
 Engine source: [`engine/tcd/`](../engine/tcd). Rebuilt from the v1 specification in this folder; v1 documents are kept for history.
 
@@ -171,3 +171,36 @@ Design rules fixed *before* the v3 walk-forward was run:
 ### Evaluation protocol from here
 * v3's design was informed by full-sample studies, so the table above is still optimistic. Months after **2026-11-23** are the only clean test; they are tracked in `validation.json → candidate.since_design` and `data/history.csv` (`v3_weight`).
 * Suggested promotion rule (to be decided by the owner, not automatically): ≥ 24 months after the design date with v3 ahead of vol-matched buy & hold on Sharpe, and no data-quality incidents.
+
+
+## 9. Risk estimation — what is and is not predictable (2026-11-23)
+
+Module `engine/tcd/risk_model.py`, page `risk.html`, data `data/risk.json`.
+
+### 9.1 Drawdown-event probability (calibrated logistic model)
+* Targets: P(max drawdown of the risk asset worse than −20% within 12 months) and P(worse than −10% within 6 months), month-end closes.
+* Inputs at month-end t: log 63d realized vol, log VIX, earnings momentum score, price-extension z. L2 logistic (λ = 1), standardized.
+* Walk-forward, refit every January. **Label rule:** the model for year Y is fitted only on rows whose full forward window ended by December Y−1 (tested).
+* Baselines: expanding historical base rate (climatology) and a vol-only model. Scores: Brier, Brier skill score (BSS) with 12-month block-bootstrap CI, log loss, AUC, reliability table.
+
+| Target | Model | Event months | BSS vs base rate | 90% CI | AUC |
+|---|---|---:|---:|---|---:|
+| 12m, −20% | full | 60 / 310 | −0.19 | [−0.46, −0.01] | 0.31 |
+| 12m, −20% | vol only | 60 / 310 | −0.14 | [−0.33, +0.02] | 0.27 |
+| 6m, −10% | full | 105 / 316 | −0.08 | [−0.21, +0.07] | 0.48 |
+| 6m, −10% | vol only | 105 / 316 | +0.01 | [−0.10, +0.14] | 0.57 |
+
+**The model has no out-of-sample skill over the base rate.** Diagnosis (not a code error: predictions are monotone in vol within every year, correlation 0.97–1.0):
+1. The 2000–2002 crash was the first event; the 2000 fold had zero known events and the 2001 fold four, so 24 event months were predicted near 0%.
+2. Since 2008 there are only **two** 12-month −20% episodes (2008 H1, 2021 H2–2022). Both began from **calm** markets (21d vol 12–25%). The highest-vol months (late 2008, 2009, 2020) were near bottoms and were followed by recoveries, which the model scored as high risk (predicted 50–100% → observed 0%).
+3. Correction to the earlier signal study (§ v2.2): the high-VIX → more-drawdowns spread was driven mainly by the prolonged 2000–2002 bear market and does not survive walk-forward. Volatility is largely coincident with, not ahead of, large drawdowns.
+
+**Display rule (fixed before publishing):** if the full model's BSS is not positive with a CI above zero, the dashboard headline shows the historical base rate and labels the model value "reference only".
+
+### 9.2 Next-month volatility forecast
+* Target: next month's 21-day realized vol; inputs log rv21 and log VIX at t; OLS refit each January.
+* Out-of-sample 2000-01 → 2026-09: **R² 0.50 vs the historical mean, +0.12 vs persistence**, correlation 0.69.
+
+### 9.3 Answer to "can this project estimate risk?"
+* **Yes, for risk size:** next-month volatility is forecastable (volatility clustering). That supports volatility targeting (v3) and position sizing.
+* **No, for crash events or cycle tops:** with 2–3 episodes, a 12-month drawdown probability model does not beat the base rate; neither did the Overheat signal (§ v2.2). The honest point estimate for "a >20% drawdown within 12 months" is the base rate (~16%).

@@ -28,7 +28,7 @@ PANEL_COLUMNS = [
 HISTORY_FIELDS = [
     "run_at", "panel_end", "regime", "executed_weight", "provisional_month", "provisional_regime",
     "provisional_weight", "vix", "overheat_score", "earn_score", "oos_sharpe", "v3_weight",
-    "v3_month_end_weight", "git_sha",
+    "v3_month_end_weight", "p_dd20_12m_model", "vol_fcst_next_month", "git_sha",
 ]
 
 
@@ -123,7 +123,8 @@ def _write_json(path: Path, obj) -> None:
 
 
 def write_all(out_dir: Path, *, series: dict, status: dict, scenarios: dict, validation: dict,
-              health: dict, panel: pd.DataFrame, history_row: dict, signals: dict | None = None) -> list[Path]:
+              health: dict, panel: pd.DataFrame, history_row: dict, signals: dict | None = None,
+              risk: dict | None = None) -> list[Path]:
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     stage = Path(tempfile.mkdtemp(prefix=".stage-", dir=out_dir))
@@ -135,6 +136,8 @@ def write_all(out_dir: Path, *, series: dict, status: dict, scenarios: dict, val
         _write_json(stage / "health.json", health)
         if signals is not None:
             _write_json(stage / "signals.json", signals)
+        if risk is not None:
+            _write_json(stage / "risk.json", risk)
 
         cols = [c for c in PANEL_COLUMNS if c in panel.columns]
         panel[cols].round(6).to_csv(stage / "panel_monthly.csv", date_format="%Y-%m-%d")
