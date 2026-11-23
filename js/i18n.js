@@ -564,12 +564,13 @@
   add("risk.cap.stab", "{n}: about {c} changes a year, median run {r} trading days, {w} of changes reversed within 5 days.", "{n}：每年約變動 {c} 次，中位持續 {r} 個交易日，{w} 的變動在 5 天內反轉。");
   add("risk.cap.light", "Risk light", "燈號");
   add("risk.cap.cap", "Cap band", "上限等級");
-  add("risk.cap.review.yes", "This exceeds the registered review threshold (≥ 24 changes a year or ≥ 30% reversed), so a display buffer has been proposed to the owner; nothing is applied automatically.", "這已超過登記的審查門檻（每年 ≥ 24 次或 ≥ 30% 反轉），因此已向擁有者提出顯示緩衝的建議；不會自動套用。");
+  add("risk.cap.review.yes", "This exceeds the registered review threshold (≥ 24 changes a year or ≥ 30% reversed); the owner chose to buffer the alerts only, the light and cap shown here are unchanged.", "這已超過登記的審查門檻（每年 ≥ 24 次或 ≥ 30% 反轉）；擁有者選擇只對通知加緩衝，這裡顯示的燈號與上限不變。");
+  add("risk.cap.confirmed", "Alerts are sent only after a new level holds 2 closes: historically about {l} light alerts and {c} cap alerts a year ({wl} and {wc} reversed within 5 days).", "通知要等新等級連續維持 2 個收盤才發送：歷史上每年約 {l} 則燈號通知、{c} 則上限通知（分別有 {wl}、{wc} 在 5 天內反轉）。");
   add("risk.cap.review.no", "Within the registered review threshold.", "在登記的審查門檻內。");
   add("risk.alerts.h3", "Recent alerts", "最近的通知");
-  add("risk.alerts.none", "No alerts yet. Alerts start with the next US close.", "目前沒有通知，下一個美股收盤後開始。");
+  add("risk.alerts.none", "No alerts yet. Light and cap alerts need a new level to hold 2 US closes.", "目前沒有通知。燈號與上限通知需要新等級連續維持 2 個美股收盤。");
   add("risk.alerts.light", "{d}: risk light {a} → {b}", "{d}：燈號 {a} → {b}");
-  add("risk.alerts.cap", "{d}: exposure-cap band {a} → {b} ({x} → {y})", "{d}：曝險上限 {a} → {b} 級（{x} → {y}）");
+  add("risk.alerts.cap", "{d}: exposure-cap band {a} → {b} (now {y})", "{d}：曝險上限 {a} → {b} 級（目前 {y}）");
   add("risk.alerts.breach", "{d}: 1-day VaR breached (return {r} vs VaR −{v})", "{d}：單日 VaR 被突破（報酬 {r}，VaR −{v}）");
   add("risk.alerts.warn", "Interim look warning for {s}: {v}", "{s} 分段檢視警示：{v}");
   add("risk.live.descriptive", "descriptive only", "僅描述，不判定");
