@@ -1,9 +1,9 @@
 {
- "as_of": "20261123T065749Z",
+ "as_of": "20261123T070247Z",
  "DATA_SOURCE": "REAL",
  "data_source": "REAL",
  "engine_version": "3.1.1",
- "git_sha": "ea9ff80bb1f6",
+ "git_sha": "6da1cf99e1da",
  "n_months": 322,
  "panel_start": "2000-01-31",
  "panel_end": "2026-10-31",
