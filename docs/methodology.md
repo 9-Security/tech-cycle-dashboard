@@ -304,6 +304,20 @@ Module `engine/tcd/stocks.py`; list in `engine/watchlist.json` (edit it to add o
 * **First results (2026-11-23):** HAR beats EWMA (DM t > 0) for most names, but only **7/28 VaRs are verified** (MSFT, GOOGL, META, NVDA, INTC, AVGO, 3711). Most Taiwan failures are "breaches cluster": large moves come in runs (limit-down days follow each other), which a one-day model cannot anticipate. The page shows the failing reason per stock.
 * **Known limits:** jumps around earnings releases are not forecastable; Taiwan names use prices only (no MOPS fundamentals); the list reflects today's leaders.
 
+### 13a. Tested and rejected: out-of-sample VaR quantile for stocks (2026-11-23)
+
+After the market VaR fix (§ 10, out-of-sample FHS quantile), the same change was tested on the 28 stocks. Adoption rule fixed before looking at the results: adopt only if, on the same scored days, the number of verified names does not fall **and** the mean |breach rate − 5%| falls.
+
+| | In-sample quantile (kept) | Out-of-sample quantile |
+|---|---:|---:|
+| Verified names (same days) | 9 | 4 |
+| Mean \|breach rate − 5%\| | 0.66% | 0.69% |
+| Mean breach rate | 5.20% | 5.43% |
+
+**Rejected; the stock VaR keeps the in-sample quantile.** A first run also showed a population mismatch (the quantile included days with an unchanged close, which the backtest does not score); the run above fixes that and is the one the rule was applied to. Two attempts were made in total; no further variants were tried on this window.
+
+Reading: unlike the market VaR, the stock VaR is not biased low on average (5.20%); most failures are **clustered breaches** (Christoffersen), which no choice of quantile can fix. A fix would need a variance model that reacts faster after a large move (e.g. an asymmetric or GARCH-type term, or the market's own volatility as a regressor), tested with a rule fixed in advance and, ideally, judged on the live ledger (§ 14) rather than on this backtest window.
+
 ## 14. Live forecast ledger and reconciliation (stocks)
 
 Module `engine/tcd/ledger.py`; files `data/forecasts/stocks_ledger.csv` (append-only), `data/forecasts/stocks_outcomes.csv` (regenerated), `data/forecast_review.json`; section "Live track record" on `stocks.html`.
