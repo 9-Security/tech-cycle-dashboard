@@ -319,9 +319,10 @@ def refresh(args: argparse.Namespace) -> int:
         _issue(issues, "market_ledger", exc)
     alerts_out = None
     try:  # risk alerts vs the previously published state (section 21)
-        ev = alerts.events(prev_status, status["light"], status.get("exposure_cap"), prev_review,
-                           _read_json(Path(args.out) / "forecast_review_market.json"))
-        alerts_out = alerts.merge(_read_json(Path(args.out) / "alerts.json"), ev, as_of)
+        prev_alerts = _read_json(Path(args.out) / "alerts.json")
+        ev, astate = alerts.events(prev_status, status["light"], status.get("exposure_cap"), prev_review,
+                                   _read_json(Path(args.out) / "forecast_review_market.json"), prev_alerts)
+        alerts_out = alerts.merge(prev_alerts, ev, as_of, astate)
     except Exception as exc:  # noqa: BLE001
         _issue(issues, "alerts", exc)
     health["degraded"] = bool(issues)
