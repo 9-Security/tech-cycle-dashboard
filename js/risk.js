@@ -123,7 +123,10 @@
       const rev = st("cap_stability").review_triggered || st("light_stability").review_triggered;
       setHTML("expo-stab", t("risk.cap.vols", { a: pct(hist.vol_ann.capped, 0), b: pct(hist.vol_ann.buy_hold, 0) }) + " " +
         line("light_stability", "risk.cap.light") + " " + line("cap_stability", "risk.cap.cap") + " " +
-        t(rev ? "risk.cap.review.yes" : "risk.cap.review.no"));
+        t(rev ? "risk.cap.review.yes" : "risk.cap.review.no") +
+        (hist.alerts_confirmed ? " " + t("risk.cap.confirmed", { l: fmt(hist.alerts_confirmed.light.changes_per_year, 0),
+          c: fmt(hist.alerts_confirmed.cap.changes_per_year, 0), wl: pct(hist.alerts_confirmed.light.whipsaw_share, 0),
+          wc: pct(hist.alerts_confirmed.cap.whipsaw_share, 0) }) : ""));
     }
     const recent = ((al && al.recent) || []).slice(-10).reverse();
     document.getElementById("alertList").innerHTML = recent.length
@@ -133,7 +136,7 @@
   function alertText(e) {
     const p0 = (x, d) => (x == null ? "—" : pct(x, d));
     if (e.type === "light_change") return t("risk.alerts.light", { d: e.date, a: t("light.short." + e.from), b: t("light.short." + e.to) });
-    if (e.type === "cap_band_change") return t("risk.alerts.cap", { d: e.date, a: e.from, b: e.to, x: p0(e.cap_from, 0), y: p0(e.cap_to, 0) });
+    if (e.type === "cap_band_change") return t("risk.alerts.cap", { d: e.date, a: e.from, b: e.to, y: p0(e.cap_to, 0) });
     if (e.type === "var_breach") return t("risk.alerts.breach", { d: e.target_end, r: p0(e.ret, 2), v: p0(e.var95, 2) });
     if (e.type === "validation_warning") return t("risk.alerts.warn", { s: e.series, v: e.verdict });
     return e.type;

@@ -71,6 +71,19 @@ def stability(levels: pd.Series) -> dict:
     return out
 
 
+def _confirmed(levels: pd.Series) -> pd.Series:
+    """Level as the alert filter sees it (alerts.step): changes only after holding."""
+    from .alerts import step
+    st, out = None, []
+    for d, lv in levels.items():
+        if lv is None or (isinstance(lv, float) and np.isnan(lv)):
+            out.append(None)
+            continue
+        st, _ = step(st, str(d), lv)
+        out.append(st["confirmed"])
+    return pd.Series(out, index=levels.index)
+
+
 def _max_dd(simple: pd.Series) -> float:
     nav = (1 + simple).cumprod()
     return float((nav / nav.cummax() - 1).min()) if len(nav) else float("nan")
@@ -100,7 +113,8 @@ def history(df: pd.DataFrame, fc: pd.DataFrame, live_model: str, oos_start_year:
            "avg_cap": float(cap.dropna().mean()), "share_below_full": float((cap.dropna() < 1).mean()),
            "vol_ann": {"capped": float(capped.std() * sqrt(252)), "buy_hold": float(r.std() * sqrt(252))},
            "max_dd": {"capped": _max_dd(capped), "buy_hold": _max_dd(r)}, "windows": {},
-           "cap_stability": stability(band), "light_stability": stability(light)}
+           "cap_stability": stability(band), "light_stability": stability(light),
+           "alerts_confirmed": {"light": stability(_confirmed(light)), "cap": stability(_confirmed(band))}}
     for name, a, b in DD_WINDOWS:
         m = (r.index >= a) & (r.index <= b)
         if m.any():

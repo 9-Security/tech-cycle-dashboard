@@ -25,16 +25,27 @@ LIGHT_PREV = {"light": {"date": "2026-11-20", "level": "red"},
               "exposure_cap": {"date": "2026-11-20", "band": "D", "cap": 0.35}}
 
 
-def test_events_only_on_a_new_close():
-    light = {"date": "2026-11-23", "level": "yellow", "vol_percentile": 0.7}
-    cap = {"date": "2026-11-23", "band": "C", "cap": 0.55}
-    ev = alerts.events(LIGHT_PREV, light, cap, None, None)
-    assert [e["type"] for e in ev] == ["light_change", "cap_band_change"]
-    # Same close re-run: nothing repeats.
-    same = alerts.events({"light": {**light, "level": "red"}, "exposure_cap": {**cap, "band": "D"}}, light, cap, None, None)
-    assert same == []
-    # First run (no previous state): nothing.
-    assert alerts.events(None, light, cap, None, None) == []
+def test_light_and_cap_alerts_need_two_closes():
+    l1 = {"date": "2026-11-23", "level": "yellow", "vol_percentile": 0.7}
+    c1 = {"date": "2026-11-23", "band": "C", "cap": 0.55}
+    ev, st = alerts.events(LIGHT_PREV, l1, c1, None, None)
+    assert ev == [] and st["light"]["candidate"] == "yellow" and st["cap"]["count"] == 1
+    a = alerts.merge(None, ev, "r1", st)
+    # Same close re-run: nothing changes.
+    ev, st2 = alerts.events(LIGHT_PREV, l1, c1, None, None, a)
+    assert ev == [] and st2 == st
+    # Second close at the new level: confirmed.
+    ev, st = alerts.events(None, {**l1, "date": "2026-11-24"}, {**c1, "date": "2026-11-24"}, None, None, a)
+    assert [(e["type"], e["from"], e["to"]) for e in ev] == [("light_change", "red", "yellow"), ("cap_band_change", "D", "C")]
+    assert st["light"] == {"confirmed": "yellow", "candidate": None, "count": 0, "last_date": "2026-11-24"}
+    # First run (no previous state at all): nothing.
+    assert alerts.events(None, l1, c1, None, None)[0] == []
+
+
+def test_round_trips_and_wandering_raise_nothing():
+    seq = [("d1", "red"), ("d2", "yellow"), ("d3", "red"), ("d4", "yellow"), ("d5", "green"), ("d6", "red"),
+           ("d7", "green"), ("d8", "green")]
+    assert alerts.confirmed_changes(seq) == [("d8", "red", "green")]
 
 
 def test_breaches_and_new_validation_warnings():
@@ -42,7 +53,7 @@ def test_breaches_and_new_validation_warnings():
     old = {"targets": {"var_1d": {"interim": {"verdict": "before_first_look"}}}, "panel": {"interim": {"verdict": "too_many_at_60"}}}
     new = {"targets": {"var_1d": {"interim": {"verdict": "too_many_at_60"}}}, "panel": {"interim": {"verdict": "too_many_at_60"}},
            "last_run": {"new_var_breaches": [{"origin_date": "a", "target_end": "b", "var95": 0.05, "ret": -0.06}]}}
-    ev = alerts.events(LIGHT_PREV, light, None, old, new)
+    ev, _ = alerts.events(LIGHT_PREV, light, None, old, new)
     assert [e["type"] for e in ev] == ["var_breach", "validation_warning"] and ev[1]["series"] == "var_1d"
     assert all(alerts.describe(e).startswith("- ") for e in ev)
 
