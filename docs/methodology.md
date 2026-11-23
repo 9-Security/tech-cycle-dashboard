@@ -1,4 +1,4 @@
-# Methodology — engine v3.4 (live, point-in-time, nested walk-forward)
+# Methodology — engine v3.5 (live, point-in-time, nested walk-forward)
 
 Engine source: [`engine/tcd/`](../engine/tcd). Rebuilt from the v1 specification in this folder; v1 documents are kept for history.
 
@@ -286,3 +286,16 @@ Module `engine/tcd/light.py`; shown at the top of the home page in the reader's 
 * **Text:** the engine writes codes and numbers only (level, percentile, ratio to the historical median, typical daily move, 1-day 95% VaR, month-to-date return, aggregate P/E state vs its 10-year average, earnings-momentum state). The page turns them into sentences from en / zh-TW templates in `js/i18n.js`, so both languages always show the same numbers and change automatically with each daily refresh.
 * The light is built only on the volatility forecast, the one risk estimate with demonstrated out-of-sample skill. Valuation and earnings are shown as backdrop with an explicit note that they do not time crashes.
 * The level is also logged daily in `data/history.csv` (`light` column).
+
+
+## 13. Stock monitoring (US mega caps + Taiwan AI supply chain)
+
+Module `engine/tcd/stocks.py`; list in `engine/watchlist.json` (edit it to add or remove names); page `stocks.html`; data `data/stocks.json`, refreshed daily (report only, never blocks the refresh). **Risk monitoring only: no buy/sell signals and no per-stock strategy backtests.**
+
+* **Universe (28):** AAPL, MSFT, AMZN, GOOGL, META, NVDA, ORCL, AMD, INTC, AVGO; Taiwan: 2330, 2454, 3661, 3443, 2317, 2382, 3231, 6669, 2356, 2308, 3017, 3324 (TPEx), 2059, 2345, 2383, 3037, 3711, 3131 (TPEx). Benchmarks ^NDX and ^TWII.
+* **Model:** log-HAR on each stock's own daily returns (no VIX), EWMA 0.94 baseline, annual walk-forward refit; 1-day 95% VaR by filtered historical simulation. A VaR is **verified** only with ≥ 500 out-of-sample days and Kupiec and Christoffersen p ≥ 0.05.
+* **Light:** same rule as the market light, against the stock's own history of 22-day realized volatility.
+* **Other fields:** 1-month return, drop from the 52-week high, 1-year beta to the benchmark; for US names point-in-time SEC TTM revenue / net income and YoY growth (shown as "n/m" when the year-ago base is ≤ 0 or growth exceeds ±500%), trailing P/E, Capex / revenue, last filing date.
+* **Data fixes found on the first real run (numerical, not tuned on results):** Yahoo carries Taiwan prices forward through halts and gaps (runs of unchanged closes up to 272 days) and has unadjusted corporate actions (a −80% day). Runs of ≥ 5 unchanged closes are removed, Taiwan daily moves beyond ±25% (impossible under the ±7%/10% limits) are dropped, the daily HAR term is floored at 5% of its 22-day mean, and the model is fitted on the next-5-day average variance. Before these fixes two stocks showed forecasts above 2,000% annualized.
+* **First results (2026-11-23):** HAR beats EWMA (DM t > 0) for most names, but only **7/28 VaRs are verified** (MSFT, GOOGL, META, NVDA, INTC, AVGO, 3711). Most Taiwan failures are "breaches cluster": large moves come in runs (limit-down days follow each other), which a one-day model cannot anticipate. The page shows the failing reason per stock.
+* **Known limits:** jumps around earnings releases are not forecastable; Taiwan names use prices only (no MOPS fundamentals); the list reflects today's leaders.

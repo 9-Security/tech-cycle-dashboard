@@ -330,3 +330,15 @@ html[lang="zh-TW"] body { font-family: "IBM Plex Sans", "Noto Sans TC", "PingFan
 .light h2 { margin: 0.1rem 0 0; font-size: 1.1rem; }
 .light ul { margin: 0.65rem 0 0.4rem; padding-left: 1.2rem; font-size: 0.92rem; line-height: 1.6; }
 .light-foot { margin: 0.3rem 0 0; font-size: 0.78rem; color: var(--muted); overflow-wrap: anywhere; }
+
+/* ---- stocks page ---- */
+.picker-row { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin: 0 0 0.75rem; }
+.stock-table tbody tr { cursor: pointer; }
+.stock-table tbody tr:hover { background: #f6f1e8; }
+.stock-table tbody tr.sel { background: #eef4fb; }
+.stock-table tbody tr:focus { outline: 2px solid var(--nav); outline-offset: -2px; }
+.mini-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 0.3rem; vertical-align: -1px; }
+.mini-dot.green { background: #2f6f4e; }
+.mini-dot.yellow { background: #d4a20c; }
+.mini-dot.red { background: #b3261e; }
+.stock-detail .chart-wrap { margin-top: 0.5rem; }
