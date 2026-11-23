@@ -524,6 +524,19 @@
   add("risk.beats.yes", "beats", "勝過");
   add("risk.beats.no", "does <strong>not</strong> beat", "<strong>沒有</strong>勝過");
   add("risk.summary.tail", "The headline probability below is therefore the base rate; the model value is shown for reference only.", "因此下方的主要機率顯示歷史平均，模型數值僅供參考。");
+  add("risk.live.h2", "Live track record (market forecast ledger)", "上線後實際表現（大盤預測帳本）");
+  add("risk.live.intro", "Every daily refresh writes the market's 1-day 95% VaR, 5-day volatility and (at each complete month-end) next-month volatility forecast to an append-only ledger (data/forecasts/market_ledger.csv) before the outcome exists; the first forecast for a day is kept. Outcomes are scored on the risk asset (XLK) once known. Unlike the backtests above, this record cannot be rewritten with hindsight.",
+    "每天更新時，在結果出來之前，把大盤的 1 日 95% VaR、5 日波動，以及（每個完整月底的）下月波動預測，寫進只能新增的帳本（data/forecasts/market_ledger.csv）；同一天只保留第一次寫入。結果出來後以風險資產（XLK）對帳。和上方的回測不同，這份紀錄無法事後改寫。");
+  add("risk.live.cols", "Forecast|Logged|Scored|Breaches / band|Realized ÷ forecast (target 1.0)|Verdict", "預測|已記錄|已對帳|突破次數／區間|實際 ÷ 預測（目標 1.0）|判定");
+  add("risk.live.var1d", "1-day 95% VaR", "1 日 95% VaR");
+  add("risk.live.vol5d", "5-day volatility", "5 日波動");
+  add("risk.live.vol1m", "Next-month volatility", "下月波動");
+  add("risk.live.last", "last {n}:", "最近 {n} 天：");
+  add("risk.live.band", "{c} inside the 90% band", "{c} 落在 90% 區間內");
+  add("risk.live.descriptive", "descriptive only", "僅描述，不判定");
+  add("risk.live.none", "No market ledger yet: it starts with the next daily refresh.", "大盤帳本尚未建立，下一次每日更新後開始累積。");
+  add("risk.live.note", "Rules fixed in advance: the 1-day VaR gets a verdict after {d} scored days (Kupiec and Christoffersen tests); next-month volatility after {m} months (90% band should cover 80–97%). The last {r} days are shown separately. For VaR the ratio is realized squared return ÷ forecast variance; for next-month volatility, realized ÷ forecast volatility (geometric mean). Nothing here changes the models.",
+    "事前固定的規則：1 日 VaR 累積 {d} 個已對帳交易日後才判定（Kupiec 與 Christoffersen 檢定）；下月波動累積 {m} 個月後才判定（90% 區間的實際涵蓋率應在 80–97%）。另外列出最近 {r} 天。VaR 的比值是實際報酬平方 ÷ 預測變異數；下月波動是實際 ÷ 預測波動（幾何平均）。這裡的結果不會自動修改模型。");
   add("risk.st.h2", "Short-term risk — next trading day / next 5 days (daily HAR model)", "短期風險 — 下一個交易日／未來 5 日（每日 HAR 模型）");
   add("risk.st.var", "1-day 95% VaR", "1 日 95% 風險值（VaR）");
   add("risk.st.varSub", "1-in-20 trading days a loss larger than this is expected · from close {d} · {m}", "約每 20 個交易日會有 1 天虧損超過此值 · 自 {d} 收盤起算 · {m}");

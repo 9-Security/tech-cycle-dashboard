@@ -36,6 +36,7 @@ engine/                 Python engine (numpy, pandas, requests)
   tcd/ledger.py         live stock forecast ledger (append-only) + reconciliation
   tools/validate_data.py pre-commit checks of data/ (strict JSON/CSV, append-only ledger, no e-mail)
   tools/check_pit.py    manual future-invariance check on real cached data (no look-ahead)
+  tcd/market_ledger.py  live forecast ledger for the market VaR / volatility (append-only)
   tcd/tw_calendar.py    removes Yahoo bars on Taiwan market holidays before the stock model
   tcd/official_check.py second-source closes: TW vs TWSE / TPEx, US vs Nasdaq (report only)
   tcd/stocks.py         per-stock risk monitoring + US fundamentals (watchlist.json)

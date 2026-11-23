@@ -429,3 +429,19 @@ The v3 fingerprint changed again (Sortino and calendar code are inside it): seco
 **Not changed, documented:** the stock walk-forward cutoff still uses `BDay` (378 of ~100,000 training rows reach past the cutoff; fixing it would change the stock `model_id` and restart the live record for a backtest-only effect); the next-month volatility forecast is the median of the log-normal forecast (`exp` of the log forecast, no smearing) — read it as a typical, not an average, level; cross-market `p_positive` is a bootstrap share, not a p-value; GitHub Actions are pinned by tag, not SHA.
 
 **Known limitations, unchanged:** survivorship (today's ten leaders), design choices made after full-sample work, macro proxies from the latest FRED vintage. The market VaR, although it passes over 2000–2026 (4.76%), breached 7.15% of days over the last three years (Kupiec p 0.011); per the decision to judge stock and market VaR changes on live data, this is monitored, not tuned on the backtest.
+
+## 17. Live forecast ledger for the market risk numbers (2026-11-23)
+
+Module `engine/tcd/market_ledger.py`; files `data/forecasts/market_ledger.csv` (append-only), `data/forecasts/market_outcomes.csv`, `data/forecast_review_market.json`; section "Live track record" on `risk.html`.
+
+**Why.** The market numbers the site trusts most were only kept in `history.csv`, whose row for a day is replaced by any later run the same day — not a record that proves a forecast preceded its outcome. They now get the stock ledger's treatment (§ 14): append-only, key `(target, origin_date)`, first write wins, bytes verified unchanged before every write and against the previous commit by `tools/validate_data.py`.
+
+| Target | Logged | Scored against |
+|---|---|---|
+| `var_1d` | 1-day 95% VaR (simple return), HAR+VIX and EWMA next-day variance, risk light of the day; origin = last daily bar, only once the US close is final | next bar of the risk asset (XLK adjusted close): breach, QLIKE HAR vs EWMA, r² ÷ forecast variance |
+| `vol_5d` | average daily variance over the next 5 days (HAR+VIX, EWMA) | mean r² of the next 5 bars |
+| `vol_1m` | next-month realized volatility (annualized) and its 90% band; origin = a **complete** month-end only (provisional forecasts are never logged) | realized `rv21` of the next complete month: log error, inside-band |
+
+**Pre-registered review rules** (fixed before any outcome exists): `var_1d` verdict after 250 scored days (Kupiec and Christoffersen, p ≥ 0.05 = consistent); `vol_1m` verdict after 24 months (90% band coverage within 80–97% = consistent, roughly the binomial 90% range at n = 24); `vol_5d` descriptive only. The last 60 days of `var_1d` are shown separately. Outcomes `scored` are final; verdicts use only the current model (`model_id`: hash of the forecasting code path and config — for `var_1d`/`vol_5d` also the name of the live HAR model; for `vol_1m` the monthly regression). No backfill; nothing feeds back into the models.
+
+**First rows (2026-11-23):** `var_1d` and `vol_5d` from the 2026-11-20 close, `vol_1m` from the 2026-10-31 month-end. A `var_1d` verdict is due after about one year, the first `vol_1m` verdict after two. The recent under-coverage of the market VaR (§ 16: 7.15% over the last three years) will be judged on this record, not on the backtest.

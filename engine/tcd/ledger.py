@@ -166,26 +166,27 @@ def _atomic_write(path: Path, text: str) -> None:
     os.replace(tmp, path)
 
 
-def append_ledger(path: Path, rows: list[dict]) -> int:
-    """Append rows whose (symbol, origin_date) is new. Existing bytes are
-    never rewritten: the new file must start with the old file verbatim."""
+def append_ledger(path: Path, rows: list[dict], columns: list[str] = LEDGER_COLUMNS,
+                  key: tuple[str, ...] = ("symbol", "origin_date")) -> int:
+    """Append rows whose key is new. Existing bytes are never rewritten: the new
+    file must start with the old file verbatim."""
     old = _read_text(path)
     keys = set()
     if old:
         rdr = csv.DictReader(io.StringIO(old))
-        if rdr.fieldnames != LEDGER_COLUMNS:
+        if rdr.fieldnames != columns:
             raise ValueError(f"ledger header mismatch: {rdr.fieldnames}")
-        keys = {(x["symbol"], x["origin_date"]) for x in rdr}
+        keys = {tuple(x[k] for k in key) for x in rdr}
     add = []
     for r in rows:
-        k = (r["symbol"], r["origin_date"])
+        k = tuple(r[c] for c in key)
         if k not in keys:
             keys.add(k)
             add.append(r)
     if not add:
         return 0
     buf = io.StringIO()
-    w = csv.DictWriter(buf, LEDGER_COLUMNS, lineterminator="\n")
+    w = csv.DictWriter(buf, columns, lineterminator="\n")
     if not old:
         w.writeheader()
     elif not old.endswith("\n"):
