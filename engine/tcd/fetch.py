@@ -21,6 +21,7 @@ FRED_SERIES = {
     "gdp": "GDP",  # nominal GDP (quarterly)
     "corp_profits": "CP",  # corporate profits after tax (quarterly)
     "vix_fred": "VIXCLS",  # VIX fallback (daily, T+1)
+    "epu": "USEPUINDXD",  # daily news-based Economic Policy Uncertainty (published T+1)
 }
 
 

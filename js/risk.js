@@ -29,6 +29,42 @@
       "Large drawdowns since 2008 came in only two episodes, both starting from calm markets, so there is too little to learn from. " +
       (skill ? "" : "The headline probability below is therefore the base rate; the model value is shown for reference only.");
 
+    const st = r.short_term;
+    if (st) {
+      const so = chartDefaults();
+      const c = st.current;
+      setText("s-var", pct(c.var95_1d_simple_ret, 1));
+      setText("s-var-sub", "1-in-20 trading days a loss larger than this is expected · from close " + c.date + " · " + c.label);
+      setText("s-vol1", pct(c.vol_1d_ann, 0));
+      setText("s-vol1-sub", "≈ " + pct(c.vol_1d, 1) + " daily move (1 sd) · EWMA " + pct(c.ewma_vol_ann, 0));
+      setText("s-vol5", pct(c.vol_5d, 1));
+      setText("s-vol5-sub", "1 sd over 5 days · " + pct(c.vol_5d_ann, 0) + " annualized");
+      new Chart(document.getElementById("varChart"), {
+        data: {
+          labels: st.chart.dates,
+          datasets: [
+            { type: "bar", label: "Next-day return", data: st.chart.next_day_return, backgroundColor: st.chart.next_day_return.map((v, i) => v != null && st.chart.var95[i] != null && v < -st.chart.var95[i] ? "#8b1e3f" : "rgba(107,101,96,0.45)"), barPercentage: 1, categoryPercentage: 1 },
+            { type: "line", label: "−95% VaR (forecast at prior close)", data: st.chart.var95.map((v) => (v == null ? null : -v)), borderColor: "#1e3a5f", borderWidth: 1.4, pointRadius: 0 },
+          ],
+        },
+        options: { ...so, scales: { ...so.scales, y: { ...so.scales.y, ticks: { ...so.scales.y.ticks, callback: (v) => (v * 100).toFixed(0) + "%" } } } },
+      });
+      const ev = st.evaluation, live = ev.var95.find((x) => x.model === st.live_model);
+      setText("varNote", "Last 3 years, out-of-sample. Red bars are breaches (loss beyond the VaR set the evening before). Live model " + st.live_model.replace(/_/g, " ") +
+        " breached on " + pct(live.rate, 2) + " of days since 2000 (target 5%).");
+      table("stVarTable", ["Horizon", "Model", "QLIKE", "Vol correlation", "Days"],
+        ev.variance.map((v) => [v.horizon + "d", esc(v.label) + (v.model === st.live_model ? " <strong>(live)</strong>" : ""), fmt(v.qlike, 4), fmt(v.corr_vol, 3), v.n]));
+      const L = st.settings.models;
+      table("stDmTable", ["Horizon", "Comparison", "QLIKE improvement", "Diebold-Mariano t", "Reading"],
+        ev.dm.map((d) => [d.horizon + "d", esc(L[d.baseline] + " → " + L[d.challenger]), signed(d.qlike_improvement, 4), signed(d.dm_t, 2),
+          d.dm_t >= 2 ? '<span class="dq PASS">better</span>' : d.dm_t <= -2 ? '<span class="dq FAIL">worse</span>' : '<span class="dq WARN">no sig. difference</span>']));
+      const pv = (p) => (p < 0.05 ? '<span class="dq FAIL">' : '<span class="dq PASS">') + fmt(p, 3) + "</span>";
+      table("stBtTable", ["Model", "Breaches", "Rate", "Kupiec p (coverage)", "Christoffersen p (independence)", "Avg VaR"],
+        ev.var95.map((v) => [esc(v.label) + (v.model === st.live_model ? " <strong>(live)</strong>" : ""), v.breaches + "/" + v.n, pct(v.rate, 2), pv(v.p_value), pv(v.christoffersen.p_value), pct(v.avg_var, 2)]));
+      document.getElementById("epuNote").innerHTML = "<strong>News-based EPU test:</strong> " + esc(st.epu_verdict) +
+        ". Robustness (" + esc(st.robustness.spec) + " specification): " + esc(st.robustness.epu_verdict) + ". p &lt; 0.05 in the backtest table means the test rejects correct VaR coverage or independence.";
+    }
+
     setText("r-vol", pct(vcur.vol, 0));
     setText("r-vol-sub", "90% band " + pct(vcur.band90[0], 0) + "–" + pct(vcur.band90[1], 0) + " · current 21d " + pct(vcur.current_rv21, 0) + " · for month after " + vcur.date);
     setText("r-dd", pct(skill ? cur0.p : t0.current.base_rate, 0));

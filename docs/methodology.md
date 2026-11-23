@@ -1,4 +1,4 @@
-# Methodology — engine v3.1 (live, point-in-time, nested walk-forward)
+# Methodology — engine v3.2 (live, point-in-time, nested walk-forward)
 
 Engine source: [`engine/tcd/`](../engine/tcd). Rebuilt from the v1 specification in this folder; v1 documents are kept for history.
 
@@ -204,3 +204,45 @@ Module `engine/tcd/risk_model.py`, page `risk.html`, data `data/risk.json`.
 ### 9.3 Answer to "can this project estimate risk?"
 * **Yes, for risk size:** next-month volatility is forecastable (volatility clustering). That supports volatility targeting (v3) and position sizing.
 * **No, for crash events or cycle tops:** with 2–3 episodes, a 12-month drawdown probability model does not beat the base rate; neither did the Overheat signal (§ v2.2). The honest point estimate for "a >20% drawdown within 12 months" is the base rate (~16%).
+
+
+## 10. Short-term risk: daily volatility and 95% VaR, plus a news (EPU) test (2026-11-23)
+
+Module `engine/tcd/short_risk.py`; shown at the top of `risk.html`; stored in `data/risk.json → short_term`.
+
+**Setup.** Daily log returns of the risk asset (XLK adjusted close, NDX before 1998-12). Targets: average daily variance over the next 1 and 5 trading days, proxied by squared close-to-close returns (no intraday data). Walk-forward, refit each January on days whose target window had ended; out-of-sample from 2000 (≈ 6,760 days).
+
+| Model | Inputs |
+|---|---|
+| EWMA | RiskMetrics λ = 0.94 (no fitting; industry baseline) |
+| HAR | 1-day, 5-day, 22-day realized variance (Corsi 2009) |
+| HAR + VIX | + implied daily variance from VIX |
+| HAR + VIX + EPU | + log 30-day mean of the daily news-based Economic Policy Uncertainty index (FRED `USEPUINDXD`), lagged one day because it is published the next day |
+
+**Specification.** Primary: log-HAR (regression in logs, forecasts always positive, Duan smearing correction). Robustness: classic HAR on variance levels. A first run used levels only; with EPU it produced negative variance forecasts that were floored and blew up the QLIKE loss. The log form was adopted for *all* models for that reason, and every conclusion below is required to hold under both forms.
+
+**Scoring.** QLIKE loss (robust to noisy variance proxies), Diebold-Mariano t with Newey-West variance. 1-day 95% VaR by filtered historical simulation (training 5% quantile of standardized returns; EWMA uses the normal quantile), backtested with Kupiec (coverage) and Christoffersen (independence).
+
+### Results (out-of-sample 2000 → 2026-11, log spec)
+
+| Comparison | 1-day DM t | 5-day DM t | Reading |
+|---|---:|---:|---|
+| EWMA → HAR | +0.38 | +1.19 | no significant difference |
+| HAR → HAR + VIX | **+5.38** | **+4.25** | VIX adds information |
+| EWMA → HAR + VIX | **+3.74** | **+3.15** | live model beats the industry baseline |
+| HAR + VIX → + EPU | −1.75 | −1.44 | EPU does not help (slightly worse) |
+
+Level spec agrees: HAR + VIX better than HAR (t 2.83 / 4.07); EPU worse (t −2.38 / −1.02).
+
+| 1-day 95% VaR | Breach rate | Kupiec p | Christoffersen p |
+|---|---:|---:|---:|
+| EWMA, normal | 5.99% | < 0.001 | 0.85 |
+| HAR + VIX, FHS (**live**) | **5.55%** | **0.043** | 0.16 |
+| HAR + VIX + EPU, FHS | 6.11% | < 0.001 | 0.11 |
+
+* The live VaR is slightly too optimistic: 5.55% breaches vs 5% target, rejected at the 5% level (not at 1%). The level spec passes (5.28%, p 0.30), but the primary spec was fixed in advance and is kept; read the number as "about a 1-in-18-day loss threshold".
+* The EWMA/normal benchmark under-covers clearly: fat tails matter.
+
+**EPU decision (pre-set rule: keep only if QLIKE improves with DM t ≥ 2 at every horizon, under both specifications): dropped.** Consistent with § 9: market-implied volatility already absorbs news faster than a daily newspaper index can add.
+
+**Live output:** next-day and 5-day volatility and 1-day 95% VaR from the latest close; refreshed with the daily job. These describe the size of likely moves, not their direction.

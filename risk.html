@@ -24,6 +24,23 @@
   <main>
     <section class="interp" id="summary">Loading…</section>
 
+    <section class="panel">
+      <h2>Short-term risk — next trading day / next 5 days (daily HAR model)</h2>
+      <div class="metrics">
+        <div class="card"><div class="label">1-day 95% VaR</div><div class="value" id="s-var">—</div><div class="sub" id="s-var-sub">—</div></div>
+        <div class="card"><div class="label">Next-day volatility (annualized)</div><div class="value" id="s-vol1">—</div><div class="sub" id="s-vol1-sub">—</div></div>
+        <div class="card"><div class="label">Next 5 days volatility</div><div class="value" id="s-vol5">—</div><div class="sub" id="s-vol5-sub">—</div></div>
+      </div>
+      <div class="chart-wrap"><canvas id="varChart"></canvas></div>
+      <p class="note" id="varNote"></p>
+      <h2>Out-of-sample forecast accuracy (QLIKE, lower is better)</h2>
+      <div class="table-wrap"><table id="stVarTable"></table></div>
+      <div class="table-wrap"><table id="stDmTable"></table></div>
+      <h2>95% VaR backtest (target breach rate 5%)</h2>
+      <div class="table-wrap"><table id="stBtTable"></table></div>
+      <p class="note" id="epuNote"></p>
+    </section>
+
     <section class="metrics">
       <div class="card"><div class="label">Next-month volatility forecast</div><div class="value" id="r-vol">—</div><div class="sub" id="r-vol-sub">—</div></div>
       <div class="card"><div class="label" id="r-dd-label">P(drawdown &gt; 20% in 12m)</div><div class="value" id="r-dd">—</div><div class="sub" id="r-dd-sub">—</div></div>

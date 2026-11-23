@@ -77,6 +77,11 @@ def run_checks(
         pe = float(complete["pe_agg"].iloc[-1])
         add("pe_range", 5 <= pe <= 150, f"aggregate P/E {pe:.1f}")
 
+    epu = raw.fred.get("epu")
+    if epu is not None and len(epu):
+        epu_age = (last_obs.normalize() - epu.index.max().normalize()).days
+        add("epu_freshness", epu_age <= 10, f"last EPU date {epu.index.max().date()} ({epu_age}d behind market)", warn_only=True)
+
     src = complete["capex_src"].iloc[-1]
     add("capex_source_current", src == "SEC", f"latest capex signal source = {src}")
 
