@@ -66,9 +66,17 @@ class ReviewConfig:
 
 
 def model_id(stock_cfg) -> str:
-    """Fingerprint of the stock model: source of stocks.py + its config."""
-    src = (Path(__file__).with_name("stocks.py")).read_bytes()
-    blob = src + json.dumps(asdict(stock_cfg), sort_keys=True).encode()
+    """Fingerprint of what produces a stock forecast: the source of the
+    forecasting functions (including the shared HAR fitting code and the light
+    rule) and the stock config. Backtest-only or reporting changes do not
+    change it; any change to how a forecast is made does."""
+    import inspect
+
+    from . import light, short_risk, stocks
+    parts = [stocks.drop_stale_runs, stocks.daily_frame, stocks.walk_forward_var, stocks.current_risk,
+             short_risk.design, short_risk.fit_var, short_risk.VarModel, light.level_for]
+    blob = "".join(inspect.getsource(f) for f in parts).encode()
+    blob += json.dumps(asdict(stock_cfg), sort_keys=True).encode()
     return hashlib.sha256(blob).hexdigest()[:12]
 
 

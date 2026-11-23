@@ -102,6 +102,40 @@ def newey_west(y: np.ndarray, x: np.ndarray, lag: int) -> tuple[float, float]:
     return float(beta[1]), float(beta[1] / se) if se and se > 0 else float("nan")
 
 
+def hodrick_t(y: np.ndarray, x: np.ndarray, r1: np.ndarray, h: int) -> tuple[float, float]:
+    """OLS slope of the h-month overlapping return y on standardized x, with a
+    Hodrick (1992) "1B" t-stat.
+
+    Newey-West with lag h-1 over-rejects badly when x is persistent (AR ~0.95)
+    and the target overlaps (simulated size 13-21% at a nominal 5%). Hodrick's
+    estimator rewrites the overlapping regression as one-month returns r1 on the
+    rolling sum of the last h regressors and uses heteroskedasticity-robust
+    variance under the null of no predictability; its size stays close to
+    nominal with persistent regressors (Ang & Bekaert 2007).
+
+    y, x, r1 are aligned at t: y[t] = sum of excess log returns t+1..t+h,
+    r1[t] = excess log return t+1. Rows must be consecutive months."""
+    n = len(y)
+    if n < max(10, 2 * h):
+        return float("nan"), float("nan")
+    sd = x.std(ddof=1)
+    if not sd > 0:
+        return float("nan"), float("nan")
+    xs = (x - x.mean()) / sd
+    X = np.column_stack([np.ones(n), xs])
+    beta, *_ = np.linalg.lstsq(X, y, rcond=None)
+    eps = r1 - r1.mean()  # one-month residual under H0 (no predictability)
+    Z = np.cumsum(X, axis=0)
+    Z[h:] = Z[h:] - Z[:-h]  # z_t = sum_{j=0}^{h-1} X_{t-j}
+    ok = np.arange(n) >= h - 1
+    Zt, et = Z[ok], eps[ok]
+    S = (Zt * (et ** 2)[:, None]).T @ Zt
+    XtX_inv = np.linalg.inv(X.T @ X)
+    V = XtX_inv @ S @ XtX_inv
+    se = sqrt(V[1, 1]) if V[1, 1] > 0 else float("nan")
+    return float(beta[1]), float(beta[1] / se) if se and se > 0 else float("nan")
+
+
 def block_bootstrap_spread(bucket: np.ndarray, y: np.ndarray, n_buckets: int, block: int = 12,
                            reps: int = 1000, seed: int = 0) -> tuple[float, float, float]:
     """Top-minus-bottom bucket mean of y with a moving-block bootstrap 90% CI."""
@@ -122,6 +156,41 @@ def block_bootstrap_spread(bucket: np.ndarray, y: np.ndarray, n_buckets: int, bl
         stats[r] = spread(bucket[idx], y[idx])
     lo, hi = np.nanpercentile(stats, [5, 95])
     return float(point), float(lo), float(hi)
+
+
+def shift_test_spread(bucket: np.ndarray, y: np.ndarray, n_buckets: int, min_shift: int = 24) -> tuple[float, float, float, float]:
+    """Top-minus-bottom bucket mean of y and its null distribution from circular
+    shifts of the bucket series against y (each series keeps its own
+    autocorrelation; only their alignment is broken).
+
+    Returns (spread, null 5th pct, null 95th pct, two-sided p). A moving-block
+    bootstrap CI under-covers here whatever the block length (simulated miss
+    rate ~20% for a nominal 10% with AR 0.96-0.985 signals and 12-month
+    overlapping targets), so verdicts use this test instead."""
+    def spread(b, v):
+        hi, lo = v[b == n_buckets], v[b == 1]
+        return hi.mean() - lo.mean() if len(hi) and len(lo) else np.nan
+
+    n = len(y)
+    point = spread(bucket, y)
+    if n < 4 * min_shift or not np.isfinite(point):
+        return float(point), float("nan"), float("nan"), float("nan")
+    null = np.array([spread(np.roll(bucket, k), y) for k in range(min_shift, n - min_shift + 1)])
+    null = null[np.isfinite(null)]
+    lo, hi = np.percentile(null, [5, 95])
+    p = float((np.abs(null) >= abs(point)).mean())
+    return float(point), float(lo), float(hi), p
+
+
+def verdict_p(point: float, p: float, kind: str, side: str = "high", alpha: float = 0.05) -> str:
+    """Plain reading of a top-minus-bottom spread from its circular-shift p-value.
+    alpha 0.05: simulated false-positive rate 5-10% for these persistent signals."""
+    if not (np.isfinite(point) and np.isfinite(p)):
+        return "insufficient data"
+    if p >= alpha:
+        return f"inconclusive (shift-test p = {p:.2f})"
+    lo = hi = -point if side == "low" else point
+    return verdict(lo, hi, kind, "high") .replace("high signal", f"{side} signal")
 
 
 def verdict(lo: float, hi: float, kind: str, side: str = "high") -> str:
@@ -171,16 +240,18 @@ def run_study(panel: pd.DataFrame, start: str = "1993-01-31", n_buckets: int = 5
         b = b_full[window].to_numpy(float)
         for h in HORIZONS:
             y = fwd[h][window].to_numpy(float)
-            m = _valid(s, y)
-            beta, t = newey_west(y[m], s[m], max(h - 1, 0))
+            r1 = fwd[1][window].to_numpy(float)
+            m = _valid(s, y, r1)
+            beta, t = hodrick_t(y[m], s[m], r1[m], h)
+            _, t_nw = newey_west(y[m], s[m], max(h - 1, 0))
             ic_rows.append({"signal": sig, "label": label, "horizon": h, "n": int(m.sum()),
-                            "ic": spearman(s[m], y[m]), "beta_per_sd": beta, "nw_t": t})
+                            "ic": spearman(s[m], y[m]), "beta_per_sd": beta, "t": t, "nw_t_naive": t_nw})
 
         y12 = fwd[12][window].to_numpy(float)
         dd = fdd[window].to_numpy(float)
         m = _valid(b, y12, dd)
-        point, lo, hi = block_bootstrap_spread(b[m].astype(int), y12[m], n_buckets)
-        dpoint, dlo, dhi = block_bootstrap_spread(b[m].astype(int), (dd[m] < dd_cut).astype(float), n_buckets)
+        point, lo, hi, pv = shift_test_spread(b[m].astype(int), y12[m], n_buckets)
+        dpoint, dlo, dhi, dpv = shift_test_spread(b[m].astype(int), (dd[m] < dd_cut).astype(float), n_buckets)
         buckets = []
         for q in range(1, n_buckets + 1):
             mq = m & (b == q)
@@ -192,20 +263,21 @@ def run_study(panel: pd.DataFrame, start: str = "1993-01-31", n_buckets: int = 5
                 "p_dd_below": float(np.mean(dd[mq] < dd_cut)) if mq.any() else None,
             })
         bucket_rows.append({"signal": sig, "label": label, "buckets": buckets,
-                            "spread_top_minus_bottom": point, "spread_ci90": [lo, hi],
-                            "dd_prob_spread": dpoint, "dd_prob_spread_ci90": [dlo, dhi],
+                            "spread_top_minus_bottom": point, "spread_null90": [lo, hi], "spread_p": pv,
+                            "dd_prob_spread": dpoint, "dd_prob_spread_null90": [dlo, dhi], "dd_prob_spread_p": dpv,
                             "derisk_side": DERISK_SIDE[sig],
-                            "return_verdict": verdict(lo, hi, "return", DERISK_SIDE[sig]),
-                            "risk_verdict": verdict(dlo, dhi, "risk", DERISK_SIDE[sig])})
+                            "return_verdict": verdict_p(point, pv, "return", DERISK_SIDE[sig]),
+                            "risk_verdict": verdict_p(dpoint, dpv, "risk", DERISK_SIDE[sig])})
 
         for era, (a, z) in ERAS.items():
             em = (complete.index >= pd.Timestamp(a)) & (complete.index <= pd.Timestamp(z))
             se_ = s_full[em].to_numpy(float)
             ye = fwd[12][em].to_numpy(float)
-            mm = _valid(se_, ye)
-            beta, t = newey_west(ye[mm], se_[mm], 11)
+            r1e = fwd[1][em].to_numpy(float)
+            mm = _valid(se_, ye, r1e)
+            beta, t = hodrick_t(ye[mm], se_[mm], r1e[mm], 12)
             era_rows.append({"signal": sig, "era": era, "n": int(mm.sum()),
-                             "ic_12m": spearman(se_[mm], ye[mm]), "nw_t_12m": t})
+                             "ic_12m": spearman(se_[mm], ye[mm]), "t_12m": t})
 
     # Threshold events on the overheat score (the strategy's actual trigger).
     s = complete["overheat_score"][window].to_numpy(float)
@@ -237,7 +309,8 @@ def run_study(panel: pd.DataFrame, start: str = "1993-01-31", n_buckets: int = 5
                    "last_month_with_12m_forward": str(plot.index[-1].date()) if len(plot) else None},
         "settings": {"horizons": list(HORIZONS), "n_buckets": n_buckets, "bucket_min_history": min_hist,
                      "drawdown_cut": dd_cut, "target": "cumulative log excess return of risk asset over T-bills",
-                     "bootstrap": "moving block, 12m blocks, 1000 reps, 90% CI", "t_stat": "Newey-West, lag h-1"},
+                     "spread_test": "circular-shift test of bucket series vs forward outcome (shifts >= 24 months), two-sided; verdict at p < 0.05",
+                     "t_stat": "Hodrick (1992) 1B on overlapping targets"},
         "unconditional": unconditional,
         "ic": ic_rows,
         "buckets": bucket_rows,

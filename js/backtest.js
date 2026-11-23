@@ -21,7 +21,7 @@
     const w = status.weights || {};
     setHTML("p-regime", regimeBadge(status.regime));
     const sg = status.signals || {};
-    setText("p-regime-sub", t("index.sub.monthEnd", { date: status.panel_end }) + (sg.pe_agg ? t("index.sub.pe", { pe: fmt(sg.pe_agg, 1) }) : ""));
+    setText("p-regime-sub", t("index.sub.monthEnd", { date: status.panel_end }) + ((sg.pe_level || sg.pe_agg) ? t("index.sub.pe", { pe: fmt(sg.pe_level || sg.pe_agg, 1) }) : ""));
     setText("p-weight", fmt(w.executed_weight, 2));
     setText("p-weight-sub", t("index.sub.heldThrough", { m: w.in_force_month || "—" }));
     const prov = status.provisional;
@@ -126,8 +126,9 @@
       options: { ...opts, scales: { ...opts.scales, y: { ...opts.scales.y, ticks: { ...opts.scales.y.ticks, callback: (v) => (v * 100).toFixed(0) + "%" } } } },
     });
 
-    if (data.pe_agg) {
-      const pe = data.pe_agg.map((v, i) => (data.val_src && data.val_src[i] === "PE" ? v : null));
+    if (data.pe_level || data.pe_agg) {
+      const peSrc = data.pe_level || data.pe_agg;
+      const pe = peSrc.map((v, i) => (data.val_src && data.val_src[i] === "PE" ? v : null));
       new Chart(document.getElementById("peChart"), {
         type: "line",
         data: { labels: data.dates, datasets: [line(t("index.pe.series"), pe, "#c45c26", { fill: true, backgroundColor: "rgba(196,92,38,0.08)" })] },

@@ -74,7 +74,7 @@ def run_checks(
     if "n_pe_names" in complete:
         n_pe = int(complete["n_pe_names"].iloc[-1])
         add("pe_coverage", n_pe >= min_sec_names, f"{n_pe}/10 names in aggregate P/E at {complete.index[-1].date()}")
-        pe = float(complete["pe_agg"].iloc[-1])
+        pe = float(complete["pe_level"].iloc[-1]) if "pe_level" in complete else float(complete["pe_agg"].iloc[-1])
         add("pe_range", 5 <= pe <= 150, f"aggregate P/E {pe:.1f}")
 
     epu = raw.fred.get("epu")

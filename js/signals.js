@@ -18,7 +18,7 @@
     return '<span class="dq ' + cls + '" title="' + esc(reading(v, kind, side)) + '">' + esc(t("tag." + k)) + "</span>";
   }
   const sgn = (x) => (x >= 0 ? "+" : "");
-  const ci = (a) => "[" + sgn(a[0]) + fmt(a[0] * 100, 1) + ", " + sgn(a[1]) + fmt(a[1] * 100, 1) + "]";
+  const pv = (p) => (p == null ? "—" : (p < 0.05 ? "<strong>" + fmt(p, 3) + "</strong>" : fmt(p, 2)));
 
   async function boot() {
     const [d, health] = await Promise.all([loadJSON("data/signals.json"), loadJSON("data/health.json").catch(() => null)]);
@@ -33,8 +33,8 @@
       rv: esc(reading(oh.return_verdict, "ret", oh.derisk_side)), dv: esc(reading(oh.risk_verdict, "risk", oh.derisk_side)) }));
 
     table("verdictTable", cols("sig.verdict.cols"), d.buckets.map((b) => [esc(sigName(b)), esc(t("side." + b.derisk_side)),
-      sgn(b.spread_top_minus_bottom) + fmt(b.spread_top_minus_bottom * 100, 1), ci(b.spread_ci90), verdictTag(b.return_verdict, "ret", b.derisk_side),
-      sgn(b.dd_prob_spread) + fmt(b.dd_prob_spread * 100, 0), ci(b.dd_prob_spread_ci90), verdictTag(b.risk_verdict, "risk", b.derisk_side)]));
+      sgn(b.spread_top_minus_bottom) + fmt(b.spread_top_minus_bottom * 100, 1), pv(b.spread_p), verdictTag(b.return_verdict, "ret", b.derisk_side),
+      sgn(b.dd_prob_spread) + fmt(b.dd_prob_spread * 100, 0), pv(b.dd_prob_spread_p), verdictTag(b.risk_verdict, "risk", b.derisk_side)]));
 
     const pick = document.getElementById("sigPick");
     d.buckets.forEach((b) => {
@@ -96,8 +96,9 @@
       const rows = d.ic.filter((r) => r.signal === sig);
       return [esc(has("sig.name." + sig) ? t("sig.name." + sig) : rows[0].label)].concat(hz.map((h) => {
         const r = rows.find((x) => x.horizon === h);
-        const strong = Math.abs(r.nw_t) >= 2;
-        return (strong ? "<strong>" : "") + sgn(r.ic) + fmt(r.ic) + " (" + fmt(r.nw_t, 1) + ")" + (strong ? "</strong>" : "");
+        const tv = r.t != null ? r.t : r.nw_t;
+        const strong = Math.abs(tv) >= 2;
+        return (strong ? "<strong>" : "") + sgn(r.ic) + fmt(r.ic) + " (" + fmt(tv, 1) + ")" + (strong ? "</strong>" : "");
       }));
     }));
 
@@ -105,7 +106,7 @@
     table("eraTable", [t("sig.ic.col0")].concat(eras.map((e) => t("sig.era.col", { era: has("era." + e) ? t("era." + e) : e }))),
       [...new Set(d.eras.map((e) => e.signal))].map((sig) => [esc(has("sig.name." + sig) ? t("sig.name." + sig) : sig)].concat(eras.map((era) => {
         const e = d.eras.find((x) => x.signal === sig && x.era === era);
-        return sgn(e.ic_12m) + fmt(e.ic_12m) + " (" + fmt(e.nw_t_12m, 1) + ")";
+        return sgn(e.ic_12m) + fmt(e.ic_12m) + " (" + fmt(e.t_12m != null ? e.t_12m : e.nw_t_12m, 1) + ")";
       }))));
 
     table("thrTable", cols("sig.thr.cols"), d.thresholds.map((x) => [fmt(x.threshold, 1), x.months_above, pct(x.share_above, 0),

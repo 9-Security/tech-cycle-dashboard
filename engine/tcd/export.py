@@ -19,7 +19,7 @@ from .config import REGIME_COLORS, REGIME_LABELS
 PANEL_COLUMNS = [
     "risk_ret", "risk_src", "safe_ret", "tbill_pct", "vix", "vix_last", "rv21", "rv63", "vix_tech_ratio",
     "vol_vix", "val_ext", "val_z_proxy",
-    "pe_agg", "n_pe_names", "mcap_agg_bn", "val_z_pe", "val_z", "val_src",
+    "pe_agg", "pe_level", "n_pe_names", "mcap_agg_bn", "val_z_pe", "val_z", "val_src",
     "capex_ratio_proxy", "capex_z_proxy", "capex_ratio_firm", "n_capex_names", "capex_z_firm",
     "capex_z", "capex_src", "earn_g_firm", "earn_score_firm", "earn_g_proxy", "earn_score_proxy",
     "earn_score", "earn_src", "n_earn_names", "overheat_score", "partial",
@@ -90,6 +90,7 @@ def build_series(vrun, panel: pd.DataFrame, as_of: str, candidate=None) -> dict:
         "capex_ratio_firm": _r(p["capex_ratio_firm"], 4),
         "capex_src": list(p["capex_src"].astype(str)),
         "pe_agg": _r(p["pe_agg"], 3),
+        "pe_level": _r(p["pe_level"], 3) if "pe_level" in p else None,
         "val_src": list(p["val_src"].astype(str)),
         "risk_weight": _r(wf.executed, 4),
         "target_weight": _r(wf.target, 4),

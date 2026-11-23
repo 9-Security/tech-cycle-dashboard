@@ -140,8 +140,8 @@
   add("index.aux.score", "Score (z)", "分數（z）");
   add("index.pe.h2", "Valuation — aggregate mega-cap trailing P/E (market cap / TTM net income, point-in-time)",
     "估值 — 大型科技股合計本益比（總市值 ÷ 近四季淨利，以當時可得資料計算）");
-  add("index.pe.note", "Σ market cap ÷ Σ TTM net income across names with positive earnings, chain-linked. Share counts from SEC filings, scaled for splits after each filing date. Before firm-level data exists the overheat score uses a price-extension proxy.",
-    "以獲利為正的公司計算 Σ 市值 ÷ Σ 近四季淨利，並做連鎖銜接。股數取自 SEC 申報，並依申報日之後的分割調整。在有公司層級資料之前，過熱分數改用「股價偏離均線」作為替代指標。");
+  add("index.pe.note", "Actual level: Σ market cap ÷ Σ TTM net income across the names with positive earnings that month (it jumps when a name enters or leaves the sample). The valuation z-score uses a chain-linked version of the same ratio, which removes those jumps; until 2026-11-23 the chart showed that chain-linked index, which reads about 25% lower than the actual level. Share counts from SEC filings, scaled for splits after each filing date. Before firm-level data exists the overheat score uses a price-extension proxy.",
+    "實際水準：當月獲利為正的公司，Σ 市值 ÷ Σ 近四季淨利（成分股增減時會跳動）。估值 z 分數改用同一比率的連鎖銜接版本，以去除這些跳動；2026-11-23 以前圖上畫的是連鎖銜接指數，數值比實際本益比低約 25%。股數取自 SEC 申報，並依申報日之後的分割調整。在有公司層級資料之前，過熱分數改用「股價偏離均線」作為替代指標。");
   add("index.pe.series", "Aggregate trailing P/E", "合計本益比");
   add("index.pe.axis", "P/E (x)", "本益比（倍）");
   add("index.capex.h2", "Capex intensity — mega-cap TTM Capex / revenue (SEC XBRL, point-in-time)",
@@ -268,8 +268,8 @@
   add("val.stats.dsrSub", "{n} trials · SR₀ {sr} ann.", "{n} 次試驗 · SR₀ 年化 {sr}");
   add("val.stats.psr0", "PSR OOS vs 0", "PSR 樣本外 vs 0");
   add("val.stats.psr0Sub", "P(true Sharpe > 0)", "真實夏普 > 0 的機率");
-  add("val.stats.psrbh", "PSR OOS vs B&H", "PSR 樣本外 vs 買進持有");
-  add("val.stats.psrbhSub", "P(true Sharpe > B&H Sharpe)", "真實夏普 > 買進持有的機率");
+  add("val.stats.psrbh", "P(Sharpe > B&H), OOS", "樣本外夏普勝過買進持有的機率");
+  add("val.stats.psrbhSub", "paired block bootstrap of the Sharpe difference (both estimated, correlated)", "夏普差距的配對區塊 bootstrap（兩者皆為估計值且彼此相關）");
   add("val.stats.note", "DSR = Deflated Sharpe Ratio (Bailey &amp; López de Prado): probability the in-sample best Sharpe is real after accounting for every configuration tried. PSR = Probabilistic Sharpe Ratio of the out-of-sample track record. Both assume roughly i.i.d. monthly returns.",
     "DSR（Deflated Sharpe Ratio，Bailey &amp; López de Prado）：考慮所有試過的參數組合後，樣本內最佳夏普為真的機率。PSR（Probabilistic Sharpe Ratio）：樣本外績效的夏普比率為真的機率。兩者都假設月報酬大致獨立同分配。");
   add("val.valin.h2", "Valuation input (v2 model) — aggregate P/E vs price-extension proxy", "估值輸入（v2 模型）— 合計本益比 vs 股價偏離替代指標");
@@ -464,17 +464,17 @@
   add("sig.summary", "Each signal is tested on its own, outside the regime rules: does a high (or low) reading precede weaker returns or more frequent large drawdowns of the risk asset? Window {a} → {b} (12-month targets). Unconditional: next-12m excess log return {r}, probability of a drawdown worse than {cut} {p}.<br/><br/><strong>Overheat score:</strong> {rv}; {dv}.",
     "每個訊號都在市場狀態規則之外單獨檢驗：訊號偏高（或偏低）之後，風險資產的報酬是否較差、大跌是否較頻繁？期間 {a} → {b}（以未來 12 個月為目標）。無條件基準：未來 12 個月超額對數報酬 {r}，回撤超過 {cut} 的機率 {p}。<br/><br/><strong>過熱分數：</strong>{rv}；{dv}。");
   add("sig.verdict.h2", "Does each signal justify de-risking? (top vs bottom quintile, next 12 months)", "各訊號是否支持減碼？（最高 vs 最低五分位，未來 12 個月）");
-  add("sig.verdict.cols", "Signal|De-risk side|Return Q5−Q1 (pp)|90% CI|Returns|P(DD) Q5−Q1 (pp)|90% CI|Drawdowns",
-    "訊號|減碼方向|報酬 Q5−Q1（百分點）|90% 信賴區間|報酬判讀|大跌機率 Q5−Q1（百分點）|90% 信賴區間|回撤判讀");
-  add("sig.verdict.note", "Quintiles are point-in-time (each month ranked against its own history only). Spread = top-quintile minus bottom-quintile mean; 90% CI from a 12-month moving-block bootstrap. \"De-risk side\" is where the regime engine cuts risk (Digestion fires on LOW earnings momentum). <strong>supports</strong> = the de-risk side preceded lower returns / more drawdowns with a CI excluding zero; <strong>contradicts</strong> = the opposite; hover a tag for the full reading.",
-    "五分位以當時可得資料計算（每個月只跟自己的歷史比較）。差距＝最高五分位平均減最低五分位平均；90% 信賴區間以 12 個月區塊 bootstrap 估計。「減碼方向」是引擎降低風險的那一側（消化是在獲利動能「低」時觸發）。<strong>支持</strong>＝減碼那一側之後報酬較低／大跌較多，且信賴區間不含 0；<strong>相反</strong>＝結果相反；滑鼠移到標籤上可看完整說明。");
+  add("sig.verdict.cols", "Signal|De-risk side|Return Q5−Q1 (pp)|p (shift test)|Returns|P(DD) Q5−Q1 (pp)|p (shift test)|Drawdowns",
+    "訊號|減碼方向|報酬 Q5−Q1（百分點）|p 值（平移檢定）|報酬判讀|大跌機率 Q5−Q1（百分點）|p 值（平移檢定）|回撤判讀");
+  add("sig.verdict.note", "Quintiles are point-in-time (each month ranked against its own history only). Spread = top-quintile minus bottom-quintile mean. Significance comes from a circular-shift test: the quintile series is shifted against the outcomes by every offset of at least 24 months, which keeps both series' own persistence and only breaks their alignment; p is the share of shifts with a spread at least as large. A bootstrap CI was used until 2026-11-23 but was shown by simulation to give false positives about twice as often as stated for signals this persistent. \"De-risk side\" is where the regime engine cuts risk (Digestion fires on LOW earnings momentum). <strong>supports</strong> / <strong>contradicts</strong> need p &lt; 0.05 (simulated false-positive rate 5–10%); otherwise inconclusive. Hover a tag for the full reading.",
+    "五分位以當時可得資料計算（每個月只跟自己的歷史比較）。差距＝最高五分位平均減最低五分位平均。顯著性來自循環平移檢定：把五分位序列相對結果平移所有至少 24 個月的位移，保留兩者各自的持續性、只打斷彼此的對應關係；p 值是平移後差距不小於實際差距的比例。2026-11-23 以前使用 bootstrap 信賴區間，但模擬顯示對這麼持續的訊號，誤判率約是宣稱的兩倍。「減碼方向」是市場狀態引擎降低風險的方向（消化期在獲利動能「偏低」時觸發）。<strong>支持</strong>／<strong>反駁</strong>需 p &lt; 0.05（模擬誤判率 5–10%），否則為無定論。滑鼠移到標籤上可看完整說明。");
   add("side.high", "high", "高");
   add("side.low", "low", "低");
   add("sig.v.ret.supports", "{side} signal preceded LOWER returns", "訊號{side}時，之後報酬較低");
   add("sig.v.ret.contradicts", "{side} signal preceded HIGHER returns", "訊號{side}時，之後報酬反而較高");
   add("sig.v.risk.supports", "{side} signal preceded MORE large drawdowns", "訊號{side}時，之後大跌較多");
   add("sig.v.risk.contradicts", "{side} signal preceded FEWER large drawdowns", "訊號{side}時，之後大跌反而較少");
-  add("sig.v.inconclusive", "inconclusive (CI spans 0)", "不確定（信賴區間跨 0）");
+  add("sig.v.inconclusive", "inconclusive (shift-test p ≥ 0.05)", "不確定（平移檢定 p ≥ 0.05）");
   add("sig.v.prefix.supports", "supports de-risking", "支持減碼");
   add("sig.v.prefix.contradicts", "contradicts de-risking", "與減碼假設相反");
   add("sig.name.overheat_score", "Overheat score ((val_z + capex_z) / 2)", "過熱分數（(估值 z + Capex z) / 2）");
@@ -498,11 +498,12 @@
   add("sig.sc.x", "Overheat score at month-end", "月底過熱分數");
   add("sig.sc.y", "Next-12m excess log return", "未來 12 個月超額對數報酬");
   add("sig.sc.tip", "{d}: score {x}, next 12m {y}", "{d}：分數 {x}，未來 12 個月 {y}");
-  add("sig.ic.h2", "Information coefficient by horizon (Spearman IC · Newey-West t)", "各期間資訊係數（Spearman IC · Newey-West t 值）");
+  add("sig.ic.h2", "Information coefficient by horizon (Spearman IC · Hodrick t)",
+    "各期間資訊係數（Spearman IC · Hodrick t 值）");
   add("sig.ic.col0", "Signal", "訊號");
   add("sig.ic.col", "{h}m IC (t)", "{h} 個月 IC（t）");
-  add("sig.ic.note", "Forward windows overlap, so ordinary t-stats are inflated; Newey-West uses lag h−1. |t| &lt; 2 should be read as noise.",
-    "未來報酬的區間彼此重疊，一般 t 值會被高估；Newey-West 使用 h−1 期落後。|t| &lt; 2 應視為雜訊。");
+  add("sig.ic.note", "Forward windows overlap and the signals are very persistent, so ordinary and Newey-West t-stats are inflated (simulated false-positive rate 13–22% at a nominal 5%). The t-stat shown is Hodrick (1992) 1B, whose simulated rate stays at 5–7%. |t| &lt; 2 should be read as noise.",
+    "未來報酬區間彼此重疊、訊號又高度持續，一般 t 值與 Newey-West t 值都會被高估（模擬：名目 5% 實際誤判 13–22%）。這裡顯示的是 Hodrick (1992) 1B t 值，模擬誤判率維持在 5–7%。|t| &lt; 2 應視為雜訊。");
   add("sig.era.h2", "Stability across eras (12-month IC)", "跨時期穩定性（12 個月 IC）");
   add("sig.era.col", "{era} IC (t)", "{era} IC（t）");
   add("era.1993-2012 (macro proxies)", "1993-2012 (macro proxies)", "1993–2012（總體替代指標）");
@@ -510,10 +511,8 @@
   add("sig.thr.h2", "Overheat thresholds used by the strategy grid", "策略參數網格使用的過熱門檻");
   add("sig.thr.cols", "Overheat >|Months above|Share|Next-12m ret. above|below|P(dd) above|below",
     "過熱 >|高於門檻月數|比例|高於時未來 12 個月報酬|低於時|高於時大跌機率|低於時");
-  add("sig.footer", "Settings: Newey-West, lag h-1 · moving block, 12m blocks, 1000 reps, 90% CI · buckets need {n} months of history · engine {ver}",
-    "設定：Newey-West（落後 h−1）· 12 個月區塊 bootstrap，1000 次，90% 信賴區間 · 分組需至少 {n} 個月歷史 · 引擎 {ver}");
-
-  // --------------------------------------------------------------- risk
+  add("sig.footer", "Settings: Hodrick 1B t · circular-shift test (shifts ≥ 24 months), verdict at p < 0.05 · buckets need {n} months of history · engine {ver}",
+    "設定：Hodrick 1B t 值 · 循環平移檢定（位移 ≥ 24 個月），p < 0.05 才判定 · 分組需至少 {n} 個月歷史 · 引擎 {ver}");
   add("risk.title", "Tech Cycle — Risk", "科技週期 — 風險");
   add("risk.asof", "Risk estimates · walk-forward, out-of-sample · as of <strong>{asof}</strong>", "風險估計 · walk-forward 樣本外 · 資料時間 <strong>{asof}</strong>");
   add("risk.summary", "<strong>What this page can and cannot tell you.</strong> Next-month <em>volatility</em> is forecastable out-of-sample (R² {r2} vs the historical mean). The probability of a large <em>drawdown event</em> is not: the walk-forward model {beats} the historical base rate. Large drawdowns since 2008 came in only two episodes, both starting from calm markets, so there is too little to learn from. {tail}",

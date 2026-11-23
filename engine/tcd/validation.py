@@ -185,6 +185,40 @@ _N = NormalDist()
 _EULER = 0.5772156649015329
 
 
+def sharpe_diff_test(ret_a: np.ndarray, ret_b: np.ndarray, safe: np.ndarray, block: int = 12,
+                     reps: int = 5000, seed: int = 0) -> dict:
+    """Paired test of annualized Sharpe(a) - Sharpe(b) on the same months.
+
+    Resamples whole months jointly (moving blocks of `block` months) so the
+    estimation error of BOTH Sharpe ratios and their correlation are kept.
+    (Plugging the sample B&H Sharpe into a PSR as if it were a known constant
+    ignores both and understates the probability; corrected 2026-11-23.)
+    Returns the point difference, P(diff > 0) across replicates and a 90% interval."""
+    a = np.asarray(ret_a, float) - np.asarray(safe, float)
+    b = np.asarray(ret_b, float) - np.asarray(safe, float)
+    ok = np.isfinite(a) & np.isfinite(b)
+    a, b = a[ok], b[ok]
+    n = len(a)
+
+    def sr(x):
+        sd = x.std(ddof=1)
+        return x.mean() / sd * sqrt(12) if sd > 0 else np.nan
+
+    point = sr(a) - sr(b)
+    if n < 2 * block:
+        return {"diff": float(point), "p_gt0": None, "ci90": [None, None], "n": n}
+    rng = np.random.default_rng(seed)
+    k = int(np.ceil(n / block))
+    d = np.empty(reps)
+    for r in range(reps):
+        idx = np.concatenate([np.arange(s, s + block) for s in rng.integers(0, n - block + 1, k)])[:n]
+        d[r] = sr(a[idx]) - sr(b[idx])
+    d = d[np.isfinite(d)]
+    lo, hi = np.percentile(d, [5, 95])
+    return {"diff": float(point), "p_gt0": float((d > 0).mean()), "ci90": [float(lo), float(hi)], "n": n,
+            "method": f"paired moving-block bootstrap, {block}-month blocks, {reps} reps"}
+
+
 def probabilistic_sharpe(sr: float, sr0: float, T: int, skew: float, kurt: float) -> float:
     """PSR (Bailey & Lopez de Prado). Inputs are per-period (monthly) Sharpe."""
     denom = 1.0 - skew * sr + (kurt - 1.0) / 4.0 * sr * sr
@@ -356,7 +390,7 @@ def full_validation(bt: BTData, spec: ModelSpec | ParamGrid, bcfg: BacktestConfi
     sr_trials = np.array([metrics(grid.ret[k], bt.safe).get("sharpe_monthly", np.nan) for k in range(len(grid_params))])
     dsr = deflated_sharpe(m_is_full["sharpe_monthly"], sr_trials, bt.n, m_is_full["skew"], m_is_full["kurtosis"])
     psr_oos = probabilistic_sharpe(m_oos["sharpe_monthly"], 0.0, len(wf.sim.ret), m_oos["skew"], m_oos["kurtosis"])
-    psr_oos_vs_bh = probabilistic_sharpe(m_oos["sharpe_monthly"], m_bh["sharpe_monthly"], len(wf.sim.ret), m_oos["skew"], m_oos["kurtosis"])
+    vs_bh = sharpe_diff_test(wf.sim.ret, bh.ret, safe_oos)
 
     # Ablation: each variant gets its own nested walk-forward.
     ablation = []
@@ -401,7 +435,7 @@ def full_validation(bt: BTData, spec: ModelSpec | ParamGrid, bcfg: BacktestConfi
         "stats": {
             "deflated_sharpe_insample": dsr,
             "psr_oos_vs_zero": psr_oos,
-            "psr_oos_vs_bh_sharpe": psr_oos_vs_bh,
+            "p_sharpe_gt_bh": vs_bh["p_gt0"], "sharpe_diff_vs_bh": vs_bh,
         },
         "ablation": ablation,
         "sensitivity": {
