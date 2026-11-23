@@ -507,3 +507,33 @@ Pooled series (stock ledger per market, panel below) use the null-centred, date-
 **B — multi-market panel of the VaR method.** The live VaR's method without the VIX term (VIX measures US large-cap volatility only): log-HAR on (rv_d, rv_w, rv_m) of each series' own daily log returns, one-day target, annual walk-forward refits, Duan smearing, 1-day 95% VaR from the 5% quantile of all earlier out-of-sample standardized returns (≥ 500). Series: `^NDX ^SOX SPY XLF XLE XLV EWJ EWG EWU EEM` (Yahoo adjusted close; already fetched for § 11). Logged daily in the market ledger as `panel_var_1d:<symbol>` (own `model_id`), scored on each series' next bar after the US close is final. Pooled verdict at the interim looks above; with ten correlated series the first look (60 dates ≈ 3 months) has far more breaches than the single series. It judges the **method**, not the XLK VaR on the site. Its backtest per series is published as context only (`backtest_context`).
 
 **First computed results (after registration, 2026-11-23; backtest = context only).** Panel 1-day 95% VaR backtest breach rates over the full history: ^NDX 5.04%, ^SOX 4.94%, SPY 4.74%, XLF 5.02%, XLE 4.83%, XLV 5.71%, EWJ 4.81%, EWG 5.39%, EWU 4.64%, EEM 4.07%; over the last three years all between 3.8% and 5.2% except ^SOX (6.48%). Read with care: this backtest was not used to choose the method, but it is not live evidence either. Ten panel forecasts were logged from the 2026-11-20 close.
+
+## 21. Volatility-based exposure cap and risk alerts (registered 2026-11-23)
+
+Registered in the commit that adds this section, **before the cap's or the alerts' history was computed** (modules `engine/tcd/exposure.py`, `engine/tcd/alerts.py`). Neither changes v2 (the live posture) or v3 (its specification fingerprint and promotion clock are untouched); both are display and notification only.
+
+**Why a volatility cap.** The site's tests show that valuation, Capex and earnings do not time crashes (§ 2.2, § 9.1); the one risk estimate with demonstrated out-of-sample skill is the volatility forecast (§ 9.2, § 10). A position-control number is therefore built on that forecast only.
+
+**A — suggested maximum exposure (fixed rule).**
+
+```
+sigma_hat = live 5-day volatility forecast of the risk asset, annualized (HAR + VIX, § 10)
+target    = median 22-day realized volatility of all days since 1990 up to the latest close (point-in-time)
+cap       = min(1, target / sigma_hat), rounded DOWN to a 5-point step
+band      = A (100%)  B (75-95%)  C (50-70%)  D (25-45%)  E (below 25%)
+```
+
+Meaning: "hold at most the exposure that carries the risk of a typical day". It is a ceiling, not an instruction to trade; it uses no leverage, no costs and reports no return or Sharpe headline. Logged daily in the market ledger as `exposure_cap_5d` (decision record, append-only; columns reused: `har_var` = 5-day variance forecast, `vol_ann` = target volatility, `band_lo` = unrounded cap, `band_hi` = published cap, `level` = band). Scored after 5 trading days: `ratio` = cap × realized 5-day volatility / target (1 = risk on target), `in_band` = ratio ≤ 1.5, `log_error` = log(ratio). Summary only (n, median ratio, share above 1.5); the forecast itself is tested as `vol_5d`.
+
+Backtest context (out-of-sample walk-forward 5-day forecasts from 2000, target point-in-time, cap applied to the next day's return): average cap, share of days below 100%, realized volatility and maximum drawdown with and without the cap, and the same four drawdown windows for every run (2000-03 → 2002-10, 2007-10 → 2009-03, 2020-02 → 2020-03, 2022-01 → 2022-10). Context only; nothing is tuned on it.
+
+**B — alerts.** Computed by the engine after each full refresh (`data/alerts.json`), compared with the previously published state, and posted as a comment on one open GitHub issue labelled `risk-alert` (the owner is notified; the issue is never closed automatically). Events, all on a new US close only (a same-day re-run cannot repeat them):
+
+| Event | Rule |
+|---|---|
+| `light_change` | risk light level differs from the previous close's level (§ 12) |
+| `cap_band_change` | exposure-cap band differs from the previous close's band |
+| `var_breach` | a live 1-day 95% VaR (`var_1d`, current model) was newly scored as breached |
+| `validation_warning` | an interim look (§ 20) of `var_1d`, `var_1d_challenger` or the panel newly reads `too_many_at_N` |
+
+No hysteresis is applied to the light or the cap now (changing the light's rule would change § 12). Their historical stability is measured instead, from the same walk-forward forecasts (light: 1-day forecast vs point-in-time history of 22-day realized volatility): changes per year, median run length, and the share of changes reversed within 5 trading days. **Registered review rule:** if either series averages ≥ 24 changes per year or ≥ 30% of its changes reverse within 5 trading days, a display buffer is proposed to the owner (not applied automatically).
