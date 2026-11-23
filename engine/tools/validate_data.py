@@ -70,6 +70,10 @@ def main() -> int:
         if (e := check_csv(p)):
             errors.append(e)
 
+    r = subprocess.run(["git", "-C", str(data.parent), "rev-parse", "--verify", "--quiet", f"{args.base_ref}^{{commit}}"],
+                       capture_output=True)
+    if r.returncode != 0:
+        errors.append(f"base ref {args.base_ref!r} cannot be resolved: append-only check impossible")
     for name in LEDGERS:
         ledger = data / name
         rel = str(Path(data.name) / name)

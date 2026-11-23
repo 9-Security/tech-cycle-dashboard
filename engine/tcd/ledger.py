@@ -58,14 +58,11 @@ MARKET_BENCH = {"TW": "^TWII", "US": "^NDX"}
 # change a scored forecast).
 FINAL_STATUSES = {"scored", "gap", "data_error"}
 
-# model_id values that denote the same forecasting code. The formula of the id
-# changed on 2026-11-23 (whole stocks.py -> forecasting functions only). The
-# ledger's first rows carry the old-formula id 333e22e1aab1 (code at merge
-# 06f3fb7); its forecasting functions (drop_stale_runs, daily_frame,
-# walk_forward_var, current_risk, short_risk.design / fit_var / VarModel,
-# light.level_for) and StockConfig were checked to be byte-identical to the
-# code behind 9c9661d3517e, so those rows are the same model.
-MODEL_ID_ALIASES = {"333e22e1aab1": "9c9661d3517e"}
+# model_id values that denote the same model. Empty: the alias used briefly on
+# 2026-11-23 covered identical CODE, but the 18 Taiwan rows it covered were
+# produced before the holiday-bar cleaning existed (different data pipeline),
+# so "same model" did not hold. The record restarts with the current id.
+MODEL_ID_ALIASES: dict[str, str] = {}
 
 STR_COLS = {"origin_date": str, "target_date": str, "symbol": str, "market": str, "level": str,
             "model_id": str, "engine_version": str, "issued_at": str, "status": str}
@@ -93,10 +90,13 @@ def model_id(stock_cfg) -> str:
     change it; any change to how a forecast is made does."""
     import inspect
 
-    from . import light, short_risk, stocks
+    from . import light, short_risk, stocks, tw_calendar
     parts = [stocks.drop_stale_runs, stocks.daily_frame, stocks.walk_forward_var, stocks.current_risk,
-             short_risk.design, short_risk.fit_var, short_risk.VarModel, light.level_for]
+             stocks.analyze_stock, short_risk.design, short_risk.fit_var, short_risk.VarModel, short_risk._ols,
+             light.level_for, tw_calendar.clean, tw_calendar.market_open_days]
     blob = "".join(inspect.getsource(f) for f in parts).encode()
+    # Module-level constants the forecast depends on (not part of any function's source).
+    blob += repr((stocks.HAR_FEATURES, sorted(short_risk.LOGGED))).encode()
     blob += json.dumps(asdict(stock_cfg), sort_keys=True).encode()
     return hashlib.sha256(blob).hexdigest()[:12]
 
@@ -130,6 +130,9 @@ def forecast_rows(stock_rows: list[dict], issued_at: str, now_utc: datetime, eng
     out = []
     for r in stock_rows:
         if r.get("stale") or r.get("har_var") is None:
+            continue
+        if open_days is not None and open_days.get(r["market"]) is None:
+            log.warning("ledger: %s benchmark unavailable, forecast for %s not logged", r["market"], r["symbol"])
             continue
         days = (open_days or {}).get(r["market"])
         if days is not None and r["last_date"] not in days:
@@ -210,12 +213,14 @@ def read_ledger(path: Path) -> pd.DataFrame:
 # ----------------------------------------------------------- reconciliation
 def evaluate(ledger: pd.DataFrame, prices: dict[str, pd.DataFrame], markets: tuple[str, ...],
              cfg: ReviewConfig, non_trading: dict[str, set[str]] | None = None,
-             open_days: dict[str, set[str] | None] | None = None, skip: set | None = None) -> pd.DataFrame:
+             open_days: dict[str, set[str] | None] | None = None, skip: set | None = None,
+             now_utc: datetime | None = None) -> pd.DataFrame:
     """Match each forecast of `markets` with the stock's next real bar.
     Bars on days the market benchmark did not trade, or that the second-source
     check flags as non-trading, are skipped. Keys in `skip` (already final) are
     not re-evaluated."""
     non_trading = non_trading or {}
+    check_days = open_days is not None   # None = no calendar filter (tests); dict = filter
     open_days = open_days or {}
     skip = skip or set()
     recs = []
@@ -236,6 +241,10 @@ def evaluate(ledger: pd.DataFrame, prices: dict[str, pd.DataFrame], markets: tup
         if bad:
             after = after[~after.index.strftime("%Y-%m-%d").isin(list(bad))]
         days = open_days.get(f["market"])
+        if check_days and days is None:
+            rec["status"] = "pending"  # benchmark unavailable: no trading-day evidence, do not score
+            recs.append(rec)
+            continue
         if days is not None and len(after):
             # Only judge against bars the benchmark confirms; a bar after the
             # benchmark's last bar waits until the benchmark catches up.
@@ -245,6 +254,10 @@ def evaluate(ledger: pd.DataFrame, prices: dict[str, pd.DataFrame], markets: tup
             recs.append(rec)
             continue
         t = after.index[0]
+        if now_utc is not None and not bar_is_final(f["market"], str(t.date()), now_utc):
+            rec["status"] = "pending"  # target bar still trading: never score (and freeze) a partial bar
+            recs.append(rec)
+            continue
         r = float(np.log(after.iloc[0] / close.loc[o]))
         rec["target_date"], rec["ret"] = str(t.date()), r
         if (t - o).days > cfg.max_gap_days:
@@ -263,9 +276,11 @@ def evaluate(ledger: pd.DataFrame, prices: dict[str, pd.DataFrame], markets: tup
 
 
 def read_outcomes(path: Path) -> pd.DataFrame:
+    """All columns as text (empty fields stay ""), so frozen rows are written
+    back byte-identical; numbers are converted where they are used."""
     if not path.exists():
         return pd.DataFrame(columns=OUTCOME_COLUMNS)
-    return pd.read_csv(path, dtype={k: v for k, v in STR_COLS.items() if k in OUTCOME_COLUMNS})
+    return pd.read_csv(path, dtype=str, keep_default_na=False)
 
 
 def final_keys(old: pd.DataFrame) -> set:
@@ -300,6 +315,22 @@ def _clustered_rate(x: np.ndarray, dates: np.ndarray, z: float, lag: int = 5) ->
     return m, m - z * se, m + z * se
 
 
+def _too_many_test(x: np.ndarray, dates: np.ndarray, p0: float, lag: int = 5) -> tuple[float, float]:
+    """One-sided z-test of "breach rate > p0" with a standard error computed
+    from deviations from p0 (not from the sample rate), summed per date and
+    Newey-West over dates, floored at the independent-binomial SE. Simulated
+    false-positive rate <= 7.2% at a nominal 5% for 60-250 dates x 10-18 names
+    with strong co-movement and persistence."""
+    from statistics import NormalDist
+    d = pd.Series(x - p0).groupby(dates).sum().sort_index().to_numpy()
+    S = float((d ** 2).sum())
+    for L in range(1, min(lag, len(d) - 1) + 1):
+        S += 2 * (1 - L / (lag + 1)) * float((d[L:] * d[:-L]).sum())
+    se = max(sqrt(max(S, 0.0)) / len(x), sqrt(p0 * (1 - p0) / len(x)))
+    z = (float(x.mean()) - p0) / se
+    return z, 1 - NormalDist().cdf(z)
+
+
 def _pooled(s: pd.DataFrame, cfg: ReviewConfig) -> dict:
     z = {0.90: 1.6449, 0.95: 1.96}[cfg.ci]
     n_dates = int(s["target_date"].nunique())
@@ -311,6 +342,8 @@ def _pooled(s: pd.DataFrame, cfg: ReviewConfig) -> dict:
     br = s["breach"].astype(float).to_numpy()
     dates = s["target_date"].to_numpy()
     rate, lo, hi = _clustered_rate(br, dates, z)
+    zt, pt = _too_many_test(br, dates, cfg.var_level)
+    out.update(too_many_z=zt, too_many_p=pt)
     vr, vlo, vhi = _clustered_rate(s["var_ratio"].astype(float).to_numpy(), dates, z)
     out.update(breach_rate=rate, breach_ci=[lo, hi], var_ratio=vr, var_ratio_ci=[vlo, vhi])
     # HAR vs EWMA: per-date mean QLIKE difference, Newey-West t (positive => HAR better).
@@ -318,14 +351,16 @@ def _pooled(s: pd.DataFrame, cfg: ReviewConfig) -> dict:
     out["qlike_har"] = float(s["qlike_har"].mean())
     out["qlike_ewma"] = float(s["qlike_ewma"].mean())
     out["dm_t_vs_ewma"] = diebold_mariano(by_d["qlike_ewma"].to_numpy(), by_d["qlike_har"].to_numpy(), 1)
+    # One-sided by design (methodology section 14, 2026-11-23 round 5): "too many
+    # breaches" is tested; "too few" is NOT, because no tested method controls
+    # its false-positive rate when names breach together (simulated 6-27% at a
+    # nominal 5%). The interval above is descriptive only.
     if n_dates < cfg.min_dates_pooled:
         out["verdict"] = "insufficient"
-    elif hi < cfg.var_level:
-        out["verdict"] = "too_few"      # VaR too conservative
-    elif lo > cfg.var_level:
+    elif pt < 0.05:
         out["verdict"] = "too_many"     # VaR too aggressive
     else:
-        out["verdict"] = "consistent"
+        out["verdict"] = "not_rejected"
     last = sorted(s["target_date"].unique())[-cfg.rolling_dates:]
     r = s[s["target_date"].isin(last)]
     out["rolling"] = {"n_dates": len(last), "n": int(len(r)), "breaches": int(r["breach"].sum()),
@@ -365,6 +400,8 @@ def summarize(outcomes: pd.DataFrame, ledger: pd.DataFrame, stock_rows: list[dic
     sc = outcomes[outcomes["status"] == "scored"].copy()
     if len(sc):
         sc["breach"] = sc["breach"].map(lambda v: v in (True, "True", 1, "1"))
+        for c in ("ret", "var95", "har_var", "ewma_var", "qlike_har", "qlike_ewma", "var_ratio"):
+            sc[c] = pd.to_numeric(sc[c], errors="coerce")
     bt = {r["symbol"]: r.get("backtest", {}) for r in stock_rows}
     markets, stocks = {}, {}
     for m in ("US", "TW"):
@@ -409,7 +446,7 @@ def update(out_dir: Path, stock_rows: list[dict], prices: dict[str, pd.DataFrame
     ledger = read_ledger(lp)
     op = out_dir / "forecasts" / "stocks_outcomes.csv"
     frozen = final_keys(read_outcomes(op))
-    outcomes = merge_outcomes(op, evaluate(ledger, prices, markets, cfg, nt, od, frozen), markets)
+    outcomes = merge_outcomes(op, evaluate(ledger, prices, markets, cfg, nt, od, frozen, now_utc), markets)
     review = summarize(outcomes, ledger, all_rows if all_rows is not None else stock_rows, cfg, issued_at, mid)
     review["last_run"] = {"markets": list(markets), "forecasts_added": added}
     from .export import clean  # local import: export imports heavy modules

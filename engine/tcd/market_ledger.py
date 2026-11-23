@@ -30,6 +30,7 @@ import hashlib
 import inspect
 import json
 import logging
+import re
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from math import sqrt
@@ -66,21 +67,34 @@ def _fp(funcs, cfg_dict: dict, extra: str = "") -> str:
     return hashlib.sha256(blob + extra.encode()).hexdigest()[:12]
 
 
+def _variance_fp(live_model: str) -> str:
+    """The daily variance forecast shared by the incumbent VaR, the challenger
+    and the 5-day volatility: code path, module constants and config."""
+    f = [short_risk.daily_frame, short_risk.design, short_risk.fit_var, short_risk.VarModel, short_risk._ols,
+         short_risk.walk_forward]
+    consts = repr((short_risk.FEATURES, sorted(short_risk.LOGGED)))
+    return _fp(f, asdict(short_risk.ShortRiskConfig()), live_model + consts)
+
+
 def short_model_id(live_model: str) -> str:
-    """Fingerprint of the short-horizon forecast: the HAR/VIX code path, the
-    out-of-sample VaR quantile and the config, plus which model is live."""
-    f = [short_risk.daily_frame, short_risk.design, short_risk.fit_var, short_risk.VarModel,
-         short_risk.walk_forward, short_risk.oos_quantile, short_risk.current]
-    return _fp(f, asdict(short_risk.ShortRiskConfig()), live_model)
+    """Incumbent 1-day VaR and 5-day volatility: variance + its own quantile rule."""
+    return _fp([short_risk.oos_quantile, short_risk.current], {}, _variance_fp(live_model))
 
 
 def challenger_model_id(live_model: str) -> str:
-    return _fp([var_challenger.rolling_quantile, var_challenger.run], {"window": var_challenger.WINDOW,
-               "level": var_challenger.LEVEL}, short_model_id(live_model))
+    """Challenger: same variance + the registered rolling quantile only (not the
+    incumbent's quantile code, not the backtest code)."""
+    return _fp([var_challenger.rolling_quantile], {"window": var_challenger.WINDOW, "level": var_challenger.LEVEL},
+               _variance_fp(live_model))
 
 
 def month_model_id() -> str:
-    return _fp([risk_model.vol_forecast], asdict(risk_model.RiskConfig()))
+    """Monthly volatility regression + the definition of its inputs/target
+    (the rv / VIX lines of features.build_panel and the FeatureConfig)."""
+    from . import features
+    src = inspect.getsource(features.build_panel).splitlines()
+    inputs = "\n".join(l for l in src if re.search(r"\brv|vix|dret", l))
+    return _fp([risk_model.vol_forecast], {**asdict(risk_model.RiskConfig()), **asdict(features.FeatureConfig())}, inputs)
 
 
 def _num(x, fmt: str) -> str:
@@ -93,7 +107,8 @@ def forecast_rows(short_current: dict, vol_current: dict, light_level: str | Non
     d = short_current["date"]
     if bar_is_final("US", d, now_utc):
         sid = short_model_id(short_current["model"])
-        ewma = short_current["ewma_vol_ann"] ** 2 / 252
+        ewma_vol = short_current.get("ewma_vol_ann")
+        ewma = ewma_vol ** 2 / 252 if ewma_vol is not None else float("nan")
         base = {"origin_date": d, "issued_at": issued_at, "engine_version": engine_version, "model_id": sid,
                 "vol_ann": "", "band_lo": "", "band_hi": ""}
         rows.append({**base, "target": "var_1d", "var95": _num(short_current["var95_1d_simple_ret"], ".8f"),
@@ -111,6 +126,9 @@ def forecast_rows(short_current: dict, vol_current: dict, light_level: str | Non
     else:
         log.info("market ledger: bar %s not final yet, short-horizon forecasts not logged", d)
     me = vol_current.get("month_end")
+    if me and not month_is_final(me["date"], now_utc):
+        log.info("market ledger: month %s not final yet, vol_1m forecast not logged", me["date"])
+        me = None
     if me:  # complete month only; the provisional mid-month forecast is never logged
         rows.append({"target": "vol_1m", "origin_date": me["date"], "issued_at": issued_at, "var95": "",
                      "har_var": "", "ewma_var": "", "vol_ann": _num(me["vol"], ".6f"),
@@ -119,13 +137,22 @@ def forecast_rows(short_current: dict, vol_current: dict, light_level: str | Non
     return rows
 
 
+def month_is_final(month_end: str, now_utc: datetime) -> bool:
+    """The month's last NYSE trading day has closed (the panel's partial flag
+    looks at dates only and would accept an intraday last-day bar)."""
+    from .features import last_trading_day_of_month
+    return bar_is_final("US", str(last_trading_day_of_month(pd.Timestamp(month_end)).date()), now_utc)
+
+
 def _read(path: Path, cols: list[str]) -> pd.DataFrame:
+    """All text (empty fields stay ""): frozen rows are written back byte-identical."""
     if not path.exists():
         return pd.DataFrame(columns=cols)
-    return pd.read_csv(path, dtype={k: v for k, v in STR.items() if k in cols})
+    return pd.read_csv(path, dtype=str, keep_default_na=False)
 
 
-def evaluate(ledger: pd.DataFrame, r: pd.Series, panel: pd.DataFrame, skip: set) -> pd.DataFrame:
+def evaluate(ledger: pd.DataFrame, r: pd.Series, panel: pd.DataFrame, skip: set,
+             now_utc: datetime | None = None) -> pd.DataFrame:
     """r: daily log returns of the risk asset (dated by the bar). panel: monthly
     panel with rv21 and the partial flag."""
     r = r.dropna().sort_index()
@@ -142,7 +169,7 @@ def evaluate(ledger: pd.DataFrame, r: pd.Series, panel: pd.DataFrame, skip: set)
         if f["target"] in ("var_1d", "var_1d_challenger", "vol_5d"):
             h = 5 if f["target"] == "vol_5d" else 1
             nxt = r[r.index > o]
-            if len(nxt) >= h:
+            if len(nxt) >= h and (now_utc is None or bar_is_final("US", str(nxt.index[h - 1].date()), now_utc)):
                 w = nxt.iloc[:h]
                 y = float((w ** 2).mean())
                 hv, ev = float(f["har_var"]), float(f["ewma_var"])
@@ -150,10 +177,15 @@ def evaluate(ledger: pd.DataFrame, r: pd.Series, panel: pd.DataFrame, skip: set)
                            qlike_har=float(qlike(np.array([y]), np.array([hv]))[0]),
                            qlike_ewma=float(qlike(np.array([y]), np.array([ev]))[0]), ratio=y / hv)
                 if h == 1:
-                    rec["breach"] = bool(np.expm1(float(w.iloc[0])) < -float(f["var95"]))
+                    v = pd.to_numeric(f["var95"], errors="coerce")
+                    if not np.isfinite(v):
+                        rec["status"] = "invalid"  # no VaR value: never counted as "no breach"
+                    else:
+                        rec["breach"] = bool(np.expm1(float(w.iloc[0])) < -float(v))
         else:  # vol_1m: realized rv21 of the next COMPLETE month
             nxt = complete[complete.index > o]
-            if len(nxt) and pd.notna(nxt["rv21"].iloc[0]):
+            if len(nxt) and pd.notna(nxt["rv21"].iloc[0]) and (
+                    now_utc is None or month_is_final(str(nxt.index[0].date()), now_utc)):
                 y = float(nxt["rv21"].iloc[0])
                 fc, lo, hi = float(f["vol_ann"]), float(f["band_lo"]), float(f["band_hi"])
                 rec.update(target_end=str(nxt.index[0].date()), status="scored", realized=y,
@@ -199,6 +231,12 @@ def _summ_5d(s: pd.DataFrame) -> dict:
     return out
 
 
+def _binom_two_sided(k: int, n: int, p: float) -> float:
+    from math import comb
+    pmf = [comb(n, i) * p ** i * (1 - p) ** (n - i) for i in range(n + 1)]
+    return float(min(1.0, sum(q for q in pmf if q <= pmf[k] * (1 + 1e-12))))
+
+
 def _summ_1m(s: pd.DataFrame, cfg: MarketReviewConfig) -> dict:
     out = {"n": int(len(s)), "verdict": "insufficient"}
     if len(s):
@@ -206,9 +244,11 @@ def _summ_1m(s: pd.DataFrame, cfg: MarketReviewConfig) -> dict:
         inb = s["in_band"].map(lambda v: v in (True, "True", 1, "1"))
         out.update(mean_log_error=float(e.mean()), mae_log=float(e.abs().mean()), band_coverage=float(inb.mean()))
         if len(s) >= cfg.min_months_vol:
-            # 90% band: coverage within [0.80, 0.97] is read as consistent (binomial
-            # 90% interval for 24 months is roughly 0.79-0.96).
-            out["verdict"] = "consistent" if 0.80 <= out["band_coverage"] <= 0.97 else "band_miscalibrated"
+            # Exact two-sided binomial test of coverage = 0.90 (the fixed 0.80-0.97
+            # range used until 2026-11-23 flagged a perfect 24/24 record).
+            k, n = int(inb.sum()), int(len(s))
+            out["band_coverage_p"] = _binom_two_sided(k, n, 0.90)
+            out["verdict"] = "consistent" if out["band_coverage_p"] >= 0.05 else "band_miscalibrated"
     return out
 
 
@@ -227,7 +267,7 @@ def update(out_dir: Path, raw, panel: pd.DataFrame, short_current: dict, vol_cur
     final = old[old["status"].isin(FINAL_STATUSES)]
     skip = set(zip(final["target"], final["origin_date"]))
     r = short_risk.daily_frame(raw, short_risk.ShortRiskConfig())["r"]
-    fresh = evaluate(led, r, panel, skip)
+    fresh = evaluate(led, r, panel, skip, now_utc)
     outcomes = pd.concat([final, fresh], ignore_index=True) if len(final) else fresh
     outcomes = outcomes.sort_values(["origin_date", "target"], kind="stable").reset_index(drop=True)
     _atomic_write(op, outcomes.to_csv(index=False, lineterminator="\n"))
