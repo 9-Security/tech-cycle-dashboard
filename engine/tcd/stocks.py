@@ -315,6 +315,10 @@ def merge_stocks(existing: dict | None, new: dict, markets: tuple[str, ...], wat
         elif sym in old_rows:
             rows.append(old_rows[sym])
     updated = dict((existing or {}).get("updated", {}))
+    for m in {x["market"] for x in watchlist["stocks"]} - set(markets):
+        # Files written before per-market stamps: the other market was last updated at the old as_of.
+        if m not in updated and (existing or {}).get("as_of") and any(r["market"] == m for r in rows):
+            updated[m] = existing["as_of"]
     for m in markets:
         if any(r["market"] == m and not r.get("stale") for r in rows):
             updated[m] = stamp

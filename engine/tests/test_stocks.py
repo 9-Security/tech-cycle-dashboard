@@ -110,3 +110,11 @@ def test_merge_keeps_other_market_and_stale_rows():
     assert [r["symbol"] for r in m["stocks"]] == ["A", "B", "C"]
     assert by["A"]["v"] == 1 and by["B"]["v"] == 2 and by["C"]["v"] == 1 and by["C"]["stale"] is True
     assert m["updated"] == {"US": "t0", "TW": "t1"}
+
+
+def test_merge_seeds_missing_stamp_of_other_market():
+    from tcd.stocks import merge_stocks
+    wl = {"stocks": [{"symbol": "A", "market": "US"}, {"symbol": "B", "market": "TW"}]}
+    existing = {"as_of": "t0", "stocks": [{"symbol": "A", "market": "US"}, {"symbol": "B", "market": "TW"}]}
+    m = merge_stocks(existing, {"stocks": [{"symbol": "B", "market": "TW"}]}, ("TW",), wl, "t1")
+    assert m["updated"] == {"US": "t0", "TW": "t1"}

@@ -127,7 +127,7 @@
       const rows = d.stocks.filter((s) => s.market === mk);
       const dates = rows.filter((s) => !s.stale).map((s) => s.last_date).filter(Boolean).sort();
       const stale = rows.filter((s) => s.stale).length;
-      let txt = t("st.upd", { d: esc(dates.length ? dates[dates.length - 1] : "—"), u: esc(stampFmt(upd[mk] || d.as_of)) });
+      let txt = t("st.upd", { d: esc(dates.length ? dates[dates.length - 1] : "—"), u: esc(upd[mk] ? stampFmt(upd[mk]) : "—") });
       if (stale) txt += " · " + t("st.upd.stale", { n: stale });
       setHTML("upd-" + mk.toLowerCase(), txt);
     });
