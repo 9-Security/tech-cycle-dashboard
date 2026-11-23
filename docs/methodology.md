@@ -1,4 +1,4 @@
-# Methodology — engine v3.2 (live, point-in-time, nested walk-forward)
+# Methodology — engine v3.3 (live, point-in-time, nested walk-forward)
 
 Engine source: [`engine/tcd/`](../engine/tcd). Rebuilt from the v1 specification in this folder; v1 documents are kept for history.
 
@@ -246,3 +246,33 @@ Level spec agrees: HAR + VIX better than HAR (t 2.83 / 4.07); EPU worse (t −2.
 **EPU decision (pre-set rule: keep only if QLIKE improves with DM t ≥ 2 at every horizon, under both specifications): dropped.** Consistent with § 9: market-implied volatility already absorbs news faster than a daily newspaper index can add.
 
 **Live output:** next-day and 5-day volatility and 1-day 95% VaR from the latest close; refreshed with the daily job. These describe the size of likely moves, not their direction.
+
+
+## 11. Out-of-domain test of v3 (pre-registered 2026-11-23)
+
+Module `engine/tcd/cross_market.py`; criteria committed in `3ac4e7d` before any real-data run; results on the Validation page and in `data/cross_market.json` (recomputed daily).
+
+**Design.** The frozen v3 specification (same 1,080-configuration grid, walk-forward, objective, 15 bps costs) applied to nine markets it never saw: ^SOX (semiconductors, price index), SPY, XLF, XLE, XLV, EWJ, EWG, EWU, EEM (USD ETFs with dividends). Price-extension and volatility signals use each market's own prices; tech fundamentals only for ^SOX, neutral elsewhere. Each market warms up for seven years before its first out-of-sample year.
+
+**Criteria.** C1: v3 Sharpe above vol-matched buy & hold in ≥ 6/9 markets. C2: mean Sharpe difference > 0 with a 90% joint calendar-block bootstrap CI excluding 0. C3 (secondary): smaller Max DD in ≥ 6/9. Pass = C1 and C2.
+
+| Market | OOS from | v3 Sharpe | B&H Sharpe | Diff | v3 Max DD | Vol-matched Max DD |
+|---|---|---:|---:|---:|---:|---:|
+| ^SOX | 2008 | 0.68 | 0.71 | −0.02 | −24.7% | −26.4% |
+| SPY | 2006 | 0.80 | 0.66 | **+0.14** | −12.9% | −33.7% |
+| XLF | 2012 | 0.66 | 0.73 | −0.07 | −17.4% | −21.3% |
+| XLE | 2012 | 0.14 | 0.38 | −0.24 | −55.1% | −37.5% |
+| XLV | 2012 | 0.84 | 0.88 | −0.04 | −11.3% | −11.0% |
+| EWJ | 2010 | 0.36 | 0.46 | −0.10 | −21.9% | −23.1% |
+| EWG | 2010 | 0.22 | 0.32 | −0.10 | −22.5% | −24.9% |
+| EWU | 2010 | 0.24 | 0.37 | −0.13 | −24.5% | −19.9% |
+| EEM | 2017 | 0.36 | 0.39 | −0.03 | −28.5% | −28.3% |
+
+**Verdict: FAILED.** C1 1/9; C2 mean −0.067, 90% CI [−0.158, −0.005] (significantly *worse*); C3 5/9.
+
+Reading:
+* The v3 edge on tech (+0.07 Sharpe, itself not significant, § 8) does not generalize; across other markets the same design costs about 0.07 Sharpe. This lowers confidence that the tech result reflects a real effect rather than luck and design hindsight.
+* Context, not an excuse: most out-of-sample windows start in 2010–2012 and contain few large crises. The only winner, SPY, is the only window that includes 2008. This matches § 8: v3 behaves like insurance that pays in severe crises and costs return otherwise. Its drawdown reduction is the more consistent effect (5/9, and large in SPY), but it did not meet the 6/9 bar either.
+* A constant, lower equity allocation with the same volatility (vol-matched buy & hold) did as well or better in 8 of 9 markets: on this evidence the simple alternative is "hold less", not "time the cycle".
+
+**Consequences.** The promotion rule (model-promotion.md) is unchanged and still governs v3; this result is recorded as additional evidence against promotion and should weigh heavily if v3 is ever close to eligibility.

@@ -314,3 +314,4 @@ table.heat th { text-align: center; }
 .lang-switch:hover { background: #fff; }
 @media (max-width: 640px) { .lang-switch { padding: 0.3rem 0.55rem; font-size: 0.8rem; } }
 html[lang="zh-TW"] body { font-family: "IBM Plex Sans", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", "Segoe UI", sans-serif; }
+#xmCrit td:nth-child(2), #xmCrit th:nth-child(2) { text-align: left; white-space: normal; }

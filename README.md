@@ -30,6 +30,7 @@ engine/                 Python engine (numpy, pandas, requests)
   tcd/signal_study.py   stand-alone signal tests (PIT quintiles, NW t, block bootstrap)
   tcd/risk_model.py     walk-forward drawdown probability (logistic) + volatility forecast
   tcd/short_risk.py     daily HAR volatility + 95% VaR (EWMA baseline, VIX, EPU news test)
+  tcd/cross_market.py   pre-registered out-of-domain test of v3 on 9 other markets
   tcd/quality.py        fail-closed data-quality gates
   tcd/status.py         live posture + scenarios
   tcd/export.py         dashboard JSON / CSV (atomic swap)

@@ -65,6 +65,10 @@ Annual walk-forward refits are part of the v3 specification and do not count as 
 | Daily status | `engine/tcd/promotion.py`; output in `data/validation.json → candidate.promotion`, shown on `validation.html` |
 | Spec-change guard | `engine/tests/test_promotion.py::test_frozen_fingerprint_matches_current_spec` fails CI if v3 code/config changes without a new design date |
 
+## Related evidence (does not change the rule)
+
+* 2026-11-23: pre-registered out-of-domain test of the frozen v3 design on nine other markets **failed** (1/9 markets ahead on Sharpe; mean difference −0.067, 90% CI [−0.158, −0.005]). See [methodology.md](methodology.md) § 11. The criteria above are unchanged; this result should weigh against promotion.
+
 ## Changelog
 
 | Date | Change | By |
