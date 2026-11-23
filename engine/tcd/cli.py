@@ -46,13 +46,15 @@ log = logging.getLogger("tcd")
 
 
 def _raw_archive(scope: str) -> dict | None:
-    """Name of the GitHub Actions artifact that holds this run's raw inputs."""
+    """Where this run's raw inputs are archived (private R2 bucket, written by
+    tools/archive_raw.py after the refresh; blobs/<sha256>.gz per manifest hash).
+    The index key is deterministic, so it can be published before the upload;
+    whether the upload succeeded is reported by the workflow (raw-archive issue)."""
     run_id, attempt = os.environ.get("GITHUB_RUN_ID"), os.environ.get("GITHUB_RUN_ATTEMPT", "1")
-    if not run_id:
+    if not run_id or not os.environ.get("RAW_ARCHIVE_ENABLED"):
         return None
-    repo = os.environ.get("GITHUB_REPOSITORY", "")
-    return {"artifact": f"raw-{scope}-{run_id}-{attempt}", "retention_days": 90,
-            "run_url": f"https://github.com/{repo}/actions/runs/{run_id}" if repo else None}
+    return {"store": "r2 (private)", "index": f"runs/{run_id}-{attempt}-{scope}.json",
+            "blobs": "blobs/<sha256>.gz", "restore": "engine/tools/restore_raw.py"}
 
 
 def _git_sha() -> str | None:
