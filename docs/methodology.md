@@ -312,7 +312,7 @@ Module `engine/tcd/ledger.py`; files `data/forecasts/stocks_ledger.csv` (append-
 * A forecast is logged only if its bar is final: local time past 14:30 Asia/Taipei (TWSE closes 13:30) or 16:30 America/New_York. A manual run during trading hours logs nothing for that market.
 * The ledger is committed by the daily job; the git commit time proves each forecast predates its outcome. No backfill: the record starts with the first run after this change.
 
-**Scoring.** Each forecast is matched with the stock's next bar (adjusted close): log return `r`, breach if `exp(r) − 1 < −VaR`, QLIKE of the HAR and EWMA variances, variance ratio `r² / HAR variance`. Not scored: next bar not yet available (`pending`), more than 10 calendar days away (`gap`), Taiwan `|r| > 25%` (`data_error`, same rule as the model), origin bar missing from the source.
+**Scoring.** Each forecast is matched with the stock's next bar (adjusted close): log return `r`, breach if `exp(r) − 1 < −VaR`, QLIKE of the HAR and EWMA variances, variance ratio `r² / HAR variance`. Yahoo bars on days the exchange shows no trade (section 15) are skipped: they are never a forecast origin and never a target, so the forecast is scored against the next real trading day. Not scored: next bar not yet available (`pending`), more than 10 calendar days away (`gap`), Taiwan `|r| > 25%` (`data_error`, same rule as the model), origin bar missing from the source.
 
 **Pre-registered review rules** (fixed now, before any live outcome exists; changing them is a documented, versioned change):
 
@@ -326,3 +326,18 @@ Also reported (descriptive, no verdict): variance ratio with clustered 90% CI (t
 **No automatic recalibration.** Results never feed back into the model. If a verdict says the VaR is miscalibrated, a fix is a code change with a new `model_id`; the old rows stay in the ledger and the new model's record starts from zero.
 
 Expected timing: market verdicts after about 3 months, single-stock verdicts after about 1 year. Until then the page shows "not enough data yet", which is not evidence for or against the model.
+
+## 15. Official close check (Taiwan)
+
+Modules `engine/tcd/sources/twofficial.py`, `engine/tcd/official_check.py`; output `data/official_check.json`; one line in the Taiwan section of `stocks.html` and one line per stock in the detail panel. Report only: it never changes prices, the model or its outputs, and a failure never blocks a refresh.
+
+* Sources: TWSE `rwd/zh/afterTrading/STOCK_DAY` (listed, `.TW`) and TPEx `afterTrading/tradingStock` (OTC, `.TWO`), one request per stock per month for the current and previous month, 2 s apart, one slow retry (15 s) after a throttled request (the exchanges answer bursts with HTTP 307). Raw responses go through the raw store (hashed, cached) like every other source.
+* Compared with Yahoo's close (split-adjusted, not dividend-adjusted; official closes are unadjusted, so a corporate action inside the window shows as a difference, which is the intended alert):
+  * **mismatch**: both have the day and |Yahoo / official − 1| > 0.5%;
+  * **missing**: the exchange shows a trade, Yahoo has no bar;
+  * **extra**: Yahoo has a bar on a day the exchange shows no trade (carried-forward price);
+  * **not yet**: Yahoo bar after the exchange's latest published day (informational).
+* Status per stock: `ok`, `warn` (any mismatch, missing or extra) or `unavailable`.
+* Use in the forecast ledger (section 14): `extra` days are skipped as forecast origins and as scoring targets. This rule was added before any forecast had been scored.
+
+First live run (2026-11-23, 18 names, 35 trading days each): zero price differences and no missing days; every name had one extra Yahoo bar on 2026-10-23, a day with no TWSE/TPEx trading, carrying the previous close forward.
