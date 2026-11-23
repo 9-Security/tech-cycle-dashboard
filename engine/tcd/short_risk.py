@@ -46,6 +46,12 @@ class ShortRiskConfig:
     # "level": classic Corsi OLS on variance levels - reported for robustness.
     spec: str = "log"
     log_floor: float = 1e-8  # floor for squared returns before taking logs
+    # FHS quantile source. "oos": standardized returns of earlier OUT-OF-SAMPLE
+    # forecasts (expanding window; fixes the under-coverage of in-sample
+    # residuals, whose fitted variance is optimistic). "insample": the
+    # original rule, still reported for comparison.
+    var_quantile: str = "oos"
+    min_oos_resid: int = 500  # earlier OOS residuals needed before a quantile is set
 
 
 # ----------------------------------------------------------------- data
@@ -175,6 +181,17 @@ def fit_var(X: np.ndarray, y: np.ndarray, feats: list[str], spec: str, log_floor
     return VarModel(feats, spec, _ols(X, y))
 
 
+def oos_quantile(out: pd.DataFrame, m: str, r_next: np.ndarray, known: np.ndarray, cfg: ShortRiskConfig) -> float:
+    col = f"{m}_1"
+    if col not in out:
+        return float("nan")
+    f = out[col].to_numpy(float)
+    ok = known & np.isfinite(f) & np.isfinite(r_next)
+    if ok.sum() < cfg.min_oos_resid:
+        return float("nan")
+    return float(np.nanquantile(r_next[ok] / np.sqrt(f[ok]), cfg.var_level))
+
+
 def walk_forward(df: pd.DataFrame, cfg: ShortRiskConfig) -> tuple[pd.DataFrame, dict]:
     """OOS variance forecasts for every model/horizon + FHS 1-day VaR quantiles."""
     idx = df.index
@@ -183,7 +200,10 @@ def walk_forward(df: pd.DataFrame, cfg: ShortRiskConfig) -> tuple[pd.DataFrame, 
     last_year = int(idx[-1].year)
     for h in cfg.horizons:
         out[f"ewma_{h}"] = df["ewma"]  # EWMA h-step forecast = current EWMA variance
-    for Y in range(cfg.oos_start_year, last_year + 1):
+    r_next = df["r_next"].to_numpy(float)
+    # Forecasts start in the first year with enough training data (burn-in for
+    # the OOS-residual quantile); evaluation still starts at oos_start_year.
+    for Y in range(int(idx[0].year) + 1, last_year + 1):
         train_end = pd.Timestamp(f"{Y - 1}-12-31")
         test = idx.year == Y
         if not test.any():
@@ -203,10 +223,14 @@ def walk_forward(df: pd.DataFrame, cfg: ShortRiskConfig) -> tuple[pd.DataFrame, 
                 out.loc[te, f"{m}_{h}"] = model.predict(Xall[te], cfg.var_floor)
                 if h == 1:
                     coefs[m].append({"year": Y, "coef": dict(zip(["const"] + feats, map(float, model.beta)))})
-                    # FHS quantile from in-sample standardized next-day returns.
+                    # In-sample FHS quantile (original rule, kept for comparison).
                     fit = model.predict(Xall[tr], cfg.var_floor)
-                    z = df["r_next"].to_numpy(float)[tr] / np.sqrt(fit)
-                    out.loc[test, f"q_{m}"] = float(np.nanquantile(z, cfg.var_level))
+                    z = r_next[tr] / np.sqrt(fit)
+                    out.loc[test, f"qin_{m}"] = float(np.nanquantile(z, cfg.var_level))
+                    # OOS FHS quantile: earlier out-of-sample forecasts whose outcome
+                    # was known by train_end.
+                    out.loc[test, f"qoos_{m}"] = oos_quantile(out, m, r_next, known, cfg)
+                    out.loc[test, f"q_{m}"] = out.loc[test, f"q{'oos' if cfg.var_quantile == 'oos' else 'in'}_{m}"]
         # EWMA quantile: normal (RiskMetrics convention).
         out.loc[test, "q_ewma"] = -1.6448536269514722
     return out, coefs
@@ -238,18 +262,27 @@ def evaluate(df: pd.DataFrame, fc: pd.DataFrame, cfg: ShortRiskConfig) -> dict:
             res["dm"].append({"horizon": h, "baseline": a, "challenger": b,
                               "qlike_improvement": float(losses[a].mean() - losses[b].mean()),
                               "dm_t": diebold_mariano(losses[a], losses[b], max(h, 5))})
-    # 1-day 95% VaR backtest.
+    # 1-day 95% VaR backtest. All variants are scored on the same days (where
+    # every quantile exists) so that their breach rates are comparable.
     r_next = df["r_next"].to_numpy(float)
+    res["var95_quantile"] = cfg.var_quantile
+    res["var95_by_quantile"] = {"oos": [], "insample": []}
     for m in MODELS:
         f = fc.get(f"{m}_1")
-        q = fc.get(f"q_{m}")
-        if f is None or q is None:
+        if f is None:
             continue
-        ok = oos & f.notna().to_numpy() & q.notna().to_numpy() & ~np.isnan(r_next)
-        var_ret = q.to_numpy(float)[ok] * np.sqrt(f.to_numpy(float)[ok])  # negative return threshold
-        br = r_next[ok] < var_ret
-        res["var95"].append({"model": m, "label": MODEL_LABELS[m], **kupiec(br, cfg.var_level),
-                             "christoffersen": christoffersen(br), "avg_var": float(-np.mean(var_ret))})
+        cols = {"oos": fc.get(f"qoos_{m}", fc.get(f"q_{m}")), "insample": fc.get(f"qin_{m}", fc.get(f"q_{m}"))}
+        ok = oos & f.notna().to_numpy() & ~np.isnan(r_next)
+        for q in cols.values():
+            ok &= q.notna().to_numpy()
+        for name, q in cols.items():
+            var_ret = q.to_numpy(float)[ok] * np.sqrt(f.to_numpy(float)[ok])  # negative return threshold
+            br = r_next[ok] < var_ret
+            row = {"model": m, "label": MODEL_LABELS[m], **kupiec(br, cfg.var_level),
+                   "christoffersen": christoffersen(br), "avg_var": float(-np.mean(var_ret)),
+                   "start": str(fc.index[ok][0].date())}
+            res["var95_by_quantile"][name].append(row)
+    res["var95"] = res["var95_by_quantile"]["oos" if cfg.var_quantile == "oos" else "insample"]
     return res
 
 
@@ -266,8 +299,9 @@ def epu_verdict(dm_rows: list[dict]) -> str:
     return "drop: no significant improvement from EPU (pre-set rule: improvement with DM t >= 2 at every horizon)"
 
 
-def current(df: pd.DataFrame, cfg: ShortRiskConfig, model: str) -> dict:
-    """Fit on all known targets; forecast from the latest close."""
+def current(df: pd.DataFrame, cfg: ShortRiskConfig, model: str, fc: pd.DataFrame | None = None) -> dict:
+    """Fit on all known targets; forecast from the latest close. The VaR
+    quantile follows cfg.var_quantile (OOS: all walk-forward residuals so far)."""
     feats = FEATURES[model]
     X = design(df, feats, cfg.spec, cfg.log_floor)
     ok = ~np.isnan(X).any(axis=1)
@@ -282,7 +316,15 @@ def current(df: pd.DataFrame, cfg: ShortRiskConfig, model: str) -> dict:
         if h == 1:
             fit = vm.predict(X[tr], cfg.var_floor)
             z = df["r_next"].to_numpy(float)[tr] / np.sqrt(fit)
-            q = float(np.nanquantile(z, cfg.var_level))
+            q_in = float(np.nanquantile(z, cfg.var_level))
+            q = q_in
+            if cfg.var_quantile == "oos" and fc is not None:
+                known = ~np.isnan(df["r_next"].to_numpy(float))
+                q_oos = oos_quantile(fc, model, df["r_next"].to_numpy(float), known, cfg)
+                if np.isfinite(q_oos):
+                    q = q_oos
+            out["var_quantile"] = {"used": q, "insample": q_in, "source": cfg.var_quantile}
+            out["var95_1d_insample_simple_ret"] = float(1 - exp(q_in * sqrt(fv)))
             out["var95_1d"] = float(-(q * sqrt(fv)))  # positive = loss
             out["var95_1d_simple_ret"] = float(1 - exp(q * sqrt(fv)))
     out["ewma_vol_ann"] = sqrt(float(df["ewma"].iloc[-1]) * 252)
@@ -315,7 +357,7 @@ def run_short_risk(raw: RawData, cfg: ShortRiskConfig | None = None) -> dict:
     var_line = -(q * np.sqrt(tail[f"{live_model}_1"]))
     return {
         "settings": {"models": MODEL_LABELS, "horizons": list(cfg.horizons), "oos_start_year": cfg.oos_start_year,
-                     "var": "1-day 95%, filtered historical simulation (EWMA: normal)",
+                     "var": "1-day 95%, filtered historical simulation (EWMA: normal); quantile of standardized returns of earlier out-of-sample forecasts (expanding window, >= 500 days)" if cfg.var_quantile == "oos" else "1-day 95%, filtered historical simulation (EWMA: normal); in-sample quantile",
                      "proxy": "squared daily close-to-close returns of the risk asset",
                      "epu": f"FRED USEPUINDXD, log {cfg.epu_window}-day mean, lagged one day",
                      "epu_rule": "keep EPU only if QLIKE improves with Diebold-Mariano t >= 2 at every horizon, under both the log (primary) and level specifications"},
@@ -325,7 +367,7 @@ def run_short_risk(raw: RawData, cfg: ShortRiskConfig | None = None) -> dict:
         "epu_verdict": verdict,
         "live_model": live_model,
         "coefficients": {m: c[-5:] for m, c in coefs.items()},
-        "current": current(df, cfg, live_model),
+        "current": current(df, cfg, live_model, fc),
         "chart": {"dates": [str(d.date()) for d in tail.index],
                   "next_day_return": [None if pd.isna(v) else round(float(v), 5) for v in rn],
                   "var95": [None if pd.isna(v) else round(float(v), 5) for v in var_line]},

@@ -47,6 +47,11 @@
     const pv = (p) => (p < 0.05 ? '<span class="dq FAIL">' : '<span class="dq PASS">') + fmt(p, 3) + "</span>";
     table("stBtTable", cols("risk.st.bt.cols"), ev.var95.map((v) => [esc(modelName(v.model, v.label)) + live(v.model, st.live_model),
       v.breaches + "/" + v.n, pct(v.rate, 2), pv(v.p_value), pv(v.christoffersen.p_value), pct(v.avg_var, 2)]));
+    const byQ = ev.var95_by_quantile;
+    if (byQ && byQ.insample && byQ.oos) {
+      const a = byQ.insample.find((x) => x.model === st.live_model), b = byQ.oos.find((x) => x.model === st.live_model);
+      if (a && b) setHTML("qNote", t("risk.st.qNote", { ra: pct(a.rate, 2), pa: fmt(a.p_value, 3), rb: pct(b.rate, 2), pb: fmt(b.p_value, 3) }));
+    }
     setHTML("epuNote", t("risk.st.epu", { v: esc(epuText(st.epu_verdict)), spec: esc(t("spec." + st.robustness.spec)), rv: esc(epuText(st.robustness.epu_verdict)) }));
   }
 

@@ -221,7 +221,7 @@ Module `engine/tcd/short_risk.py`; shown at the top of `risk.html`; stored in `d
 
 **Specification.** Primary: log-HAR (regression in logs, forecasts always positive, Duan smearing correction). Robustness: classic HAR on variance levels. A first run used levels only; with EPU it produced negative variance forecasts that were floored and blew up the QLIKE loss. The log form was adopted for *all* models for that reason, and every conclusion below is required to hold under both forms.
 
-**Scoring.** QLIKE loss (robust to noisy variance proxies), Diebold-Mariano t with Newey-West variance. 1-day 95% VaR by filtered historical simulation (training 5% quantile of standardized returns; EWMA uses the normal quantile), backtested with Kupiec (coverage) and Christoffersen (independence).
+**Scoring.** QLIKE loss (robust to noisy variance proxies), Diebold-Mariano t with Newey-West variance. 1-day 95% VaR by filtered historical simulation (5% quantile of standardized returns of earlier out-of-sample forecasts, see below; EWMA uses the normal quantile), backtested with Kupiec (coverage) and Christoffersen (independence).
 
 ### Results (out-of-sample 2000 → 2026-11, log spec)
 
@@ -234,13 +234,17 @@ Module `engine/tcd/short_risk.py`; shown at the top of `risk.html`; stored in `d
 
 Level spec agrees: HAR + VIX better than HAR (t 2.83 / 4.07); EPU worse (t −2.38 / −1.02).
 
-| 1-day 95% VaR | Breach rate | Kupiec p | Christoffersen p |
+| 1-day 95% VaR (2000-01 → 2026-11, 6,762 days) | Breach rate | Kupiec p | Christoffersen p |
 |---|---:|---:|---:|
 | EWMA, normal | 5.99% | < 0.001 | 0.85 |
-| HAR + VIX, FHS (**live**) | **5.55%** | **0.043** | 0.16 |
-| HAR + VIX + EPU, FHS | 6.11% | < 0.001 | 0.11 |
+| HAR, FHS out-of-sample quantile | 4.70% | 0.26 | 0.28 |
+| HAR + VIX, FHS out-of-sample quantile (**live**) | **4.76%** | **0.37** | 0.09 |
+| HAR + VIX + EPU, FHS out-of-sample quantile | 5.29% | 0.27 | 0.45 |
+| *HAR + VIX, FHS in-sample quantile (rule until 2026-11-23)* | *5.55%* | *0.043* | *0.16* |
 
-* The live VaR is slightly too optimistic: 5.55% breaches vs 5% target, rejected at the 5% level (not at 1%). The level spec passes (5.28%, p 0.30), but the primary spec was fixed in advance and is kept; read the number as "about a 1-in-18-day loss threshold".
+* **VaR quantile fix (2026-11-23).** The original rule took the 5% quantile of *in-sample* standardized returns. In-sample fitted variances are optimistic, so in-sample standardized returns have thinner tails than real out-of-sample ones and the VaR was too low (5.55%, rejected at 5%). The fix, chosen on that principle and applied once without tuning: the quantile for year Y is the 5% quantile of standardized returns of the walk-forward forecasts made *out-of-sample* before Y whose outcome was known by the end of Y − 1 (expanding window; at least 500 days; forecasts now start in the first year with 1,000 training days so the burn-in ends before 2000). The live VaR uses all OOS residuals to date. Both rules are scored on the same days and both are published (`risk.json` → `short_term.evaluation.var95_by_quantile`).
+* **Caveat.** The fix was diagnosed and checked on the same backtest window, so its in-sample improvement is not independent evidence. Supporting points: it improves every HAR variant, not only the live one, including EPU, which was not the target; the level spec stays within bounds (4.61%, p 0.14); the result is slightly conservative (4.76% < 5%), not tuned to 5%. Independent evidence will come only from live data.
+* Live effect on 2026-11-20: 1-day 95% VaR 5.37% (old rule) → 5.50% (new rule).
 * The EWMA/normal benchmark under-covers clearly: fat tails matter.
 
 **EPU decision (pre-set rule: keep only if QLIKE improves with DM t ≥ 2 at every horizon, under both specifications): dropped.** Consistent with § 9: market-implied volatility already absorbs news faster than a daily newspaper index can add.
