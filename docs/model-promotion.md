@@ -1,7 +1,7 @@
 # Model promotion rule — v2 regime → v3 candidate
 
 **Status:** adopted by the repository owner on 2026-11-23.
-**Applies to:** v3 candidate as fixed on its design date, 2026-11-23 (spec fingerprint `6855f924…fdb98e`; amended the same day, see changelog).
+**Applies to:** v3 candidate as fixed on its design date, 2026-11-23 (spec fingerprint `c88c89ce…58ef82a`; amended twice the same day, see changelog).
 **Live model until promotion:** v2 regime model.
 
 This rule was written *before* any post-design data existed. Changing it after seeing post-design results defeats its purpose; any change must be recorded in the changelog below with its date and reason, and resets the evaluation clock.
@@ -75,3 +75,4 @@ Annual walk-forward refits are part of the v3 specification and do not count as 
 |---|---|---|
 | 2026-11-23 | Rule adopted; design date 2026-11-23; fingerprint `88e42dfdbee76632762785a306dab4136ce7ebdacf2aa8fd9941c8c23faab61d` | owner |
 | 2026-11-23 | **Bug-fix amendment, before any post-design month.** An independent code review found a point-in-time defect in `fundamentals.py` (later SEC filings could replace values already known; methodology § 16). Fixing it changes the frozen spec. Per C5 the design date is reset — to the same day, 2026-11-23, so the first counted month stays 2026-12. New fingerprint `6855f9240e3b3bc80c605c2e387a71050cc7d5d8f2868bdf4e448941c4fdb98e`. Effect on the pre-design backtest: v3 OOS Sharpe 0.458 → 0.447. The PSR row is replaced by a paired Sharpe-difference test (0.64 → 0.74). Thresholds unchanged. | owner (approved PR-A) |
+| 2026-11-23 | **Second bug-fix amendment, same day, still before any post-design month.** Code-review round 4 fixed the Sortino ratio (standard downside deviation over all months, `backtest.py`) and the partial-month flag on month-ends that are NYSE holidays (`features.py`). Neither changes any v3 weight or the backtest Sharpe (0.447); both files are inside the fingerprint, so per C5 the design date is reset to the same day. New fingerprint `c88c89ce7609e47a04a122edf509aa3e798214cd79aeab2a32cdf059d58ef82a`. | owner (approved PR-D) |

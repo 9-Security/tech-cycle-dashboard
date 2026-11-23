@@ -11,7 +11,7 @@ from dataclasses import asdict, dataclass, field
 from itertools import product
 from typing import Iterator
 
-ENGINE_VERSION = "3.7.0"
+ENGINE_VERSION = "3.8.0"
 
 REGIME_LABELS = {1: "Overheat", 2: "Shock", 3: "Digestion", 4: "Normal"}
 REGIME_COLORS = {1: "#c45c26", 2: "#8b1e3f", 3: "#b08900", 4: "#2f6f4e"}
@@ -176,7 +176,7 @@ class PromotionRule:
     max_refresh_gap_days: int = 7  # longest allowed gap between successful daily refreshes
     # Fingerprint of the frozen v3 specification at the design date. Any change
     # to it resets the evaluation clock (new design date + new fingerprint).
-    spec_fingerprint: str = "6855f9240e3b3bc80c605c2e387a71050cc7d5d8f2868bdf4e448941c4fdb98e"
+    spec_fingerprint: str = "c88c89ce7609e47a04a122edf509aa3e798214cd79aeab2a32cdf059d58ef82a"
 
 
 @dataclass(frozen=True)

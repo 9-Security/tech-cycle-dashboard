@@ -270,7 +270,9 @@ def run_study(panel: pd.DataFrame, start: str = "1993-01-31", n_buckets: int = 5
                             "risk_verdict": verdict_p(dpoint, dpv, "risk", DERISK_SIDE[sig])})
 
         for era, (a, z) in ERAS.items():
-            em = (complete.index >= pd.Timestamp(a)) & (complete.index <= pd.Timestamp(z))
+            # Forward 12-month windows must end inside the era (the 1993-2012
+            # era used to include windows running into 2013 returns).
+            em = (complete.index >= pd.Timestamp(a)) & (complete.index <= pd.Timestamp(z) - pd.offsets.MonthEnd(12))
             se_ = s_full[em].to_numpy(float)
             ye = fwd[12][em].to_numpy(float)
             r1e = fwd[1][em].to_numpy(float)

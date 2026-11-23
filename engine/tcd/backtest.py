@@ -55,8 +55,9 @@ def metrics(ret: np.ndarray, safe_ret: np.ndarray, executed: np.ndarray | None =
     years = n / 12.0
     ex = ret - safe_ret
     sd = ex.std(ddof=1)
-    downside = ex[ex < 0]
-    dd_sd = sqrt(np.mean(np.square(downside))) if len(downside) else np.nan
+    # Standard downside deviation: root mean of min(ex, 0)^2 over ALL months
+    # (until 2026-11-23 the mean ran over negative months only).
+    dd_sd = sqrt(float(np.mean(np.square(np.minimum(ex, 0.0))))) if (ex < 0).any() else np.nan
     cagr = nav[-1] ** (1.0 / years) - 1.0
     mdd = max_drawdown(nav)
     out = {

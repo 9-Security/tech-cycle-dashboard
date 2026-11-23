@@ -411,6 +411,21 @@ Four independent reviewers (point-in-time correctness, statistical methods, stoc
 
 **Fixed in the third round (forecast ledger):** benchmark-calendar origins and targets, final outcomes frozen, text dtypes on read-back, verdicts per current model with a verified alias for the first rows, model-date check for halted names, CI robust to serial clustering; see § 14.
 
-**Found, not yet fixed — minor:** Sortino definition, `r2_log` diagnostic, BDay-based cutoffs ignoring exchange holidays, BSS verdict sensitivity to block length, partial-month flag on holiday month-ends, no CSP header, a few engine-generated values inserted into HTML without escaping.
+**Fixed in the fourth round (minor items):**
+
+| Item | Fix | Effect |
+|---|---|---|
+| Sortino used the mean of squared returns over negative months only | Standard downside deviation over all months | Sortino v2 0.08 → 0.14, v3 0.44 → 0.66, B&H 0.37 → 0.57 (Sharpe unchanged) |
+| `r2_log` short-risk diagnostic (log of single squared returns) | Replaced by the Mincer-Zarnowitz R² (`mz_r2`); `qlike` docstring corrected (the code's form differs from the textbook one by a constant) | Diagnostic only |
+| Short-risk training cutoff used `BDay`, ignoring exchange holidays | Target window end taken from the actual trading-day index | VaR and variance results unchanged to the reported precision |
+| Drawdown-model verdict depended on the bootstrap block length (3 episodes) | BSS interval = widest over 12/24/36/60-month blocks (`bss_ci90_by_block` published) | Verdict "no skill: worse than the base rate" → "no demonstrated skill"; the dashboard still shows the base rate |
+| Month ending on an NYSE holiday flagged partial | NYSE holiday calendar (Good Friday, Memorial Day, …) for the last trading day | Live status only |
+| Signal-study eras: 1993–2012 forward windows ran into 2013 | Windows must end inside the era | t-stats change by ≤ 0.03 |
+| Promotion: a criterion that cannot be evaluated (C6 without history) led to `not_met` / `retire` | New state `undetermined` | — |
+| No CSP; a few engine values inserted into HTML unescaped | CSP `<meta>` on every page (scripts and data same-origin only); remaining values escaped or whitelisted | Defence in depth |
+
+The v3 fingerprint changed again (Sortino and calendar code are inside it): second same-day amendment in [model-promotion.md](model-promotion.md).
+
+**Not changed, documented:** the stock walk-forward cutoff still uses `BDay` (378 of ~100,000 training rows reach past the cutoff; fixing it would change the stock `model_id` and restart the live record for a backtest-only effect); the next-month volatility forecast is the median of the log-normal forecast (`exp` of the log forecast, no smearing) — read it as a typical, not an average, level; cross-market `p_positive` is a bootstrap share, not a p-value; GitHub Actions are pinned by tag, not SHA.
 
 **Known limitations, unchanged:** survivorship (today's ten leaders), design choices made after full-sample work, macro proxies from the latest FRED vintage. The market VaR, although it passes over 2000–2026 (4.76%), breached 7.15% of days over the last three years (Kupiec p 0.011); per the decision to judge stock and market VaR changes on live data, this is monitored, not tuned on the backtest.
