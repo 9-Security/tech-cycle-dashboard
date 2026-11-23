@@ -81,8 +81,30 @@
         [fmt(f.train_sharpe), f.test_return == null ? esc(t("val.folds.live")) : pct(f.test_return)])));
   }
 
+  function renderCross(x) {
+    if (!x) return;
+    document.getElementById("xmPanel").hidden = false;
+    const vd = x.verdict, p = x.pooled, cr = x.criteria;
+    const sgn = (z) => (z >= 0 ? "+" : "") + fmt(z, 3);
+    setHTML("xmVerdict", t(vd.overall_pass ? "xm.verdict.pass" : "xm.verdict.fail", { n: vd.n_sharpe, m: vd.n_markets,
+      d: sgn(p.mean_sharpe_diff), lo: sgn(p.ci[0]), hi: sgn(p.ci[1]), reg: esc(cr.registered) }));
+    const tag = (ok) => '<span class="dq ' + (ok ? "PASS" : "FAIL") + '">' + esc(t(ok ? "tag.pass" : "tag.fail")) + "</span>";
+    table("xmCrit", cols("xm.crit.cols"), [
+      ["C1", esc(t("xm.C1", { k: cr.C1_min_markets_sharpe })), tag(vd.C1.pass), esc(t("xm.d.C1", { n: vd.n_sharpe, m: vd.n_markets }))],
+      ["C2", esc(t("xm.C2")), tag(vd.C2.pass), esc(t("xm.d.C2", { d: sgn(p.mean_sharpe_diff), lo: sgn(p.ci[0]), hi: sgn(p.ci[1]) }))],
+      ["C3", esc(t("xm.C3", { k: cr.C3_min_markets_mdd })), tag(vd.C3.pass), esc(t("xm.d.C1", { n: vd.n_mdd, m: vd.n_markets }))],
+    ]);
+    table("xmTable", cols("xm.cols"), x.markets.map((r) => [
+      esc(has("mkt." + r.symbol) ? t("mkt." + r.symbol) : r.name), esc(r.oos_start.slice(0, 7) + " → " + r.oos_end.slice(0, 7)),
+      fmt(r.v3_sharpe), fmt(r.bh_sharpe),
+      '<span class="dq ' + (r.sharpe_diff > 0 ? "PASS" : "FAIL") + '">' + (r.sharpe_diff >= 0 ? "+" : "") + fmt(r.sharpe_diff, 2) + "</span>",
+      pct(r.v3_max_dd), pct(r.vm_max_dd), pct(r.v3_cagr), pct(r.bh_cagr), fmt(r.avg_weight)]));
+  }
+
   async function boot() {
-    const [v, health] = await Promise.all([loadJSON("data/validation.json"), loadJSON("data/health.json").catch(() => null)]);
+    const [v, health, cross] = await Promise.all([loadJSON("data/validation.json"), loadJSON("data/health.json").catch(() => null),
+      loadJSON("data/cross_market.json").catch(() => null)]);
+    renderCross(cross);
     document.body.dataset.ready = "1";
     renderBanner(health);
     setHTML("asof-line", t("val.asof", { asof: esc(v.as_of) }));

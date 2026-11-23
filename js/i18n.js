@@ -319,6 +319,32 @@
   add("dq.capex_source_current", "capex_source_current", "Capex 資料來源");
   add("dq.fetch_warning", "fetch_warning", "下載警告");
 
+  // ------------------------------------------------------- cross-market
+  add("xm.h2", "Out-of-domain test — frozen v3 design on 9 other markets (pre-registered)", "換市場驗證 — 凍結的 v3 設計套用到 9 個其他市場（事先登錄）");
+  add("xm.verdict.fail", "<strong>Result: FAILED.</strong> The unchanged v3 design beat buy &amp; hold on Sharpe in {n}/{m} markets; the average Sharpe difference is {d} (90% CI {lo} to {hi}). Its edge on tech does not generalize, which strengthens the view that the tech result was partly luck or hindsight. Criteria were fixed on {reg} before any real-data run.",
+    "<strong>結果：未通過。</strong>完全不改的 v3 設計，只在 {n}/{m} 個市場的夏普比率勝過買進持有；平均夏普差距 {d}（90% 信賴區間 {lo} 至 {hi}）。它在科技股上的優勢無法推廣到其他市場，代表科技股的結果有一部分來自運氣或事後諸葛。成功標準在 {reg} 跑任何真實資料之前就已定好。");
+  add("xm.verdict.pass", "<strong>Result: PASSED.</strong> The unchanged v3 design beat buy &amp; hold on Sharpe in {n}/{m} markets; average Sharpe difference {d} (90% CI {lo} to {hi}). Criteria were fixed on {reg} before any real-data run.",
+    "<strong>結果：通過。</strong>完全不改的 v3 設計在 {n}/{m} 個市場的夏普比率勝過買進持有；平均夏普差距 {d}（90% 信賴區間 {lo} 至 {hi}）。成功標準在 {reg} 跑任何真實資料之前就已定好。");
+  add("xm.crit.cols", "#|Criterion|Status|Result", "#|標準|狀態|結果");
+  add("xm.C1", "v3 Sharpe > vol-matched buy & hold in ≥ {k} of 9 markets", "至少 {k}/9 個市場 v3 夏普 > 同波動買進持有");
+  add("xm.C2", "Mean Sharpe difference > 0 with 90% joint-bootstrap CI excluding 0", "平均夏普差距 > 0，且 90% 聯合 bootstrap 信賴區間不含 0");
+  add("xm.C3", "(secondary) v3 Max DD smaller in ≥ {k} of 9 markets", "（次要）至少 {k}/9 個市場 v3 最大回撤較小");
+  add("xm.d.C1", "{n}/{m} markets", "{n}/{m} 個市場");
+  add("xm.d.C2", "mean {d}, CI [{lo}, {hi}]", "平均 {d}，信賴區間 [{lo}, {hi}]");
+  add("xm.cols", "Market|OOS window|v3 Sharpe|B&H Sharpe|Difference|v3 Max DD|Vol-matched Max DD|v3 CAGR|B&H CAGR|Avg weight",
+    "市場|樣本外期間|v3 夏普|買進持有夏普|差距|v3 最大回撤|同波動最大回撤|v3 年化報酬|買進持有年化|平均權重");
+  add("xm.note", "Same 1,080-configuration grid and walk-forward as on tech; price-extension and volatility signals use each market's own prices; tech fundamentals (P/E, Capex, earnings) only for ^SOX. Vol-matched buy & hold has the same Sharpe as buy & hold. Most windows start 2010–2012 (ETF listing + 7-year warm-up) and contain few crises, where v3's insurance-like profile helps most; that context does not change the pre-set verdict.",
+    "與科技股相同的 1,080 組參數與 walk-forward；股價偏離與波動訊號用各市場自己的價格；科技基本面（本益比、Capex、獲利）只用於 ^SOX。同波動買進持有的夏普與買進持有相同。多數市場的樣本外期間從 2010–2012 年開始（ETF 上市晚加上 7 年暖身），期間大型危機不多，而 v3 這種「保險型」策略主要在危機時才有優勢；但這個背景不改變事先定好的判定。");
+  add("mkt.^SOX", "Semiconductors (^SOX)", "半導體（^SOX）");
+  add("mkt.SPY", "US large caps (SPY)", "美國大型股（SPY）");
+  add("mkt.XLF", "US financials (XLF)", "美國金融（XLF）");
+  add("mkt.XLE", "US energy (XLE)", "美國能源（XLE）");
+  add("mkt.XLV", "US health care (XLV)", "美國醫療（XLV）");
+  add("mkt.EWJ", "Japan (EWJ)", "日本（EWJ）");
+  add("mkt.EWG", "Germany (EWG)", "德國（EWG）");
+  add("mkt.EWU", "United Kingdom (EWU)", "英國（EWU）");
+  add("mkt.EEM", "Emerging markets (EEM)", "新興市場（EEM）");
+
   // ------------------------------------------------------------ signals
   add("sig.title", "Tech Cycle — Signals", "科技週期 — 訊號");
   add("sig.asof", "Stand-alone signal tests · as of <strong>{asof}</strong>", "單一訊號檢驗 · 資料時間 <strong>{asof}</strong>");
