@@ -14,6 +14,14 @@ on:
         type: choice
         options: [full, tw]
         default: full
+      allow_intraday:
+        description: "Publish even if the market session is still open (unfinished bar). Normally leave off."
+        type: boolean
+        default: false
+      pit_check:
+        description: "Also run the weekly look-ahead (point-in-time) check now"
+        type: boolean
+        default: false
   push:
     branches: [main]
     paths-ignore:
@@ -43,6 +51,8 @@ jobs:
       contents: write  # commit refreshed data/
     outputs:
       scope: ${{ steps.scope.outputs.scope }}
+      pit: ${{ steps.pit.outcome }}
+      pit_ran: ${{ steps.pit.outputs.ran }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -74,7 +84,11 @@ jobs:
       - name: Refresh Taiwan stocks only
         if: steps.scope.outputs.scope == 'tw'
         working-directory: engine
-        run: python -m tcd stocks --market TW --out ../data --cache .cache/raw
+        env:
+          ALLOW_INTRADAY: ${{ inputs.allow_intraday }}
+        run: |
+          FLAG=""; if [ "$ALLOW_INTRADAY" = "true" ]; then FLAG="--allow-intraday"; fi
+          python -m tcd stocks --market TW --out ../data --cache .cache/raw $FLAG
       - name: Refresh data (fail-closed)
         if: steps.scope.outputs.scope == 'full'
         working-directory: engine
@@ -84,7 +98,27 @@ jobs:
           # which is public for a public repository. If unset, a generic agent without contact
           # details is used.
           SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}
-        run: python -m tcd refresh --out ../data --cache .cache/raw
+          ALLOW_INTRADAY: ${{ inputs.allow_intraday }}
+        run: |
+          FLAG=""; if [ "$ALLOW_INTRADAY" = "true" ]; then FLAG="--allow-intraday"; fi
+          python -m tcd refresh --out ../data --cache .cache/raw $FLAG
+      - name: Weekly look-ahead (point-in-time) check on real data
+        # Monday's full run, or on request. Truncates the raw data at many dates and
+        # checks that history never changes when later data arrive (the bug class
+        # found in the first code review). Does not block publishing; notify opens
+        # an issue labelled pit-check-failure when it fails.
+        id: pit
+        if: steps.scope.outputs.scope == 'full' && (inputs.pit_check || (github.event_name == 'schedule' && github.event.schedule == '15 22 * * 1-5'))
+        continue-on-error: true
+        working-directory: engine
+        env:
+          PIT_INPUT: ${{ inputs.pit_check }}
+        run: |
+          if [ "$PIT_INPUT" != "true" ] && [ "$(date -u +%u)" != "1" ]; then
+            echo "ran=no" >> "$GITHUB_OUTPUT"; echo "not Monday: skipped"; exit 0
+          fi
+          echo "ran=yes" >> "$GITHUB_OUTPUT"
+          python tools/check_pit.py --cache .cache/raw --every 6ME --start 2008-01-15
       - name: Validate outputs before commit
         working-directory: engine
         run: python tools/validate_data.py --data ../data --base-ref HEAD
@@ -207,6 +241,8 @@ jobs:
           R_REFRESH: ${{ needs.refresh.result }}
           R_BUILD: ${{ needs.build.result }}
           R_DEPLOY: ${{ needs.deploy.result }}
+          R_PIT: ${{ needs.refresh.outputs.pit }}
+          R_PIT_RAN: ${{ needs.refresh.outputs.pit_ran }}
           EVENT_SCHEDULE: ${{ github.event.schedule }}
           INPUT_SCOPE: ${{ inputs.scope }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -219,6 +255,13 @@ jobs:
           for j in "refresh:$R_REFRESH" "build:$R_BUILD" "deploy:$R_DEPLOY"; do
             case "${j#*:}" in failure|cancelled) failed="$failed ${j%%:*} (${j#*:})" ;; esac
           done
+          # Weekly look-ahead check (only reported when it actually ran).
+          if [ "$R_PIT_RAN" = "yes" ] && [ "$R_PIT" = "failure" ]; then
+            bash .github/scripts/notify.sh "pit-check-failure" fail "Look-ahead (point-in-time) check failed" \
+              "Run $RUN_URL ($today): later data changed earlier months of the panel (see the step log for the cutoffs and columns). Published numbers may contain look-ahead. Closes itself after the next passing check."
+          elif [ "$R_PIT_RAN" = "yes" ] && [ "$R_PIT" = "success" ]; then
+            bash .github/scripts/notify.sh "pit-check-failure" ok "" "Check passed in run $RUN_URL ($today)."
+          fi
           if [ -n "$failed" ]; then
             bash .github/scripts/notify.sh "refresh-failure-$SCOPE" fail "Data refresh ($SCOPE) failed" \
               "Run $RUN_URL ($today) did not complete:$failed. A cancelled job can mean a newer queued run replaced it; check the run. If refresh failed nothing was committed; if only build/deploy failed, the data commit is on main but the site was not redeployed by this run. Closes itself after the next successful $SCOPE run."

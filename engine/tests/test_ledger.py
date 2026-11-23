@@ -218,3 +218,13 @@ def test_frozen_rows_are_rewritten_byte_identical(tmp_path):
     before = p.read_bytes()
     L.merge_outcomes(p, pd.DataFrame(columns=L.OUTCOME_COLUMNS), ("US",))
     assert p.read_bytes() == before
+
+
+def test_session_guard():
+    import pandas as pd
+    from tcd.cli import session_in_progress
+    d = pd.Timestamp("2024-01-03")
+    assert session_in_progress("US", d, datetime(2024, 1, 3, 15, 0, tzinfo=timezone.utc))       # 10:00 New York
+    assert not session_in_progress("US", d, datetime(2024, 1, 3, 22, 15, tzinfo=timezone.utc))  # after the close
+    assert session_in_progress("TW", d, datetime(2024, 1, 3, 2, 0, tzinfo=timezone.utc))        # 10:00 Taipei
+    assert not session_in_progress("TW", d, datetime(2024, 1, 3, 7, 7, tzinfo=timezone.utc))    # 15:07 Taipei
