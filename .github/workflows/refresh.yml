@@ -26,9 +26,6 @@ jobs:
     timeout-minutes: 20
     permissions:
       contents: write  # commit refreshed data/
-    env:
-      # Repository variable: "<org or app name> <contact email>" (SEC fair-access policy).
-      SEC_USER_AGENT: ${{ vars.SEC_USER_AGENT }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -45,6 +42,12 @@ jobs:
         run: python -m pytest -q tests
       - name: Refresh data (fail-closed)
         working-directory: engine
+        env:
+          # Repository SECRET (not a variable): "<org or app name> <contact email>" for the SEC
+          # fair-access policy. Secrets are masked in logs; variables are printed in plain text,
+          # which is public for a public repository. If unset, a generic agent without contact
+          # details is used.
+          SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}
         run: python -m tcd refresh --out ../data --cache .cache/raw
       - name: Commit refreshed data
         run: |

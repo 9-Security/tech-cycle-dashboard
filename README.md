@@ -59,7 +59,7 @@ python3 -m http.server 8765 --bind 127.0.0.1
 ## One-time GitHub setup
 
 1. **Settings → Pages → Source: GitHub Actions**.
-2. **Settings → Secrets and variables → Actions → Variables**: add `SEC_USER_AGENT` = `<your app/org name> <contact email>` (SEC fair-access policy; a generic fallback is used if unset).
+2. **Settings → Secrets and variables → Actions → Secrets**: add `SEC_USER_AGENT` = `<your app/org name> <contact email>` (SEC fair-access policy; a generic fallback is used if unset). Use a **secret**, not a variable: variables are printed unmasked in workflow logs, which are public for a public repository.
 3. Merge to `main`; trigger **Actions → Daily refresh & deploy → Run workflow** once.
 
 See [docs/methodology.md](docs/methodology.md) for details.
