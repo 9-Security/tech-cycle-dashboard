@@ -5,6 +5,7 @@
 #     state = fail : open an issue with <label>, or comment on the open one
 #     state = ok   : comment "recovered" on the open issue with <label> and close it
 #
+# LABEL_COLOR (optional) sets the colour of a label created here.
 # Needs GH_TOKEN (issues: write) and REPO (owner/name); RUN_STARTED (ISO time)
 # makes "ok" leave alone an issue that had activity after this run started. Only fixed strings,
 # run links and step names go into issues - never log text or error messages.
@@ -25,7 +26,7 @@ if [ "$state" = "fail" ]; then
     gh api -X POST "repos/${REPO}/issues/${open}/comments" -f body="$body" > /dev/null
     echo "commented on #${open}"
   else
-    gh api -X POST "repos/${REPO}/labels" -f name="$label" -f color="d73a4a" > /dev/null 2>&1 || true
+    gh api -X POST "repos/${REPO}/labels" -f name="$label" -f color="${LABEL_COLOR:-d73a4a}" > /dev/null 2>&1 || true
     num=$(gh api -X POST "repos/${REPO}/issues" -f title="$title" -f body="$body" -f "labels[]=$label" --jq '.number')
     echo "opened #${num}"
   fi

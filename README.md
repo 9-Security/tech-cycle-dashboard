@@ -10,10 +10,10 @@ All pages are bilingual (English / 繁體中文). Use the switch in the top bar,
 
 | Page | Content |
 |------|---------|
-| [`index.html`](index.html) | Daily risk light (green / yellow / red, plain language, en / zh-TW); Official regime + weight in force, month-to-date provisional regime, OOS metrics, NAV (OOS vs B&H vs in-sample), regime timeline, signals, Capex intensity |
+| [`index.html`](index.html) | Daily risk light (green / yellow / red, plain language, en / zh-TW) with the suggested maximum exposure (volatility cap); Official regime + weight in force, month-to-date provisional regime, OOS metrics, NAV (OOS vs B&H vs in-sample), regime timeline, signals, Capex intensity |
 | [`validation.html`](validation.html) | v2 vs v3 model comparison; per model: OOS vs hindsight, DSR/PSR, ablation, crisis sub-periods, sensitivity heatmap, per-year fold parameters, DQ + data provenance |
 | [`signals.html`](signals.html) | Stand-alone tests of each signal: quintile returns / drawdown odds, Newey-West IC, era stability, threshold events |
-| [`risk.html`](risk.html) | Next-day / 5-day volatility and 1-day 95% VaR (daily HAR + VIX, backtested); next-month volatility forecast (forecastable) and drawdown-event probability with out-of-sample skill vs the base rate (not skillful; base rate shown as headline) |
+| [`risk.html`](risk.html) | Next-day / 5-day volatility and 1-day 95% VaR (daily HAR + VIX, backtested); next-month volatility forecast (forecastable) and drawdown-event probability with out-of-sample skill vs the base rate (not skillful; base rate shown as headline); suggested maximum exposure with backtest context and recent risk alerts |
 | [`stocks.html`](stocks.html) | 28 stocks (US mega caps + Taiwan AI supply chain): per-stock risk light, next-day vol, 1-day VaR with backtest badge, beta, drawdown; US SEC fundamentals. Edit `engine/watchlist.json` to change the list |
 | [`scenarios.html`](scenarios.html) | Rule-based trigger distances and scenario cards from live parameters |
 
@@ -33,6 +33,8 @@ engine/                 Python engine (numpy, pandas, requests)
   tcd/short_risk.py     daily HAR volatility + 95% VaR (EWMA baseline, VIX, EPU news test)
   tcd/cross_market.py   pre-registered out-of-domain test of v3 on 9 other markets
   tcd/light.py          daily risk light (codes + numbers; text rendered per language)
+  tcd/exposure.py       suggested maximum exposure from the volatility forecast (display only)
+  tcd/alerts.py         risk alerts (light / cap band changes, VaR breaches, interim warnings)
   tcd/ledger.py         live stock forecast ledger (append-only) + reconciliation
   tools/validate_data.py pre-commit checks of data/ (strict JSON/CSV, append-only ledger, no e-mail)
   tools/archive_raw.py  archive raw inputs to a private R2 bucket (content-addressed)
@@ -69,6 +71,7 @@ python3 -m http.server 8765 --bind 127.0.0.1
 
 1. **Settings → Pages → Source: GitHub Actions**.
 2. **Settings → Secrets and variables → Actions → Secrets**: add `SEC_USER_AGENT` = `<your app/org name> <contact email>` (SEC fair-access policy; a generic fallback is used if unset). Use a **secret**, not a variable: variables are printed unmasked in workflow logs, which are public for a public repository.
-3. Merge to `main`; trigger **Actions → Daily refresh & deploy → Run workflow** once.
+3. Risk alerts are posted as comments on one open issue labelled `risk-alert` (created by the workflow); watch the repository's issues to receive them.
+4. Merge to `main`; trigger **Actions → Daily refresh & deploy → Run workflow** once.
 
 See [docs/methodology.md](docs/methodology.md) for details.
