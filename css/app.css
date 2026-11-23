@@ -287,3 +287,9 @@ table.heat th { text-align: center; }
 .dq.PASS { background: #e3f1e8; color: #1f4a33; }
 .dq.WARN { background: #fff1d6; color: #6b4e00; }
 .dq.FAIL { background: #f8dcd9; color: #7a1f17; }
+
+.picker { display: inline-flex; gap: 0.5rem; align-items: center; font-size: 0.85rem; margin-bottom: 0.5rem; }
+.picker select { font: inherit; padding: 0.2rem 0.4rem; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+.note, .interp { overflow-wrap: anywhere; }
+.picker { max-width: 100%; flex-wrap: wrap; }
+.picker select { max-width: 100%; }

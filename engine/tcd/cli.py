@@ -22,6 +22,7 @@ from .export import build_series, write_all
 from .features import build_panel
 from .fetch import fetch_all
 from .quality import DataQualityError, enforce, run_checks
+from .signal_study import run_study
 from .sources.http import FetchError
 from .status import build_scenarios, build_status
 from dataclasses import replace
@@ -122,9 +123,11 @@ def refresh(args: argparse.Namespace) -> int:
         if history_row[k] is not None:
             history_row[k] = round(history_row[k], 4)
 
+    signals = {**meta, **run_study(panel)}
     series = build_series(vrun, panel, as_of)
     written = write_all(Path(args.out), series=series, status=status, scenarios=scenarios,
-                        validation=validation, health=health, panel=panel, history_row=history_row)
+                        validation=validation, health=health, panel=panel, history_row=history_row,
+                        signals=signals)
     log.info("wrote %d files to %s in %.1fs", len(written), args.out, time.time() - t0)
     log.info("regime %s | weight %.2f | OOS Sharpe %.2f | BH Sharpe %.2f",
              status["regime"]["label"], status["weights"]["executed_weight"],

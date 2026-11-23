@@ -1,13 +1,13 @@
 {
  "ok": true,
  "mode": "live",
- "as_of": "20261123T061800Z",
- "run_at": "2026-11-23T06:18:00Z",
- "engine_version": "2.1.0",
+ "as_of": "20261123T062723Z",
+ "run_at": "2026-11-23T06:27:23Z",
+ "engine_version": "2.2.0",
  "git_sha": null,
  "panel_end": "2026-10-31",
  "data_through": "2026-11-20",
- "runtime_s": 15.7,
+ "runtime_s": 15.8,
  "checks": [
   {
    "name": "market_freshness",

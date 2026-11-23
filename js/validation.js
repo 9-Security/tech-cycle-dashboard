@@ -61,7 +61,7 @@
 
     const sens = v.sensitivity;
     setText("sensNote", "Rows: VIX threshold; columns: overheat threshold; other parameters fixed at the in-sample best " +
-      JSON.stringify(isb.params) + ". A smooth plateau suggests robustness; an isolated peak suggests over-fitting.");
+      Object.entries(isb.params).map(([k, x]) => k + "=" + x).join(", ") + ". A smooth plateau suggests robustness; an isolated peak suggests over-fitting.");
     const flat = sens.sharpe.flat().filter((x) => x != null);
     const lo = Math.min(...flat), hi = Math.max(...flat);
     document.getElementById("heat").innerHTML =

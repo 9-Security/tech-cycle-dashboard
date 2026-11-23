@@ -100,7 +100,7 @@ def _write_json(path: Path, obj) -> None:
 
 
 def write_all(out_dir: Path, *, series: dict, status: dict, scenarios: dict, validation: dict,
-              health: dict, panel: pd.DataFrame, history_row: dict) -> list[Path]:
+              health: dict, panel: pd.DataFrame, history_row: dict, signals: dict | None = None) -> list[Path]:
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     stage = Path(tempfile.mkdtemp(prefix=".stage-", dir=out_dir))
@@ -110,6 +110,8 @@ def write_all(out_dir: Path, *, series: dict, status: dict, scenarios: dict, val
         _write_json(stage / "scenarios.json", scenarios)
         _write_json(stage / "validation.json", validation)
         _write_json(stage / "health.json", health)
+        if signals is not None:
+            _write_json(stage / "signals.json", signals)
 
         cols = [c for c in PANEL_COLUMNS if c in panel.columns]
         panel[cols].round(6).to_csv(stage / "panel_monthly.csv", date_format="%Y-%m-%d")

@@ -10,6 +10,7 @@ Live research dashboard for a **tech Capex-cycle regime strategy** (Shock → Ov
 |------|---------|
 | [`index.html`](index.html) | Official regime + weight in force, month-to-date provisional regime, OOS metrics, NAV (OOS vs B&H vs in-sample), regime timeline, signals, Capex intensity |
 | [`validation.html`](validation.html) | OOS vs hindsight, DSR/PSR, ablation, crisis sub-periods, sensitivity heatmap, per-year fold parameters, DQ + data provenance |
+| [`signals.html`](signals.html) | Stand-alone tests of each signal: quintile returns / drawdown odds, Newey-West IC, era stability, threshold events |
 | [`scenarios.html`](scenarios.html) | Rule-based trigger distances and scenario cards from live parameters |
 
 ## Layout
@@ -22,6 +23,7 @@ engine/                 Python engine (numpy, pandas, requests)
   tcd/regime.py         regime rules
   tcd/backtest.py       lag-1 simulation + metrics
   tcd/validation.py     nested walk-forward, ablation, sensitivity, DSR/PSR
+  tcd/signal_study.py   stand-alone signal tests (PIT quintiles, NW t, block bootstrap)
   tcd/quality.py        fail-closed data-quality gates
   tcd/status.py         live posture + scenarios
   tcd/export.py         dashboard JSON / CSV (atomic swap)

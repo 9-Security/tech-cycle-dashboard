@@ -1,4 +1,4 @@
-# Methodology — engine v2.1 (live, point-in-time, nested walk-forward)
+# Methodology — engine v2.2 (live, point-in-time, nested walk-forward)
 
 Engine source: [`engine/tcd/`](../engine/tcd). Rebuilt from the v1 specification in this folder; v1 documents are kept for history.
 
@@ -87,6 +87,30 @@ So the binding constraint is the rule structure, not the valuation input. Changi
 Live regime effect: at 2026-10-31 the P/E-based valuation z is −1.27 (P/E 18.4×, falling as earnings catch up with Capex), so the official regime moved from Overheat (price proxy) to **Normal**.
 
 These numbers update daily; see the Validation page for the current values.
+
+### v2.2 — stand-alone signal tests (2026-11-23)
+
+Module `engine/tcd/signal_study.py`, page `signals.html`, data `data/signals.json` (recomputed daily). Each signal is tested on its own, outside the regime rules, against (a) the next 1/3/6/12-month excess log return of the risk asset and (b) the probability of a >20% drawdown within 12 months. Quintiles are point-in-time (expanding history, ≥60 months); t-stats are Newey-West (lag h−1); top-minus-bottom spreads carry 12-month moving-block bootstrap 90% CIs. Window 1993-01 → 2025-10 (last month with a full 12-month forward window).
+
+| Signal (de-risk side) | Q5−Q1 next-12m return | Q5−Q1 P(DD > 20%) | 12m IC 1993–2012 | 12m IC 2013+ |
+|---|---|---|---:|---:|
+| Overheat score (high) | **+19.8 pp** [+0.3, +38.0] | **−31 pp** [−59, −2] | +0.28 | +0.05 |
+| Valuation z (high) | +23.7 pp [−6, +44] | −54 pp [−78, −21] | +0.15 | **−0.27** (t −2.1) |
+| Capex z (high) | **+16.1 pp** [+8, +24] | −13 pp [−28, 0] | +0.28 | +0.28 (t 2.2) |
+| Earnings momentum (low) | +11.0 pp [−3, +26] | −27 pp [−46, −7] → low side had more drawdowns | +0.20 | −0.27 |
+| VIX (high) | +3.2 pp [−10, +16] | **+22 pp** [+8, +38] | +0.12 | +0.23 |
+
+Findings:
+1. **The Overheat score does not behave like an overheat warning.** High readings preceded *higher* returns and *fewer* large drawdowns; the CI for the return spread excludes zero. In this sample it acts as a pro-cyclical expansion / momentum signal. This explains why walk-forward keeps pushing its threshold up: defending on it sells strength.
+2. **Its two components point in opposite directions after 2013.** Firm-level P/E is contrarian as hypothesised (IC −0.27, t −2.1), but Capex intensity is pro-cyclical (IC +0.28, t 2.2 — dominated by the 2023–2025 AI build-out, when Capex and prices rose together). Averaging them cancels (composite IC +0.05). Before 2013 the "valuation" input was price extension, i.e. momentum, so it too was pro-cyclical.
+3. **VIX predicts risk, not return.** High VIX does not precede lower average returns, but it precedes more frequent large drawdowns (volatility clustering). This is consistent with the ablation result that Shock-only cuts Max DD to −37%.
+4. **Low earnings momentum preceded more drawdowns** (supports the Digestion rule's direction), but the return effect is inconclusive and the sign flips across eras.
+5. Extreme tail: the few months with overheat > 2.5 include the 2000 peak (next-12m returns −60% to −95%), but 32 months above 2.0 are too few to separate signal from one episode.
+
+Implications (not implemented — they would be design changes that need their own walk-forward test, not tuning on these results):
+* Treat valuation (P/E) and Capex intensity as separate signals with their own signs rather than one averaged score.
+* Use VIX as a risk-sizing input (volatility targeting) rather than a binary regime.
+* Any redesign chosen *because of* this table is informed by the full sample; it must be judged on data after the change, or with the redesign itself inside the walk-forward loop.
 
 ## 6. Known limitations
 

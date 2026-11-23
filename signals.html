@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tech Cycle — Signals</title>
+  <link rel="stylesheet" href="css/app.css" />
+  <script src="static/chart.umd.min.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <h1>Tech Cycle — Signals</h1>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="index.html">Backtest</a>
+      <a href="validation.html">Validation</a>
+      <a class="active" href="signals.html">Signals</a>
+      <a href="scenarios.html">Scenarios</a>
+    </nav>
+  </header>
+  <div class="subbar" id="asof-line">Loading…</div>
+  <div class="banner" id="banner">Loading data status…</div>
+
+  <main>
+    <section class="interp" id="summary">Loading…</section>
+
+    <section class="panel">
+      <h2>Does each signal justify de-risking? (top vs bottom quintile, next 12 months)</h2>
+      <div class="table-wrap"><table id="verdictTable"></table></div>
+      <p class="note">Quintiles are point-in-time (each month ranked against its own history only). Spread = top-quintile minus bottom-quintile mean; 90% CI from a 12-month moving-block bootstrap. "De-risk side" is where the regime engine cuts risk (Digestion fires on LOW earnings momentum). <strong>supports</strong> = the de-risk side preceded lower returns / more drawdowns with a CI excluding zero; <strong>contradicts</strong> = the opposite; hover a tag for the full reading.</p>
+    </section>
+
+    <section class="panel">
+      <h2>Quintile profile</h2>
+      <label class="picker">Signal <select id="sigPick"></select></label>
+      <div class="chart-wrap"><canvas id="bucketChart"></canvas></div>
+    </section>
+
+    <section class="panel">
+      <h2>Overheat score vs next-12-month excess return</h2>
+      <div class="chart-wrap"><canvas id="scatterChart"></canvas></div>
+      <p class="note">Each dot is a month-end. Points are colored by era because the score is spliced: macro proxies before 2013, SEC firm-level data after.</p>
+    </section>
+
+    <section class="panel">
+      <h2>Information coefficient by horizon (Spearman IC · Newey-West t)</h2>
+      <div class="table-wrap"><table id="icTable"></table></div>
+      <p class="note">Forward windows overlap, so ordinary t-stats are inflated; Newey-West uses lag h−1. |t| &lt; 2 should be read as noise.</p>
+    </section>
+
+    <section class="panel">
+      <h2>Stability across eras (12-month IC)</h2>
+      <div class="table-wrap"><table id="eraTable"></table></div>
+    </section>
+
+    <section class="panel">
+      <h2>Overheat thresholds used by the strategy grid</h2>
+      <div class="table-wrap"><table id="thrTable"></table></div>
+    </section>
+  </main>
+
+  <footer id="footer">Loading…</footer>
+  <script src="js/common.js"></script>
+  <script src="js/signals.js"></script>
+</body>
+</html>
