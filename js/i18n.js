@@ -384,13 +384,17 @@
   add("st.us.h2", "US mega-cap tech", "美股大型科技股");
   add("st.tw.h2", "Taiwan AI supply chain", "台股 AI 供應鏈");
   add("st.upd", "Prices through <strong>{d}</strong> · updated {u}", "股價資料截至 <strong>{d}</strong> · 更新時間 {u}");
-  add("st.off.line", "Official close check (TWSE / TPEx, last 2 months): {n} names — {ok} match, {diff} with price differences or missing days, {ex} with extra Yahoo bars on non-trading days, {na} unavailable · checked {u}",
+  add("st.off.line.TW", "Official close check (TWSE / TPEx, last 2 months): {n} names — {ok} match, {diff} with price differences or missing days, {ex} with extra Yahoo bars on non-trading days, {na} unavailable · checked {u}",
     "官方收盤價比對（證交所／櫃買中心，近兩個月）：{n} 檔中 {ok} 檔完全一致、{diff} 檔價格有差異或缺日、{ex} 檔 Yahoo 多出非交易日 K 棒、{na} 檔無法取得 · 比對時間 {u}");
-  add("st.d.off", "Official close check: {n} days compared ({w0} to {w1}), {m} price differences (max {mx}), {miss} official trading days missing in Yahoo.",
-    "官方收盤價比對：比對 {n} 天（{w0} 至 {w1}），價格差異 {m} 天（最大 {mx}），Yahoo 缺少 {miss} 個官方交易日。");
+  add("st.off.line.US", "Second-source close check (Nasdaq, last 2 months): {n} names — {ok} match, {diff} with price differences or missing days, {ex} with extra Yahoo bars on non-trading days, {na} unavailable · checked {u}",
+    "第二來源收盤價比對（Nasdaq，近兩個月）：{n} 檔中 {ok} 檔完全一致、{diff} 檔價格有差異或缺日、{ex} 檔 Yahoo 多出非交易日 K 棒、{na} 檔無法取得 · 比對時間 {u}");
+  add("st.off.src.TW", "Official close check", "官方收盤價比對");
+  add("st.off.src.US", "Second-source check (Nasdaq)", "第二來源比對（Nasdaq）");
+  add("st.d.off", "{src}: {n} days compared ({w0} to {w1}), {m} price differences (max {mx}), {miss} trading days missing in Yahoo.",
+    "{src}：比對 {n} 天（{w0} 至 {w1}），價格差異 {m} 天（最大 {mx}），Yahoo 缺少 {miss} 個交易日。");
   add("st.d.off.extra", "Yahoo also has bars on days the exchange did not trade ({d}): carried-forward prices, ignored by the forecast ledger.",
     "另外 Yahoo 在交易所沒有交易的日子多了 K 棒（{d}），是照抄前一天的價格，預測帳本會略過這些日子。");
-  add("st.d.off.na", "Official close check: not available this run.", "官方收盤價比對：本次無法取得。");
+  add("st.d.off.na", "{src}: not available this run.", "{src}：本次無法取得。");
   add("st.live.h2", "Live track record (forecast ledger)", "上線後實際表現（預測帳本）");
   add("st.live.intro", "Every refresh writes each stock's next-day forecast to an append-only ledger (data/forecasts/stocks_ledger.csv) before the outcome exists; the first forecast for a day is kept and never changed. The next close then scores it. Unlike the backtest above, this cannot be rewritten with hindsight.",
     "每次更新都會在結果出來之前，把每檔個股的明日預測寫進只能新增的帳本（data/forecasts/stocks_ledger.csv）；同一天只保留第一次寫入的預測，之後不會被修改。隔天收盤後再自動對帳。和上方的回測不同，這份紀錄無法事後改寫。");

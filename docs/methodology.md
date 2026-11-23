@@ -345,7 +345,7 @@ Also reported (descriptive, no verdict): variance ratio with clustered 90% CI (t
 
 Expected timing: market verdicts after about 3 months, single-stock verdicts after about 1 year. Until then the page shows "not enough data yet", which is not evidence for or against the model.
 
-## 15. Official close check (Taiwan)
+## 15. Second-source close check (Taiwan: official exchanges; US: Nasdaq)
 
 Modules `engine/tcd/sources/twofficial.py`, `engine/tcd/official_check.py`; output `data/official_check.json`; one line in the Taiwan section of `stocks.html` and one line per stock in the detail panel. Report only: it never changes prices, the model or its outputs, and a failure never blocks a refresh.
 
@@ -359,3 +359,7 @@ Modules `engine/tcd/sources/twofficial.py`, `engine/tcd/official_check.py`; outp
 * Use in the forecast ledger (section 14): `extra` days are skipped as forecast origins and as scoring targets. This rule was added before any forecast had been scored.
 
 First live run (2026-11-23, 18 names, 35 trading days each): zero price differences and no missing days; every name had one extra Yahoo bar on 2026-10-23, a day with no TWSE/TPEx trading, carrying the previous close forward.
+
+**US second source (added 2026-11-23).** Module `engine/tcd/sources/nasdaq.py`: Nasdaq's public quote API (`api.nasdaq.com/api/quote/{symbol}/historical`), one request per stock for the same two-month window, consolidated closes for NYSE- and Nasdaq-listed names (it is an exchange operator's feed, not an independent audit, but it does not come from Yahoo). Same comparison rules and statuses as Taiwan; results for both markets live in `data/official_check.json` with a per-market `updated` stamp (each refresh replaces only its own market's rows). US runs with the 22:15 UTC full refresh; Taiwan with both runs. Stooq was considered and rejected: it now requires a browser JavaScript check, which an automated job should not bypass.
+
+First US run (2026-11-23, 10 names × 37 trading days): zero price differences (largest gap 0.001%, rounding), no missing days, no extra Yahoo bars.

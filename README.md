@@ -34,7 +34,7 @@ engine/                 Python engine (numpy, pandas, requests)
   tcd/cross_market.py   pre-registered out-of-domain test of v3 on 9 other markets
   tcd/light.py          daily risk light (codes + numbers; text rendered per language)
   tcd/ledger.py         live stock forecast ledger (append-only) + reconciliation
-  tcd/official_check.py Taiwan closes vs TWSE / TPEx official data (report only)
+  tcd/official_check.py second-source closes: TW vs TWSE / TPEx, US vs Nasdaq (report only)
   tcd/stocks.py         per-stock risk monitoring + US fundamentals (watchlist.json)
   tcd/quality.py        fail-closed data-quality gates
   tcd/status.py         live posture + scenarios

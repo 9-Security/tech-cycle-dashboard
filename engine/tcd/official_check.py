@@ -1,4 +1,7 @@
-"""Cross-check Yahoo daily closes of Taiwan stocks against the exchanges.
+"""Cross-check Yahoo daily closes against a second source.
+
+Taiwan: TWSE / TPEx official closes. US: Nasdaq's public quote API
+(consolidated closes for NYSE and Nasdaq names).
 
 Report only: the check never changes prices, the model or the ledger, and a
 failure never blocks a refresh. For each Taiwan name it compares Yahoo's
@@ -23,7 +26,7 @@ from dataclasses import asdict, dataclass
 
 import pandas as pd
 
-from .sources import twofficial
+from .sources import nasdaq, twofficial
 from .sources.http import FetchError
 from .sources.store import RawStore
 
@@ -67,46 +70,92 @@ def compare(yahoo_close: pd.Series, official: pd.Series, cfg: OfficialConfig) ->
     return out
 
 
+def _with_retry(fetch, store: RawStore, cfg: OfficialConfig):
+    err = None
+    for attempt in range(2):
+        try:
+            return fetch(), None
+        except (FetchError, ValueError) as exc:  # throttled (HTTP 307/429) or bad payload
+            err = str(exc)
+            if store.offline or attempt:
+                break
+            time.sleep(cfg.backoff_s)
+    return None, err
+
+
+def _fetch_tw(s: str, last: pd.Timestamp, store: RawStore, cfg: OfficialConfig, pace) -> tuple[pd.Series | None, str | None]:
+    cur = last.normalize().replace(day=1)
+    parts = []
+    for m in [cur - pd.DateOffset(months=k) for k in range(cfg.months - 1, -1, -1)]:
+        pace()
+        part, err = _with_retry(lambda: twofficial.fetch_month(store, s, m), store, cfg)
+        if err:
+            return None, err
+        parts.append(part)
+    off = pd.concat(parts) if parts else pd.Series(dtype=object)
+    return off[~off.index.duplicated(keep="last")].sort_index(), None
+
+
+def _fetch_us(s: str, last: pd.Timestamp, store: RawStore, cfg: OfficialConfig, pace) -> tuple[pd.Series | None, str | None]:
+    start = last.normalize().replace(day=1) - pd.DateOffset(months=cfg.months - 1)
+    pace()
+    return _with_retry(lambda: nasdaq.fetch_range(store, s, start, last.normalize()), store, cfg)
+
+
+VENUES = {"TW": lambda s: twofficial.venue(s), "US": lambda s: "Nasdaq"}
+FETCH = {"TW": _fetch_tw, "US": _fetch_us}
+
+
 def run(prices: dict[str, pd.DataFrame], watchlist: dict, store: RawStore, as_of: str,
-        cfg: OfficialConfig | None = None) -> dict:
+        cfg: OfficialConfig | None = None, markets: tuple[str, ...] = ("US", "TW")) -> dict:
+    """Second-source close check for the watchlist names of `markets`:
+    Taiwan vs TWSE / TPEx (official), US vs Nasdaq's quote API."""
     cfg = cfg or OfficialConfig()
-    stocks, first = {}, True
+    stocks = {}
+    state = {"first": True}
+
+    def pace():
+        if not state["first"] and not store.offline:
+            time.sleep(cfg.pause_s)
+        state["first"] = False
+
     for spec in watchlist["stocks"]:
-        s = spec["symbol"]
-        if spec["market"] != "TW" or twofficial.venue(s) is None:
+        s, mk = spec["symbol"], spec["market"]
+        if mk not in markets or VENUES[mk](s) is None:
             continue
         px = prices.get(s)
         if px is None:
-            stocks[s] = {"status": "unavailable", "reason": "no Yahoo prices"}
+            stocks[s] = {"market": mk, "status": "unavailable", "reason": "no Yahoo prices"}
             continue
-        last = px["close"].dropna().index[-1]
-        cur = last.normalize().replace(day=1)
-        months = [cur - pd.DateOffset(months=k) for k in range(cfg.months - 1, -1, -1)]
-        parts, err = [], None
-        for m in months:
-            if not first and not store.offline:
-                time.sleep(cfg.pause_s)
-            first = False
-            for attempt in range(2):
-                try:
-                    parts.append(twofficial.fetch_month(store, s, m))
-                    err = None
-                    break
-                except (FetchError, ValueError) as exc:  # throttled (HTTP 307/429) or bad payload
-                    err = str(exc)
-                    if store.offline or attempt:
-                        break
-                    time.sleep(cfg.backoff_s)
-            if err:
-                break
+        off, err = FETCH[mk](s, px["close"].dropna().index[-1], store, cfg, pace)
         if err:
-            stocks[s] = {"status": "unavailable", "reason": err[:200]}
-            log.warning("official check %s: %s", s, err)
+            stocks[s] = {"market": mk, "venue": VENUES[mk](s), "status": "unavailable", "reason": err[:200]}
+            log.warning("second-source check %s: %s", s, err)
             continue
-        off = pd.concat(parts) if parts else pd.Series(dtype=object)
-        off = off[~off.index.duplicated(keep="last")].sort_index()
-        stocks[s] = {"venue": twofficial.venue(s), **compare(px["close"], off, cfg)}
-    counts = pd.Series([v["status"] for v in stocks.values()]).value_counts().to_dict() if stocks else {}
-    return {"as_of": as_of, "settings": asdict(cfg), "stocks": stocks,
-            "summary": {k: int(v) for k, v in counts.items()}, "n": len(stocks),
-            "source": {"TWSE": twofficial.TWSE_URL, "TPEx": twofficial.TPEX_URL}}
+        stocks[s] = {"market": mk, "venue": VENUES[mk](s), **compare(px["close"], off, cfg)}
+    return {"as_of": as_of, "settings": asdict(cfg), "stocks": stocks, "updated": {m: as_of for m in markets},
+            "source": {"TWSE": twofficial.TWSE_URL, "TPEx": twofficial.TPEX_URL, "Nasdaq": nasdaq.URL}}
+
+
+def merge(existing: dict | None, new: dict, markets: tuple[str, ...], watchlist: dict) -> dict:
+    """Replace the rows of `markets`, keep the other markets' rows; summaries per market."""
+    old = (existing or {}).get("stocks", {})
+    mk_of = {x["symbol"]: x["market"] for x in watchlist["stocks"]}
+    stocks = {s: v for s, v in old.items() if mk_of.get(s, v.get("market")) not in markets}
+    stocks.update(new["stocks"])
+    order = [x["symbol"] for x in watchlist["stocks"] if x["symbol"] in stocks]
+    stocks = {s: {**stocks[s], "market": mk_of.get(s, stocks[s].get("market"))} for s in order}
+    by = {}
+    for m in ("US", "TW"):
+        st = [v["status"] for v in stocks.values() if v["market"] == m]
+        if st:
+            by[m] = {k: int(v) for k, v in pd.Series(st).value_counts().items()}
+    updated = dict((existing or {}).get("updated", {}))
+    for m in by:
+        # Files written before per-market stamps: the other market was checked at the old as_of.
+        if m not in markets and m not in updated and (existing or {}).get("as_of"):
+            updated[m] = existing["as_of"]
+    updated.update(new["updated"])
+    return {**new, "stocks": stocks, "summary_by_market": by, "updated": updated,
+            "summary": {k: int(v) for k, v in pd.Series([v["status"] for v in stocks.values()]).value_counts().items()} if stocks else {},
+            "n": len(stocks)}
