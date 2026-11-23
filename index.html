@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tech Cycle Backtest</title>
+  <link rel="stylesheet" href="css/app.css" />
+  <script src="static/chart.umd.min.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <h1>Tech Cycle Backtest</h1>
+    <nav class="nav-links" aria-label="Primary">
+      <a class="active" href="index.html">Backtest</a>
+      <a href="scenarios.html">Scenarios</a>
+    </nav>
+  </header>
+  <div class="subbar" id="asof-line">Loading snapshot…</div>
+  <div class="banner">
+    <strong>Baked snapshot / sample data.</strong>
+    Charts and status are frozen from the tuned lag-1 run (as of 20261121T035000Z). Not live-refreshed on this host.
+  </div>
+
+  <main>
+    <section class="metrics" id="metrics">
+      <div class="card"><div class="label">Sharpe</div><div class="value" id="m-sharpe">—</div></div>
+      <div class="card"><div class="label">Max DD</div><div class="value" id="m-mdd">—</div></div>
+      <div class="card"><div class="label">CAGR</div><div class="value" id="m-cagr">—</div></div>
+      <div class="card"><div class="label">Final NAV</div><div class="value" id="m-nav">—</div><div class="sub" id="m-bh">BH —</div></div>
+    </section>
+
+    <section class="panel">
+      <h2>NAV — strategy vs buy &amp; hold</h2>
+      <div class="chart-wrap"><canvas id="navChart"></canvas></div>
+    </section>
+
+    <section class="panel">
+      <h2>Regime timeline</h2>
+      <div class="legend-regimes" id="regimeLegend"></div>
+      <div class="regime-strip" id="regimeStrip" title="Regime over time"></div>
+      <div class="chart-wrap short"><canvas id="regimeChart"></canvas></div>
+    </section>
+
+    <section class="panel">
+      <h2>VIX · overheat score · executed weight</h2>
+      <div class="chart-wrap"><canvas id="auxChart"></canvas></div>
+    </section>
+
+    <section class="panel">
+      <h2>Scenarios preview</h2>
+      <p style="margin:0 0 0.75rem;color:#6b6560;font-size:0.85rem">
+        Base / Overheat / Shock narratives from the baked prediction brief.
+        <a href="scenarios.html">Open full Scenarios view</a>
+      </p>
+      <div class="preview-grid" id="scenarioPreview"></div>
+      <div class="disclaimer" id="home-disclaimer"></div>
+    </section>
+  </main>
+
+  <footer id="footer">Loading…</footer>
+  <script src="js/backtest.js"></script>
+</body>
+</html>
