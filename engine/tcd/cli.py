@@ -27,7 +27,8 @@ from . import promotion
 from .cross_market import fetch_markets, run_cross_market
 from .light import build_light
 from .export import clean
-from . import ledger
+from . import ledger, official_check
+from .sources.store import RawStore
 from .stocks import StockConfig, fetch_prices as fetch_stock_prices, load_watchlist, merge_stocks, run_stocks
 from .risk_model import run_risk
 from .short_risk import run_short_risk
@@ -231,6 +232,8 @@ def refresh(args: argparse.Namespace) -> int:
     written = write_all(Path(args.out), series=series, status=status, scenarios=scenarios,
                         validation=validation, health=health, panel=panel, history_row=history_row,
                         signals=signals, risk=risk, cross_market=cross, stocks=stocks)
+    if stocks_prices is not None:
+        _official(args, stocks_prices, wl, as_of, cfg)
     if stocks_fresh is not None:
         try:  # live forecast ledger + reconciliation (report only)
             ledger.update(Path(args.out), stocks_fresh, stocks_prices, ("US", "TW"), as_of,
@@ -258,6 +261,17 @@ def _write_json_atomic(path: Path, obj) -> None:
     os.replace(tmp, path)
 
 
+def _official(args, prices: dict, wl: dict, as_of: str, cfg: EngineConfig) -> None:
+    """Cross-check Taiwan closes with TWSE / TPEx (report only, never blocks)."""
+    try:
+        store = RawStore(Path(args.cache) / "official", offline=args.offline, timeout=cfg.fetch.timeout_s, retries=1)
+        res = official_check.run(prices, wl, store, as_of)
+        _write_json_atomic(Path(args.out) / "official_check.json", res)
+        log.info("official close check: %s", res["summary"])
+    except Exception as exc:  # noqa: BLE001
+        log.error("official close check skipped: %s", exc)
+
+
 def stocks_refresh(args: argparse.Namespace) -> int:
     """Refresh only the stocks of one market (e.g. Taiwan after its close) and
     merge them into data/stocks.json; everything else is left untouched."""
@@ -281,6 +295,8 @@ def stocks_refresh(args: argparse.Namespace) -> int:
                                      "raw_manifest": {**(existing or {}).get("raw_manifest", {}), **manifest}},
                           markets, wl, as_of)
     _write_json_atomic(out, merged)
+    if "TW" in markets:
+        _official(args, prices, wl, as_of, cfg)
     try:
         ledger.update(Path(args.out), fresh["stocks"], prices, markets, as_of, now, __version__, StockConfig(),
                       all_rows=merged["stocks"])

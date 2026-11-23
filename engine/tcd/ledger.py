@@ -82,10 +82,13 @@ def bar_is_final(market: str, origin_date: str, now_utc: datetime) -> bool:
 
 
 def forecast_rows(stock_rows: list[dict], issued_at: str, now_utc: datetime, engine_version: str,
-                  mid: str) -> list[dict]:
+                  mid: str, non_trading: dict[str, set[str]] | None = None) -> list[dict]:
     out = []
     for r in stock_rows:
         if r.get("stale") or r.get("har_var") is None:
+            continue
+        if r["last_date"] in (non_trading or {}).get(r["symbol"], set()):
+            log.warning("ledger: %s bar %s is not an exchange trading day, forecast not logged", r["symbol"], r["last_date"])
             continue
         if not bar_is_final(r["market"], r["last_date"], now_utc):
             log.info("ledger: %s bar %s not final yet, forecast not logged", r["symbol"], r["last_date"])
@@ -148,8 +151,10 @@ def read_ledger(path: Path) -> pd.DataFrame:
 
 # ----------------------------------------------------------- reconciliation
 def evaluate(ledger: pd.DataFrame, prices: dict[str, pd.DataFrame], markets: tuple[str, ...],
-             cfg: ReviewConfig) -> pd.DataFrame:
-    """Match each forecast of `markets` with the stock's next bar."""
+             cfg: ReviewConfig, non_trading: dict[str, set[str]] | None = None) -> pd.DataFrame:
+    """Match each forecast of `markets` with the stock's next real bar.
+    Bars the exchange shows as non-trading days (official check) are skipped."""
+    non_trading = non_trading or {}
     recs = []
     for _, f in ledger[ledger["market"].isin(markets)].iterrows():
         rec = {k: f[k] for k in ("origin_date", "symbol", "market", "var95", "har_var", "ewma_var", "level", "model_id")}
@@ -162,6 +167,9 @@ def evaluate(ledger: pd.DataFrame, prices: dict[str, pd.DataFrame], markets: tup
             recs.append(rec)
             continue
         after = close[close.index > o]
+        skip = non_trading.get(f["symbol"])
+        if skip:
+            after = after[~after.index.strftime("%Y-%m-%d").isin(list(skip))]
         if after.empty:
             rec["status"] = "pending"
             recs.append(rec)
@@ -282,6 +290,15 @@ def summarize(outcomes: pd.DataFrame, ledger: pd.DataFrame, stock_rows: list[dic
             "model_ids": sorted(ledger["model_id"].dropna().unique().tolist()) if len(ledger) else []}
 
 
+def non_trading_days(path: Path) -> dict[str, set[str]]:
+    """Yahoo bars on days the exchange shows no trade, from data/official_check.json."""
+    try:
+        d = json.loads(Path(path).read_text())
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+    return {s: set(v.get("extra") or []) for s, v in d.get("stocks", {}).items() if v.get("extra")}
+
+
 def update(out_dir: Path, stock_rows: list[dict], prices: dict[str, pd.DataFrame], markets: tuple[str, ...],
            issued_at: str, now_utc: datetime, engine_version: str, stock_cfg, all_rows: list[dict] | None = None,
            cfg: ReviewConfig | None = None) -> dict:
@@ -289,9 +306,11 @@ def update(out_dir: Path, stock_rows: list[dict], prices: dict[str, pd.DataFrame
     cfg = cfg or ReviewConfig()
     out_dir = Path(out_dir)
     lp = out_dir / "forecasts" / "stocks_ledger.csv"
-    added = append_ledger(lp, forecast_rows(stock_rows, issued_at, now_utc, engine_version, model_id(stock_cfg)))
+    nt = non_trading_days(out_dir / "official_check.json")
+    added = append_ledger(lp, forecast_rows(stock_rows, issued_at, now_utc, engine_version, model_id(stock_cfg), nt))
     ledger = read_ledger(lp)
-    outcomes = merge_outcomes(out_dir / "forecasts" / "stocks_outcomes.csv", evaluate(ledger, prices, markets, cfg), markets)
+    outcomes = merge_outcomes(out_dir / "forecasts" / "stocks_outcomes.csv",
+                              evaluate(ledger, prices, markets, cfg, nt), markets)
     review = summarize(outcomes, ledger, all_rows if all_rows is not None else stock_rows, cfg, issued_at)
     review["last_run"] = {"markets": list(markets), "forecasts_added": added}
     from .export import clean  # local import: export imports heavy modules

@@ -101,3 +101,17 @@ def test_update_end_to_end(tmp_path):
     assert rv["last_run"]["forecasts_added"] == 1
     assert (tmp_path / "forecasts" / "stocks_outcomes.csv").exists() and (tmp_path / "forecast_review.json").exists()
     assert rv["markets"]["US"]["n"] == 1 and rv["markets"]["US"]["verdict"] == "insufficient"
+
+
+def test_non_trading_bars_are_skipped(tmp_path):
+    import json
+    now = datetime(2024, 1, 10, tzinfo=timezone.utc)
+    nt = {"T": {"2024-01-03"}}
+    assert L.forecast_rows([_row("T", "TW", d="2024-01-03")], "t", now, "x", "m", nt) == []
+    led = pd.DataFrame([{"origin_date": "2024-01-02", "symbol": "T", "market": "TW", "var95": 0.03, "har_var": 1e-4,
+                         "ewma_var": 1e-4, "level": "green", "model_id": "m"}])
+    px = _px([100, 100, 95])  # 01-03 is a carried-forward holiday bar; real next bar is 01-04 (-5%)
+    out = L.evaluate(led, {"T": px}, ("TW",), L.ReviewConfig(), nt).iloc[0]
+    assert out["target_date"] == "2024-01-04" and bool(out["breach"])
+    (tmp_path / "official_check.json").write_text(json.dumps({"stocks": {"T": {"extra": ["2024-01-03"]}, "U": {"extra": []}}}))
+    assert L.non_trading_days(tmp_path / "official_check.json") == {"T": {"2024-01-03"}}

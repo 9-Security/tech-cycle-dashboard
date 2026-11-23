@@ -17,7 +17,7 @@
   const dot = (lv) => '<span class="mini-dot ' + lv + '" title="' + esc(t("light.short." + lv)) + '"></span>' + esc(t("light.short." + lv));
 
   let DATA = null, selected = null, charts = [];
-  let REVIEW = null;
+  let REVIEW = null, OFFICIAL = null;
 
   function sorted(list, how) {
     const a = list.slice();
@@ -80,6 +80,15 @@
         rg: g(f.revenue_growth), ng: g(f.net_income_growth), pe: f.pe == null ? t("st.nm") : fmt(f.pe, 1),
         cx: f.capex_to_revenue == null ? "—" : pct(f.capex_to_revenue, 0) }));
     }
+    const oc = OFFICIAL && OFFICIAL.stocks ? OFFICIAL.stocks[s.symbol] : null;
+    if (oc) {
+      if (oc.status === "unavailable") pts.push(t("st.d.off.na"));
+      else {
+        let x = t("st.d.off", { n: oc.compared, w0: oc.window[0], w1: oc.window[1], m: oc.n_mismatch, mx: pct(oc.max_abs_diff || 0, 2), miss: oc.n_missing });
+        if (oc.n_extra) x += (zh ? "" : " ") + t("st.d.off.extra", { d: oc.extra.join(", ") });
+        pts.push(x);
+      }
+    }
     const lv = REVIEW && REVIEW.stocks ? REVIEW.stocks[s.symbol] : null;
     if (lv) {
       pts.push(t("st.d.live", { n: lv.n, k: lv.breaches, r: lv.breach_rate == null ? "—" : pct(lv.breach_rate, 1),
@@ -133,6 +142,15 @@
     });
   }
 
+  function renderOfficial(oc) {
+    if (!oc) return;
+    const sm = oc.summary || {}, list = Object.values(oc.stocks || {});
+    const diff = list.filter((v) => v.n_mismatch || v.n_missing).length;
+    const extraOnly = list.filter((v) => v.status === "warn" && !v.n_mismatch && !v.n_missing).length;
+    setHTML("off-tw", t("st.off.line", { n: oc.n, ok: sm.ok || 0, diff: diff, ex: extraOnly, na: sm.unavailable || 0,
+      u: esc(stampFmt(oc.as_of)) }));
+  }
+
   function renderLive(rv) {
     const el = document.getElementById("liveTable");
     if (!rv) { setText("live-note", t("st.live.none")); return; }
@@ -155,15 +173,17 @@
   }
 
   async function boot() {
-    const [d, health, review] = await Promise.all([loadJSON("data/stocks.json"), loadJSON("data/health.json").catch(() => null),
-      loadJSON("data/forecast_review.json").catch(() => null)]);
+    const [d, health, review, official] = await Promise.all([loadJSON("data/stocks.json"), loadJSON("data/health.json").catch(() => null),
+      loadJSON("data/forecast_review.json").catch(() => null), loadJSON("data/official_check.json").catch(() => null)]);
     DATA = d;
     REVIEW = review;
+    OFFICIAL = official;
     document.body.dataset.ready = "1";
     renderBanner(health);
     setHTML("asof-line", t("st.asof", { asof: esc(d.as_of) }));
     renderUpdated(d);
     renderLive(review);
+    renderOfficial(official);
     document.getElementById("sortPick").addEventListener("change", renderTables);
     renderTables();
     if (d.stocks.length) showDetail(d.stocks[0].symbol, false);
