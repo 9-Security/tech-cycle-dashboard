@@ -119,6 +119,19 @@ jobs:
           fi
           echo "ran=yes" >> "$GITHUB_OUTPUT"
           python tools/check_pit.py --cache .cache/raw --every 6ME --start 2008-01-15
+      - name: Archive raw inputs (90 days)
+        # Every raw response this run used, so any published number can be
+        # recomputed later (python -m tcd refresh --offline with this cache).
+        # Note: includes Yahoo / Nasdaq responses, which their terms restrict from
+        # redistribution; the owner chose to archive everything (methodology section 7).
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: raw-${{ steps.scope.outputs.scope }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: engine/.cache/raw
+          include-hidden-files: true
+          retention-days: 90
+          if-no-files-found: warn
       - name: Validate outputs before commit
         working-directory: engine
         run: python tools/validate_data.py --data ../data --base-ref HEAD
