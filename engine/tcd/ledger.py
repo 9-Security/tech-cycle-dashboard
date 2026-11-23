@@ -338,7 +338,8 @@ def _pooled(s: pd.DataFrame, cfg: ReviewConfig) -> dict:
            "first_date": s["target_date"].min() if len(s) else None,
            "last_date": s["target_date"].max() if len(s) else None}
     if not len(s):
-        return {**out, "verdict": "insufficient"}
+        from . import sequential
+        return {**out, "verdict": "insufficient", "interim": sequential.pooled(np.array([]), np.array([]))}
     br = s["breach"].astype(float).to_numpy()
     dates = s["target_date"].to_numpy()
     rate, lo, hi = _clustered_rate(br, dates, z)

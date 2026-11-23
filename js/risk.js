@@ -55,6 +55,14 @@
     setHTML("epuNote", t("risk.st.epu", { v: esc(epuText(st.epu_verdict)), spec: esc(t("spec." + st.robustness.spec)), rv: esc(epuText(st.robustness.epu_verdict)) }));
   }
 
+  // Registered interim looks (methodology section 20).
+  function interimText(it) {
+    const v = (it && it.verdict) || "before_first_look";
+    const m = /^(too_many|not_rejected)_at_(\d+)$/.exec(v);
+    if (m) return t("risk.live.it." + m[1], { n: m[2], next: it.next_look || "—" });
+    return t("risk.live.it." + v, { next: (it && it.next_look) || 60 });
+  }
+
   function renderMarketLive(rv) {
     if (!rv) { setText("mlive-note", t("risk.live.none")); return; }
     const T = rv.targets || {}, a = T.var_1d || {}, b = T.vol_5d || {}, c = T.vol_1m || {}, ch = T.var_1d_challenger || {};
@@ -67,6 +75,12 @@
       [esc(t("risk.live.varch")), esc(String(ch.logged || 0)) + since(ch), esc(String(ch.n || 0)),
         ch.breach_rate == null ? "—" : esc(String(ch.breaches)) + " · " + pct(ch.breach_rate, 1),
         ch.var_ratio == null ? "—" : fmt(ch.var_ratio, 2), "<strong>" + v(ch.verdict) + "</strong>"],
+      (() => {
+        const P = rv.panel || {}, it = P.interim || {};
+        return [esc(t("risk.live.panel", { k: esc(String((P.symbols || []).length)) })), esc(String(P.logged || 0)),
+          esc(String(P.n || 0)) + " / " + esc(String(P.n_dates || 0)), P.rate == null ? "—" : pct(P.rate, 1), "—",
+          "<strong>" + esc(interimText(it)) + "</strong>"];
+      })(),
       [esc(t("risk.live.vol5d")), esc(String(b.logged || 0)) + since(b), esc(String(b.n || 0)), "—",
         b.var_ratio == null ? "—" : fmt(b.var_ratio, 2), esc(t("risk.live.descriptive"))],
       [esc(t("risk.live.vol1m")), esc(String(c.logged || 0)) + since(c), esc(String(c.n || 0)),
@@ -75,9 +89,11 @@
     ];
     table("mliveTable", cols("risk.live.cols"), rows);
     const st = rv.settings || {};
+    const ia = (a.interim || {});
     const cc = rv.challenger_comparison || {};
     setHTML("mlive-note", t("risk.live.note", { d: esc(String(st.min_days_var)), m: esc(String(st.min_months_vol)), r: esc(String(st.rolling_days)) }) + " " +
-      t("risk.live.chnote", { n: esc(String(cc.common_days || 0)), dec: esc(t("risk.live.dec." + (cc.decision || "insufficient"))) }));
+      t("risk.live.chnote", { n: esc(String(cc.common_days || 0)), dec: esc(t("risk.live.dec." + (cc.decision || "insufficient"))) }) + " " +
+      t("risk.live.interim", { v: esc(interimText(ia)) }));
   }
 
   async function boot() {
