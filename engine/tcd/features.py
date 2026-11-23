@@ -141,8 +141,14 @@ def build_panel(raw: RawData, cfg: FeatureConfig) -> pd.DataFrame:
         mcap[ticker] = _monthly_last(px, months) * sh
     mcap_df = pd.DataFrame(mcap, index=months).reindex(columns=ni_df.columns)
     pe, n_pe = fx.chain_link(mcap_df, ni_df, cfg.sec_min_names)
-    p["pe_agg"] = pe
+    p["pe_agg"] = pe  # chain-linked INDEX (continuous across membership changes): used for the z-score only
     p["n_pe_names"] = n_pe
+    # Actual aggregate P/E level, sum(market cap) / sum(TTM net income) over the
+    # names valid this month (NI > 0). This is the number to show as "P/E x";
+    # it jumps when names enter or leave, which is why the z-score uses pe_agg.
+    ok = mcap_df.notna() & ni_df.notna() & (ni_df > 0)
+    lvl = mcap_df.where(ok).sum(axis=1, min_count=1) / ni_df.where(ok).sum(axis=1, min_count=1)
+    p["pe_level"] = lvl.where(ok.sum(axis=1) >= cfg.sec_min_names)
     p["mcap_agg_bn"] = mcap_df.where(ni_df > 0).sum(axis=1, min_count=1) / 1e9
     p["val_z_pe"] = rolling_z(np.log(pe), cfg.pe_z_window, cfg.pe_z_min)
     if cfg.valuation == "pe":

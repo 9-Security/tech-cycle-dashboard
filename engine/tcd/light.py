@@ -67,7 +67,7 @@ def build_light(short_current: dict, panel: pd.DataFrame) -> dict:
         "hist_start": short_current["vol_hist_start"],
         "mtd_month": panel.index[-1].strftime("%Y-%m") if partial else None,
         "mtd_return": _f(latest.get("risk_ret")) if partial else None,
-        "pe": _f(latest.get("pe_agg")),
+        "pe": _f(latest.get("pe_level", latest.get("pe_agg"))),
         "val_z": val_z,
         "val_state": valuation_state(val_z if latest.get("val_src") == "PE" else None),
         "earn_score": _f(latest.get("earn_score")),

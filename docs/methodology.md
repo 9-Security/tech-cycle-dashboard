@@ -69,7 +69,7 @@ Findings:
 1. The v1 headline (Sharpe ≈ 0.66) is reproduced **in-sample** (0.67 over 1993→2026), but it does not survive walk-forward.
 2. Training on 1993–1999 selects an overheat threshold of 2.0 (it never fires): defending during the late-1990s overheat was costly in that window. The strategy therefore did not de-risk before the 2000 crash.
 3. Ablation: removing the Shock (VIX) rule *raises* OOS Sharpe to 0.39 ≈ buy & hold; VIX-only keeps Max DD at −37% with Sharpe 0.38. The Overheat / Digestion layers have not shown OOS value yet.
-4. In-sample DSR (0.99) looks convincing while OOS fails — a reminder that DSR assumes i.i.d. returns and cannot detect regime-dependent overfitting with only ~2–3 cycles.
+4. In-sample DSR (0.97; reported as 0.99 in the first run) looks convincing while OOS fails — a reminder that DSR assumes i.i.d. returns and cannot detect regime-dependent overfitting with only ~2–3 cycles.
 
 ### v2.1 — aggregate P/E (2026-11-23)
 
@@ -84,31 +84,33 @@ P/E is the better valuation signal (stronger negative relation with forward retu
 
 So the binding constraint is the rule structure, not the valuation input. Changing the rules to make the P/E "work" would be fitting the answer; the next research step is to test the Overheat signal on its own (forward returns by signal bucket), separately from the regime machinery.
 
-Live regime effect: at 2026-10-31 the P/E-based valuation z is −1.27 (P/E 18.4×, falling as earnings catch up with Capex), so the official regime moved from Overheat (price proxy) to **Normal**.
+Live regime effect: at 2026-10-31 the P/E-based valuation z is −1.27 (the 18.4× quoted here was the chain-linked P/E index, not a P/E level; the actual Σ market cap ÷ Σ TTM net income was ≈ 25× — see § 16), so the official regime moved from Overheat (price proxy) to **Normal**.
 
 These numbers update daily; see the Validation page for the current values.
 
 ### v2.2 — stand-alone signal tests (2026-11-23)
 
-Module `engine/tcd/signal_study.py`, page `signals.html`, data `data/signals.json` (recomputed daily). Each signal is tested on its own, outside the regime rules, against (a) the next 1/3/6/12-month excess log return of the risk asset and (b) the probability of a >20% drawdown within 12 months. Quintiles are point-in-time (expanding history, ≥60 months); t-stats are Newey-West (lag h−1); top-minus-bottom spreads carry 12-month moving-block bootstrap 90% CIs. Window 1993-01 → 2025-10 (last month with a full 12-month forward window).
+Module `engine/tcd/signal_study.py`, page `signals.html`, data `data/signals.json` (recomputed daily). Each signal is tested on its own, outside the regime rules, against (a) the next 1/3/6/12-month excess log return of the risk asset and (b) the probability of a >20% drawdown within 12 months. Quintiles are point-in-time (expanding history, ≥60 months); t-stats are Hodrick (1992) 1B and top-minus-bottom spreads are tested with a circular-shift test (verdict at p < 0.05); until 2026-11-23 they were Newey-West (lag h−1) t-stats and 12-month block-bootstrap CIs, which simulation showed to give false positives two to four times as often as stated for signals this persistent (§ 16). Window 1993-01 → 2025-10 (last month with a full 12-month forward window).
 
-| Signal (de-risk side) | Q5−Q1 next-12m return | Q5−Q1 P(DD > 20%) | 12m IC 1993–2012 | 12m IC 2013+ |
+| Signal (de-risk side) | Q5−Q1 next-12m return (shift-test p) | Q5−Q1 P(DD > 20%) (p) | 12m IC (Hodrick t) 1993–2012 | 12m IC (Hodrick t) 2013+ |
 |---|---|---|---:|---:|
-| Overheat score (high) | **+19.8 pp** [+0.3, +38.0] | **−31 pp** [−59, −2] | +0.28 | +0.05 |
-| Valuation z (high) | +23.7 pp [−6, +44] | −54 pp [−78, −21] | +0.15 | **−0.27** (t −2.1) |
-| Capex z (high) | **+16.1 pp** [+8, +24] | −13 pp [−28, 0] | +0.28 | +0.28 (t 2.2) |
-| Earnings momentum (low) | +11.0 pp [−3, +26] | −27 pp [−46, −7] → low side had more drawdowns | +0.20 | −0.27 |
-| VIX (high) | +3.2 pp [−10, +16] | **+22 pp** [+8, +38] | +0.12 | +0.23 |
+| Overheat score (high) | +20.4 pp (0.09) | −30 pp (0.12) | +0.28 (1.1) | +0.07 (0.1) |
+| Valuation z (high) | **+23.6 pp (0.01)** | **−53 pp (< 0.01)** | +0.15 (1.0) | −0.23 (−0.9) |
+| Capex z (high) | +16.6 pp (0.33) | −13 pp (0.68) | +0.28 (0.6) | +0.28 (1.0) |
+| Earnings momentum (low) | +11.7 pp (0.22) | **−27 pp (< 0.01)** → low side had more drawdowns | +0.20 (1.4) | −0.25 (−1.0) |
+| VIX (high) | +3.2 pp (0.83) | +22 pp (0.27) | +0.12 (0.7) | +0.23 (1.1) |
+
+Numbers after the 2026-11-23 corrections (§ 16: point-in-time fix of the SEC inputs, Hodrick t-stats, circular-shift test). Under the original, over-confident inference several cells were reported as significant; the corrected readings are:
 
 Findings:
-1. **The Overheat score does not behave like an overheat warning.** High readings preceded *higher* returns and *fewer* large drawdowns; the CI for the return spread excludes zero. In this sample it acts as a pro-cyclical expansion / momentum signal. This explains why walk-forward keeps pushing its threshold up: defending on it sells strength.
-2. **Its two components point in opposite directions after 2013.** Firm-level P/E is contrarian as hypothesised (IC −0.27, t −2.1), but Capex intensity is pro-cyclical (IC +0.28, t 2.2 — dominated by the 2023–2025 AI build-out, when Capex and prices rose together). Averaging them cancels (composite IC +0.05). Before 2013 the "valuation" input was price extension, i.e. momentum, so it too was pro-cyclical.
-3. **VIX predicts risk, not return.** High VIX does not precede lower average returns, but it precedes more frequent large drawdowns (volatility clustering). This is consistent with the ablation result that Shock-only cuts Max DD to −37%.
-4. **Low earnings momentum preceded more drawdowns** (supports the Digestion rule's direction), but the return effect is inconclusive and the sign flips across eras.
+1. **The Overheat score does not behave like an overheat warning.** High readings preceded *higher* returns and *fewer* large drawdowns, but neither difference is significant once the persistence of the signal is accounted for (p 0.09 and 0.12; previously reported as significant). It is at best uninformative for de-risking, never supportive.
+2. **High valuation preceded higher returns and fewer drawdowns** (p 0.01 and < 0.01): over 1993–2025 the valuation input (price extension before 2013, P/E after) behaved pro-cyclically. The post-2013 split between a contrarian P/E (t −2.1) and a pro-cyclical Capex (t 2.2) reported earlier does **not** survive Hodrick t-stats (−0.9 and 1.0): it is noise at this sample size.
+3. **VIX: the drawdown effect is no longer significant** (p 0.27; previously "supports"). Volatility clustering is still visible at short horizons (§ 10), but not as a 12-month drawdown predictor in this test.
+4. **Low earnings momentum preceded more drawdowns** (p < 0.01; supports the Digestion rule's direction); the return effect is inconclusive and the sign flips across eras.
 5. Extreme tail: the few months with overheat > 2.5 include the 2000 peak (next-12m returns −60% to −95%), but 32 months above 2.0 are too few to separate signal from one episode.
 
 Implications (not implemented — they would be design changes that need their own walk-forward test, not tuning on these results):
-* Treat valuation (P/E) and Capex intensity as separate signals with their own signs rather than one averaged score.
+* Treat valuation (P/E) and Capex intensity as separate signals with their own signs rather than one averaged score. (This implication, which shaped v3, rested on the post-2013 t-stats −2.1 / +2.2 that the corrected Hodrick t-stats no longer support (−0.9 / +1.0); see § 16.)
 * Use VIX as a risk-sizing input (volatility targeting) rather than a binary regime.
 * Any redesign chosen *because of* this table is informed by the full sample; it must be judged on data after the change, or with the redesign itself inside the walk-forward loop.
 
@@ -123,17 +125,24 @@ Implications (not implemented — they would be design changes that need their o
 
 ## 7. Operations
 
-* `.github/workflows/refresh.yml`: Mon–Fri 22:15 UTC → tests → fetch → DQ gates → walk-forward → commit `data/` → deploy GitHub Pages. A second run, Mon–Fri 07:07 UTC (15:07 Taiwan time, after the TWSE close), refreshes only the Taiwan stocks of the Stocks page (`python -m tcd stocks --market TW`); manual runs pick `full` or `tw`. Any failure stops before commit/deploy (fail-closed); the site keeps the last good data and its banner turns **stale** after 4 days.
+* `.github/workflows/refresh.yml`: Mon–Fri 22:15 UTC → tests → fetch → DQ gates → walk-forward → commit `data/` → deploy GitHub Pages. A second run, Mon–Fri 07:07 UTC (15:07 Taiwan time, after the TWSE close), refreshes only the Taiwan stocks of the Stocks page (`python -m tcd stocks --market TW`); manual runs pick `full` or `tw`.
+* **Failure handling.** The core model is fail-closed: a fetch failure, a failed data-quality gate or a crash stops the run before commit/deploy, the site keeps the last good data and its banner turns **stale** after 4 days. Report-only blocks (cross-market test, stock monitor, second-source check, forecast ledger) never block the core model; since 2026-11-23 their failures are recorded in `health.json → report_issues` (`degraded: true`) and shown in the banner, and a second-source outage keeps the last good comparison (marked `stale`) instead of overwriting it. The Taiwan-only run refuses to write when `^TWII`'s last bar is older than 7 days and writes nothing when there is no new bar (holiday); its issues go to `stocks.json → run_issues`.
+* **Before every commit** `engine/tools/validate_data.py` checks that all JSON/CSV parse (no NaN), that the forecast ledger is a byte-prefix extension of the committed one (re-checked after any rebase), and that no e-mail address appears anywhere in `data/`.
+* **Supply chain.** Dependencies are installed from `engine/requirements-dev.lock` (exact versions that passed the tests, SHA-256 hashes, `--require-hashes`). The write token is not persisted in `.git/config` while dependencies, tests and the engine run; it is passed only to the push. `SEC_USER_AGENT` is stripped, rejected if it contains control characters, and request errors never echo header values. GitHub Actions are pinned by major tag, not commit SHA (not changed in this round).
+* **Concurrency.** Data refreshes queue in their own group and Pages deploys in another, so a push-triggered redeploy can no longer cancel a pending scheduled refresh.
 * Partial (in-progress) month: shown as **provisional** regime; never enters the backtest.
 * Walk-forward parameters for the live month = the fold for the current year (trained through last December), so live posture and backtest use the same rule.
-* Provenance: `data/health.json` holds DQ results, per-source latest dates and a SHA-256 manifest of every raw file; `data/history.csv` logs one row per run day.
+* Provenance: `data/health.json` holds DQ results, per-source latest dates, the git commit actually checked out, the run mode (`live` / `offline`, `allow_stale`) and a SHA-256 manifest of the core raw files with full request URLs (headers are never recorded); the stock, cross-market and second-source files carry their own manifests or source URLs. Raw files themselves are not archived, so hashes document what was used rather than allow re-verification. `data/history.csv` logs one row per run day.
 
 ```bash
 cd engine
-pip install -r requirements-dev.txt
+pip install --require-hashes -r requirements-dev.lock
 python -m pytest -q tests
-python -m tcd refresh --out ../data          # online
-python -m tcd refresh --offline --out ../data # reuse engine/.cache/raw
+python -m tcd refresh --out ../data                                   # online
+python -m tcd refresh --offline --out /tmp/tcd-out                    # reuse engine/.cache/raw; do not commit
+python tools/validate_data.py --data ../data                           # the pre-commit checks
+# Lockfile: edit requirements*.txt, then re-pin to versions that pass the tests:
+#   pip-compile --generate-hashes --allow-unsafe --strip-extras -c <tested versions> -o requirements-dev.lock requirements-dev.txt
 ```
 
 
@@ -157,12 +166,14 @@ Design rules fixed *before* the v3 walk-forward was run:
 
 | Model | Sharpe | CAGR | Vol | Max DD | Final NAV |
 |---|---:|---:|---:|---:|---:|
-| v2 regime (live) | 0.11 | 2.5% | 14.4% | −71.9% | 1.95 |
-| **v3 candidate** | **0.46** | 8.1% | 15.2% | **−56.6%** | 7.99 |
+| v2 regime (live) | 0.11 | 2.4% | 14.3% | −71.9% | 1.91 |
+| **v3 candidate** | **0.45** | 7.9% | 15.2% | **−56.6%** | 7.64 |
 | Buy & hold | 0.39 | 8.5% | 23.0% | −80.5% | 8.98 |
 | Vol-matched B&H (to v3, ex-post) | 0.39 | 6.9% | 15.2% | −62.8% | 5.98 |
 
-* v3 beats vol-matched buy & hold by ~0.07 Sharpe and ~6 pts of Max DD; PSR vs B&H Sharpe = 0.64 — **not statistically convincing**.
+(After the 2026-11-23 point-in-time fix, § 16; first run: v2 0.11, v3 0.46, v3 NAV 7.99.)
+
+* v3 beats vol-matched buy & hold by ~0.06 Sharpe and ~6 pts of Max DD; P(v3 Sharpe > B&H Sharpe) = 0.74 from a paired block bootstrap, 90% interval of the difference [−0.09, +0.23] — **not statistically convincing**. (First run reported "PSR 0.64", which treated the B&H Sharpe as a known constant; § 16.)
 * Ablation: the price-extension (momentum) tilt carries most of the value (removing it: 0.38); vol targeting adds ~0.05; the Capex tilt *hurts* (removing it: 0.53); P/E adds ~0.03.
 * Walk-forward chose c_px = +0.25 (momentum) from 2002 and c_pe = **+0.25** from 2015 — learned from only 2013–2014 P/E data, and opposite to the 12-month contrarian relation in the signal study. Treat the P/E coefficient as unreliable until more P/E history enters training.
 * Dot-com: v3 −52% (Max DD −57%) vs B&H −72.5% (−80.5%). 2000 was traded with parameters trained on 1993–1999 (no vol target), so most of the crash was not avoided.
@@ -371,3 +382,26 @@ First live run (2026-11-23, 18 names, 35 trading days each): zero price differen
 **US second source (added 2026-11-23).** Module `engine/tcd/sources/nasdaq.py`: Nasdaq's public quote API (`api.nasdaq.com/api/quote/{symbol}/historical`), one request per stock for the same two-month window, consolidated closes for NYSE- and Nasdaq-listed names (it is an exchange operator's feed, not an independent audit, but it does not come from Yahoo). Same comparison rules and statuses as Taiwan; results for both markets live in `data/official_check.json` with a per-market `updated` stamp (each refresh replaces only its own market's rows). US runs with the 22:15 UTC full refresh; Taiwan with both runs. Stooq was considered and rejected: it now requires a browser JavaScript check, which an automated job should not bypass.
 
 First US run (2026-11-23, 10 names × 37 trading days): zero price differences (largest gap 0.001%, rounding), no missing days, no extra Yahoo bars.
+
+## 16. Independent code review and corrections (2026-11-23)
+
+Four independent reviewers (point-in-time correctness, statistical methods, stock monitor and ledger, pipeline and security) read the code without being given the author's conclusions; every finding used here was reproduced before being accepted. Headline numbers that do not depend on the corrected code were recomputed independently from raw data and matched exactly (buy & hold CAGR 8.522%, vol 23.007%, Max DD −80.47%, Sharpe 0.3872; Kupiec p-values of all four VaR models).
+
+**Corrected in this round (published numbers change):**
+
+| Defect | Fix | Effect |
+|---|---|---|
+| SEC quarters: a direct 3-month fact filed later (comparative, restatement or mis-tagged annual value) replaced a quarter that could already be derived from year-to-date filings; share counts preferred a tag filed later over a count already public. The panel changed when later data arrived (14 of 38 cutoffs on real data). Tests only used synthetic data. | Earliest-available candidate wins for each period end (`fundamentals.quarterly`, `monthly_shares`); unit tests reproduce the real patterns (AAPL FY09 Q4, ORCL FY18 Q4, GOOGL shares); `engine/tools/check_pit.py` re-runs the truncation check on real cached data | 0 of 113 cutoffs differ. v2 OOS Sharpe 0.112 → 0.107; v3 0.458 → 0.447; v3 weight at 2026-10 0.19 → 0.16 |
+| "PSR v3 vs B&H" plugged the sample B&H Sharpe in as a known constant | Paired moving-block bootstrap of the Sharpe difference (`validation.sharpe_diff_test`), also in the promotion post-window | v3: 0.64 → 0.74 (90% interval [−0.09, +0.23]); v2: 0.08 → 0.10. Conclusions unchanged |
+| Signal study: Newey-West t (lag h−1) and 12-month block-bootstrap CIs over-reject with persistent signals and overlapping targets (simulated size 13–22% at a nominal 5%; CI miss rate ~20–25% at a nominal 10%, and longer blocks did not help) | Hodrick (1992) 1B t-stats (simulated size 5–7%); circular-shift test for quintile spreads, verdict at p < 0.05 (simulated false-positive rate 5–10%) | No IC with \|t\| ≥ 2 remains; verdicts revised (table in § 5, "v2.2 — stand-alone signal tests") |
+| Stock VaR backtest dropped days with an unchanged next close (they cannot breach), inflating breach rates; the live ledger scores them | Backtest scores every day | Verified names stay 7: NVDA and 2382.TW drop out, AMD and 3131.TWO come in |
+| "Aggregate P/E 18.4×" was a chain-linked index (≈ 25% below the level) | New `pe_level` = Σ market cap ÷ Σ TTM net income shown everywhere a P/E is quoted; the chain-linked series is kept only for the z-score | Light and dashboard show the actual level (≈ 25× at 2026-10) |
+| Ledger `model_id` hashed all of `stocks.py` but not the shared fitting code | Hash of the forecasting functions (incl. `short_risk.design/fit_var`, `light.level_for`) + config | Forecast-irrelevant edits no longer change the id; changes to shared fitting code now do |
+
+**v3 pre-registration.** The point-in-time fix changes `fundamentals.py`, which is part of the frozen v3 specification. Following the promotion rule (C5: a spec change resets the design date), the design date is reset to 2026-11-23 — the same day, so the first counted month stays 2026-12 and no post-design evidence existed yet. The fingerprint changes from `88e42dfd…ab61d` to `6855f924…fdb98e`; see the changelog in [model-promotion.md](model-promotion.md).
+
+**Fixed in the second round (operations and security, no effect on published numbers):** report-only failures recorded in health.json and the banner; second-source outages keep the last good results; per-job concurrency groups; hash-pinned dependencies and no persisted write token; ci.yml with read-only permissions; freshness and no-new-bar gates on the Taiwan-only run; secret sanitising and redacted request errors; pre-commit data validation (strict JSON/CSV, append-only ledger against the previous commit, no e-mail addresses); git commit and run mode recorded; full request URLs in manifests; a real append check in the ledger. Not done: pinning Actions by commit SHA.
+
+**Found, not yet fixed:** ledger edge cases (holiday-dated origins, outcomes wiped on a failed fetch, model_id dtype on read-back, verdicts pooling model ids, stale-run origin dates). Minor: Sortino definition, `r2_log` diagnostic, BDay-based cutoffs ignoring exchange holidays, BSS verdict sensitivity to block length, partial-month flag on holiday month-ends, no CSP header, a few engine-generated values inserted into HTML without escaping.
+
+**Known limitations, unchanged:** survivorship (today's ten leaders), design choices made after full-sample work, macro proxies from the latest FRED vintage. The market VaR, although it passes over 2000–2026 (4.76%), breached 7.15% of days over the last three years (Kupiec p 0.011); per the decision to judge stock and market VaR changes on live data, this is monitored, not tuned on the backtest.

@@ -66,9 +66,17 @@ class ReviewConfig:
 
 
 def model_id(stock_cfg) -> str:
-    """Fingerprint of the stock model: source of stocks.py + its config."""
-    src = (Path(__file__).with_name("stocks.py")).read_bytes()
-    blob = src + json.dumps(asdict(stock_cfg), sort_keys=True).encode()
+    """Fingerprint of what produces a stock forecast: the source of the
+    forecasting functions (including the shared HAR fitting code and the light
+    rule) and the stock config. Backtest-only or reporting changes do not
+    change it; any change to how a forecast is made does."""
+    import inspect
+
+    from . import light, short_risk, stocks
+    parts = [stocks.drop_stale_runs, stocks.daily_frame, stocks.walk_forward_var, stocks.current_risk,
+             short_risk.design, short_risk.fit_var, short_risk.VarModel, light.level_for]
+    blob = "".join(inspect.getsource(f) for f in parts).encode()
+    blob += json.dumps(asdict(stock_cfg), sort_keys=True).encode()
     return hashlib.sha256(blob).hexdigest()[:12]
 
 
@@ -136,9 +144,12 @@ def append_ledger(path: Path, rows: list[dict]) -> int:
     elif not old.endswith("\n"):
         raise ValueError("ledger does not end with a newline; refusing to append")
     w.writerows(add)
-    new = old + buf.getvalue()
-    assert new.startswith(old)
-    _atomic_write(path, new)
+    _atomic_write(path, old + buf.getvalue())
+    # Re-read: the file on disk must still start with the previous bytes
+    # (guards against a concurrent writer; the workflow also checks the
+    # committed file against the previous commit before pushing).
+    if not path.read_text().startswith(old):
+        raise ValueError("ledger append check failed: existing rows changed")
     return len(add)
 
 

@@ -138,7 +138,10 @@ def walk_forward_var(df: pd.DataFrame, cfg: StockConfig) -> pd.DataFrame:
 
 
 def backtest(df: pd.DataFrame, fc: pd.DataFrame, cfg: StockConfig) -> dict:
-    ok = fc["f_har"].notna() & fc["q_har"].notna() & df["r_next"].notna() & (df["y1"] > 0)
+    # Every day with a next return is scored, unchanged closes included: they
+    # cannot breach, and the live ledger scores them too. (Until 2026-11-23 they
+    # were dropped, which inflated the backtest breach rate.)
+    ok = fc["f_har"].notna() & fc["q_har"].notna() & df["r_next"].notna()
     if ok.sum() == 0:
         return {"oos_days": 0, "verified": False, "reason": "insufficient history"}
     f = fc.loc[ok, "f_har"].to_numpy(float)

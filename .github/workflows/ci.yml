@@ -5,17 +5,22 @@ on:
   push:
     branches-ignore: [main]
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
-          cache-dependency-path: engine/requirements-dev.txt
-      - run: pip install -r engine/requirements-dev.txt
+          cache-dependency-path: engine/requirements-dev.lock
+      - run: pip install --require-hashes -r engine/requirements-dev.lock
       - working-directory: engine
         run: python -m pytest -q tests

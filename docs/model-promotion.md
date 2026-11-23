@@ -1,14 +1,14 @@
 # Model promotion rule — v2 regime → v3 candidate
 
 **Status:** adopted by the repository owner on 2026-11-23.
-**Applies to:** v3 candidate as fixed on its design date, 2026-11-23 (spec fingerprint `88e42dfd…ab61d`).
+**Applies to:** v3 candidate as fixed on its design date, 2026-11-23 (spec fingerprint `6855f924…fdb98e`; amended the same day, see changelog).
 **Live model until promotion:** v2 regime model.
 
 This rule was written *before* any post-design data existed. Changing it after seeing post-design results defeats its purpose; any change must be recorded in the changelog below with its date and reason, and resets the evaluation clock.
 
 ## 1. Why a rule is needed
 
-v3 was designed after the full-sample signal study (see [methodology.md](methodology.md) §§ v2.2, 8). Its walk-forward result for 2000–2026 (Sharpe 0.46 vs buy & hold 0.39, PSR 0.64) is therefore still optimistic. Only months after the design date are a clean test.
+v3 was designed after the full-sample signal study (see [methodology.md](methodology.md) §§ v2.2, 8). Its walk-forward result for 2000–2026 (Sharpe 0.45 vs buy & hold 0.39; P(Sharpe > B&H) 0.74 from a paired bootstrap) is therefore still optimistic. Only months after the design date are a clean test.
 
 ## 2. Evaluation window
 
@@ -53,7 +53,7 @@ Annual walk-forward refits are part of the v3 specification and do not count as 
 
 ## 6. Limits of this rule
 
-* 24 monthly observations have low statistical power: the rule is a minimum sanity gate, not proof of skill. The post-window PSR (v3 vs B&H) is reported for context only.
+* 24 monthly observations have low statistical power: the rule is a minimum sanity gate, not proof of skill. The post-window paired Sharpe-difference test (v3 vs B&H) is reported for context only.
 * Results over 24–36 months depend heavily on which market regime occurs; a single crash or melt-up can decide the outcome.
 * The rule judges risk-adjusted performance; it does not consider taxes, trading frictions beyond 15 bps, or product implementation.
 
@@ -74,3 +74,4 @@ Annual walk-forward refits are part of the v3 specification and do not count as 
 | Date | Change | By |
 |---|---|---|
 | 2026-11-23 | Rule adopted; design date 2026-11-23; fingerprint `88e42dfdbee76632762785a306dab4136ce7ebdacf2aa8fd9941c8c23faab61d` | owner |
+| 2026-11-23 | **Bug-fix amendment, before any post-design month.** An independent code review found a point-in-time defect in `fundamentals.py` (later SEC filings could replace values already known; methodology § 16). Fixing it changes the frozen spec. Per C5 the design date is reset — to the same day, 2026-11-23, so the first counted month stays 2026-12. New fingerprint `6855f9240e3b3bc80c605c2e387a71050cc7d5d8f2868bdf4e448941c4fdb98e`. Effect on the pre-design backtest: v3 OOS Sharpe 0.458 → 0.447. The PSR row is replaced by a paired Sharpe-difference test (0.64 → 0.74). Thresholds unchanged. | owner (approved PR-A) |

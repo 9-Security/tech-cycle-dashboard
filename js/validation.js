@@ -54,7 +54,7 @@
     setHTML("stats", [
       [t("val.stats.dsr"), fmt(dsr.dsr, 3), t("val.stats.dsrSub", { n: dsr.n_trials, sr: fmt(dsr.sr0_annualized) })],
       [t("val.stats.psr0"), fmt(st.psr_oos_vs_zero, 3), t("val.stats.psr0Sub")],
-      [t("val.stats.psrbh"), fmt(st.psr_oos_vs_bh_sharpe, 3), t("val.stats.psrbhSub")],
+      [t("val.stats.psrbh"), fmt(st.p_sharpe_gt_bh != null ? st.p_sharpe_gt_bh : st.psr_oos_vs_bh_sharpe, 3), t("val.stats.psrbhSub")],
     ].map(([l, val, sub]) => '<div class="card"><div class="label">' + esc(l) + '</div><div class="value">' + val + '</div><div class="sub">' + esc(sub) + "</div></div>").join(""));
 
     const ac = cols("val.abl.cols");

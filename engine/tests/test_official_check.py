@@ -69,3 +69,14 @@ def test_merge_keeps_other_market():
     assert m["updated"] == {"TW": "t0", "US": "t1"}
     m2 = merge(m, {"stocks": {"B": {"market": "TW", "status": "ok"}}, "updated": {"TW": "t2"}}, ("TW",), wl)
     assert m2["stocks"]["A"]["status"] == "ok" and m2["stocks"]["B"]["status"] == "ok"
+
+
+def test_merge_keeps_last_good_row_when_source_is_down():
+    from tcd.official_check import merge
+    wl = {"stocks": [{"symbol": "B", "market": "TW"}]}
+    good = {"stocks": {"B": {"market": "TW", "status": "warn", "extra": ["2026-10-23"]}}, "updated": {"TW": "t0"}}
+    down = {"stocks": {"B": {"market": "TW", "status": "unavailable", "reason": "HTTP 307"}}, "updated": {"TW": "t1"}}
+    m = merge(good, down, ("TW",), wl)
+    b = m["stocks"]["B"]
+    assert b["status"] == "warn" and b["extra"] == ["2026-10-23"] and b["stale"] is True and b["last_error"] == "HTTP 307"
+    assert m["updated"] == {"TW": "t0"}  # nothing was checked: stamp not advanced

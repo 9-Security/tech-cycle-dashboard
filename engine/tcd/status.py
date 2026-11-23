@@ -35,6 +35,7 @@ def _signals(row: pd.Series) -> dict:
         "val_z": _f(row["val_z"]),
         "val_src": row.get("val_src"),
         "pe_agg": _f(row.get("pe_agg")),
+        "pe_level": _f(row.get("pe_level")),
         "capex_z": _f(row["capex_z"]),
         "capex_ratio_firm": _f(row.get("capex_ratio_firm")),
         "capex_src": row.get("capex_src"),

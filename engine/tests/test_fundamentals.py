@@ -87,3 +87,50 @@ def test_split_between_period_end_and_filing_is_not_double_counted():
                           "filed": [pd.Timestamp("2024-08-28")], "priority": [0]})
     sh = fx.monthly_shares(facts, splits, pd.DatetimeIndex(["2024-08-31"]))
     assert sh.iloc[0] == 2_460.0
+
+
+def test_late_direct_quarter_does_not_replace_derived_value():
+    # Real pattern (AAPL FY09 Q4): Q4 is first known as FY - 9M; a direct 3-month
+    # fact (restated comparative) only appears a year later.
+    facts = pd.DataFrame([
+        _f("2009-01-01", "2009-09-30", 30, "2009-11-01"),
+        _f("2009-01-01", "2009-12-31", 50, "2010-02-15", form="10-K"),   # Q4 = 20, known 2010-02-15
+        _f("2009-10-01", "2009-12-31", 23, "2011-02-15", form="10-K"),   # direct, a year later
+    ])
+    q = fx.quarterly(facts).set_index("end")
+    assert q.loc["2009-12-31", "val"] == 20
+    assert q.loc["2009-12-31", "available"] == pd.Timestamp("2010-02-15")
+
+
+def test_mis_tagged_annual_quarter_filed_late_is_ignored():
+    # Real pattern (ORCL FY18 Q4): an annual value tagged with a 91-day period,
+    # filed two years later, must not replace the derived quarter.
+    facts = pd.DataFrame([
+        _f("2017-06-01", "2018-02-28", 28, "2018-03-20"),
+        _f("2017-06-01", "2018-05-31", 39, "2018-06-22", form="10-K"),   # Q4 = 11
+        _f("2018-03-01", "2018-05-31", 39, "2020-06-22", form="10-K"),   # mis-tagged annual
+    ])
+    q = fx.quarterly(facts).set_index("end")
+    assert q.loc["2018-05-31", "val"] == 11
+
+
+def test_direct_quarter_wins_when_available_first():
+    facts = pd.DataFrame([
+        _f("2020-01-01", "2020-03-31", 10, "2020-05-01"),
+        _f("2020-01-01", "2020-06-30", 25, "2020-08-01"),
+        _f("2020-04-01", "2020-06-30", 16, "2020-08-01"),  # same day as the YTD fact: direct wins ties
+    ])
+    q = fx.quarterly(facts).set_index("end")
+    assert q.loc["2020-06-30", "val"] == 16
+
+
+def test_shares_preferred_tag_filed_late_does_not_hide_earlier_count():
+    # Real pattern (GOOGL 2023-24): the preferred weighted-average tag only starts
+    # later; the outstanding count filed on time must be used until then.
+    facts = pd.DataFrame([
+        {"end": pd.Timestamp("2023-09-30"), "val": 100.0, "filed": pd.Timestamp("2023-10-25"), "priority": 2},
+        {"end": pd.Timestamp("2023-09-30"), "val": 101.0, "filed": pd.Timestamp("2024-10-25"), "priority": 0},
+    ])
+    months = pd.DatetimeIndex(["2023-11-30", "2024-11-30"])
+    s = fx.monthly_shares(facts, pd.Series(dtype=float), months, stale_days=800)
+    assert s.loc["2023-11-30"] == 100.0 and s.loc["2024-11-30"] == 100.0

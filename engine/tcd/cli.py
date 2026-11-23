@@ -27,6 +27,7 @@ from . import promotion
 from .cross_market import fetch_markets, run_cross_market
 from .light import build_light
 from .export import clean
+from .sources.http import redact
 from . import ledger, official_check, tw_calendar
 from .sources.store import RawStore
 from .stocks import StockConfig, fetch_prices as fetch_stock_prices, load_watchlist, merge_stocks, run_stocks
@@ -44,8 +45,29 @@ from .validation import _pick, full_validation, prepare, tilt_spec, valuation_co
 log = logging.getLogger("tcd")
 
 
+def _git_sha() -> str | None:
+    """Commit of the code actually checked out (GITHUB_SHA names the triggering
+    ref, which differs for manual runs from another branch or delayed runs)."""
+    try:
+        import subprocess
+        r = subprocess.run(["git", "rev-parse", "--short=12", "HEAD"], capture_output=True, text=True, timeout=10)
+        if r.returncode == 0 and r.stdout.strip():
+            return r.stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        pass
+    return os.environ.get("GITHUB_SHA", "")[:12] or None
+
+
+def _issue(issues: list, component: str, exc: Exception) -> None:
+    """Record a failure of a report-only block (published in health.json)."""
+    msg = redact(f"{type(exc).__name__}: {exc}")[:300]
+    issues.append({"component": component, "error": msg})
+    log.error("%s failed (published as a report issue): %s", component, msg)
+
+
 def refresh(args: argparse.Namespace) -> int:
     cfg = EngineConfig()
+    issues: list[dict] = []  # failures of report-only blocks; the core model is fail-closed
     t0 = time.time()
     now = datetime.now(timezone.utc)
     run_date = pd.Timestamp(args.run_date) if args.run_date else pd.Timestamp(now.date())
@@ -105,7 +127,7 @@ def refresh(args: argparse.Namespace) -> int:
                                                  V3_DESIGN_DATE, since_design)
     status["candidate"]["promotion"] = {"state": promo["state"], "note": promo["note"], "months": promo["months"],
                                         "earliest_decision_after": promo["earliest_decision_after"]}
-    git_sha = os.environ.get("GITHUB_SHA", "")[:12] or None
+    git_sha = _git_sha()
     meta = {
         "as_of": as_of,
         "DATA_SOURCE": "REAL",
@@ -135,7 +157,8 @@ def refresh(args: argparse.Namespace) -> int:
     last_obs = pd.Timestamp(panel.attrs["last_obs"])
     health = {
         "ok": True,
-        "mode": "live",
+        "mode": "offline" if args.offline else "live",
+        "allow_stale": bool(args.allow_stale),
         "as_of": as_of,
         "run_at": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "engine_version": __version__,
@@ -152,7 +175,9 @@ def refresh(args: argparse.Namespace) -> int:
             **{f"SEC {t}": str(f["capex"]["filed"].max().date()) for t, f in raw.sec_facts.items() if not f["capex"].empty},
         },
         "raw_manifest": raw.manifest,
-        "label": "Live - GitHub Actions daily refresh",
+        "label": ("Offline re-run from cached data" if args.offline else "Live - GitHub Actions daily refresh")
+                 + (" (staleness gate relaxed)" if args.allow_stale else ""),
+        "report_issues": issues,  # filled below; the list object is shared
     }
     prov = status.get("provisional") or {}
     history_row = {
@@ -184,7 +209,7 @@ def refresh(args: argparse.Namespace) -> int:
                  "fetch_warnings": mwarn, "raw_manifest": mmanifest}
         log.info("cross-market v3 test: overall_pass=%s (%s)", cross["verdict"]["overall_pass"], cross["verdict"]["C1"]["detail"])
     except Exception as exc:  # noqa: BLE001 - report-only block
-        log.warning("cross-market test skipped: %s", exc)
+        _issue(issues, "cross_market", exc)
 
     # Per-stock risk monitoring (report only; never blocks the refresh).
     stocks = stocks_fresh = stocks_prices = None
@@ -203,7 +228,7 @@ def refresh(args: argparse.Namespace) -> int:
                  sum(r["backtest"]["verified"] for r in stocks["stocks"]), stocks["skipped"])
         stocks_fresh, stocks_prices = fresh["stocks"], sprices
     except Exception as exc:  # noqa: BLE001 - report-only block
-        log.warning("stock monitoring skipped: %s", exc)
+        _issue(issues, "stocks", exc)
 
     signals = {**meta, **run_study(panel)}
     risk = {**meta, **run_risk(panel)}
@@ -232,17 +257,24 @@ def refresh(args: argparse.Namespace) -> int:
     history_row["vol_fcst_next_month"] = round(status["risk"]["vol_forecast_next_month"]["vol"], 4)
     history_row["var95_1d"] = round(risk["short_term"]["current"]["var95_1d_simple_ret"], 5)
     series = build_series(vrun, panel, as_of, candidate=vrun3)
-    written = write_all(Path(args.out), series=series, status=status, scenarios=scenarios,
-                        validation=validation, health=health, panel=panel, history_row=history_row,
-                        signals=signals, risk=risk, cross_market=cross, stocks=stocks)
+    # Report-only side outputs run BEFORE the core export so that their failures
+    # are recorded in health.json (they never block the core model).
     if stocks_prices is not None:
-        _official(args, raw_sprices, wl, as_of, cfg)
+        err = _official(args, raw_sprices, wl, as_of, cfg)
+        if err:
+            _issue(issues, "second_source_check", err)
     if stocks_fresh is not None:
-        try:  # live forecast ledger + reconciliation (report only)
+        try:  # live forecast ledger + reconciliation
             ledger.update(Path(args.out), stocks_fresh, stocks_prices, ("US", "TW"), as_of,
                           datetime.now(timezone.utc), __version__, StockConfig(), all_rows=stocks["stocks"])
         except Exception as exc:  # noqa: BLE001
-            log.error("forecast ledger not updated: %s", exc)
+            _issue(issues, "forecast_ledger", exc)
+    health["degraded"] = bool(issues)
+    written = write_all(Path(args.out), series=series, status=status, scenarios=scenarios,
+                        validation=validation, health=health, panel=panel, history_row=history_row,
+                        signals=signals, risk=risk, cross_market=cross, stocks=stocks)
+    if issues:
+        log.warning("report-only issues: %s", [i["component"] for i in issues])
     log.info("wrote %d files to %s in %.1fs", len(written), args.out, time.time() - t0)
     log.info("v2 regime %s | weight %.2f | OOS Sharpe %.2f | BH Sharpe %.2f",
              status["regime"]["label"], status["weights"]["executed_weight"],
@@ -265,17 +297,24 @@ def _write_json_atomic(path: Path, obj) -> None:
 
 
 def _official(args, prices: dict, wl: dict, as_of: str, cfg: EngineConfig,
-              markets: tuple[str, ...] = ("US", "TW")) -> None:
-    """Second-source close check: TW vs TWSE / TPEx, US vs Nasdaq (report only, never blocks)."""
+              markets: tuple[str, ...] = ("US", "TW")) -> Exception | None:
+    """Second-source close check: TW vs TWSE / TPEx, US vs Nasdaq (report only,
+    never blocks). Returns the problem to report, if any."""
     try:
         store = RawStore(Path(args.cache) / "official", offline=args.offline, timeout=cfg.fetch.timeout_s, retries=1)
-        res = official_check.run(prices, wl, store, as_of, markets=markets)
+        fresh = official_check.run(prices, wl, store, as_of, markets=markets)
         path = Path(args.out) / "official_check.json"
-        res = official_check.merge(_read_json(path), res, markets, wl)
+        res = official_check.merge(_read_json(path), fresh, markets, wl)
         _write_json_atomic(path, res)
         log.info("second-source close check %s: %s", "/".join(markets), res["summary_by_market"])
+        down = [m for m in markets
+                if [v for v in fresh["stocks"].values() if v["market"] == m]
+                and all(v["status"] == "unavailable" for v in fresh["stocks"].values() if v["market"] == m)]
+        if down:
+            return RuntimeError(f"second source unavailable for {', '.join(down)}; previous results kept and marked stale")
     except Exception as exc:  # noqa: BLE001
-        log.error("official close check skipped: %s", exc)
+        return exc
+    return None
 
 
 def stocks_refresh(args: argparse.Namespace) -> int:
@@ -300,19 +339,40 @@ def stocks_refresh(args: argparse.Namespace) -> int:
     if not fresh["stocks"]:
         log.error("no %s stock could be analysed; outputs left untouched", args.market)
         return 2
+    # Freshness gate: the market benchmark must have a recent bar (same rule as
+    # the full refresh's market gate), else the source is stale and nothing is written.
+    bench = wl["benchmarks"][args.market]
+    if bench in raw_prices and not args.allow_stale:
+        last = raw_prices[bench]["close"].dropna().index[-1]
+        age = (pd.Timestamp(now.date()) - last.normalize()).days
+        if age > args.max_staleness_days:
+            log.error("%s last bar %s is %d days old (> %d): source stale, outputs left untouched",
+                      bench, last.date(), age, args.max_staleness_days)
+            return 2
     out = Path(args.out) / "stocks.json"
     existing = _read_json(out)
-    meta = {"as_of": as_of, "engine_version": __version__, "git_sha": os.environ.get("GITHUB_SHA", "")[:12] or None}
+    # No new bar since the last run (e.g. a market holiday): nothing to publish.
+    prev_dates = {r["symbol"]: r.get("last_date") for r in (existing or {}).get("stocks", []) if not r.get("stale")}
+    if existing and all(prev_dates.get(r["symbol"]) and r["last_date"] <= prev_dates[r["symbol"]] for r in fresh["stocks"]):
+        log.info("no new %s bars since the last run; outputs left untouched", args.market)
+        return 0
+    meta = {"as_of": as_of, "engine_version": __version__, "git_sha": _git_sha()}
     merged = merge_stocks(existing, {**meta, **fresh, "fetch_warnings": warns,
                                      "raw_manifest": {**(existing or {}).get("raw_manifest", {}), **manifest}},
                           markets, wl, as_of)
     _write_json_atomic(out, merged)
-    _official(args, raw_prices, wl, as_of, cfg, markets)
+    issues: list[dict] = []
+    err = _official(args, raw_prices, wl, as_of, cfg, markets)
+    if err:
+        _issue(issues, "second_source_check", err)
     try:
         ledger.update(Path(args.out), fresh["stocks"], prices, markets, as_of, now, __version__, StockConfig(),
                       all_rows=merged["stocks"])
     except Exception as exc:  # noqa: BLE001
-        log.error("forecast ledger not updated: %s", exc)
+        _issue(issues, "forecast_ledger", exc)
+    # Report-only problems of this market run are published with the stock data.
+    merged["run_issues"] = {**(merged.get("run_issues") or {}), args.market: {"as_of": as_of, "issues": issues}}
+    _write_json_atomic(out, merged)
     log.info("stocks %s: %d analysed, %d verified, skipped %s", args.market, len(fresh["stocks"]),
              sum(r["backtest"]["verified"] for r in fresh["stocks"]), fresh["skipped"])
     return 0
@@ -334,6 +394,8 @@ def main(argv: list[str] | None = None) -> int:
     st.add_argument("--out", default="../data")
     st.add_argument("--cache", default=".cache/raw")
     st.add_argument("--offline", action="store_true")
+    st.add_argument("--allow-stale", action="store_true", help="skip the benchmark freshness gate")
+    st.add_argument("--max-staleness-days", type=int, default=7)
     st.add_argument("-v", "--verbose", action="store_true")
     args = ap.parse_args(argv)
 

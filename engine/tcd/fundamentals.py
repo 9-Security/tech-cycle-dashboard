@@ -7,7 +7,8 @@ Rules (no look-ahead):
 2. Quarterly values come from ~3-month facts directly, or are derived as the
    difference of two year-to-date facts with the same start date
    (e.g. 9M - 6M = Q3, FY - 9M = Q4). A derived quarter becomes available on
-   the later of the two filing dates.
+   the later of the two filing dates. When both exist for a period end, the
+   one available first is used, so later filings never change history.
 3. At each month-end, a company's TTM value uses only quarters whose
    availability date is on or before that month-end.
 4. Aggregates across companies are chain-linked over the set of names valid in
@@ -41,23 +42,33 @@ def quarterly(facts: pd.DataFrame) -> pd.DataFrame:
     rec["dur"] = (rec["end"] - rec["start"]).dt.days
     lo, hi = QUARTER_DAYS
 
-    direct = rec[rec["dur"].between(lo, hi)]
-    out: dict[pd.Timestamp, tuple[float, pd.Timestamp]] = {}
-    for r in direct.sort_values("available").itertuples():
-        out.setdefault(r.end, (r.val, r.available))
+    # Candidates per period end: direct ~3-month facts and year-to-date
+    # differences. The one AVAILABLE FIRST wins (ties: direct). A direct fact
+    # filed later (a comparative, a restatement or a mis-tagged duration) must
+    # not replace a value that could already be derived at the time; fixed
+    # 2026-11-23 after it was found to make the panel change when later data
+    # arrive (e.g. AAPL FY09 Q4 net income, ORCL FY18 Q4 revenue).
+    cands: dict[pd.Timestamp, list[tuple[pd.Timestamp, int, float]]] = {}
+    for r in rec[rec["dur"].between(lo, hi)].itertuples():
+        cands.setdefault(r.end, []).append((r.available, 0, r.val))
 
     # Year-to-date differencing within the same fiscal-year start.
     for start, grp in rec.groupby("start"):
         grp = grp.sort_values("end")
         ends = list(grp.itertuples())
         for i, cur in enumerate(ends):
-            if cur.dur <= hi or cur.end in out:
+            if cur.dur <= hi:
                 continue
             for prev in ends[:i][::-1]:
                 gap = (cur.end - prev.end).days
                 if lo <= gap <= hi:
-                    out[cur.end] = (cur.val - prev.val, max(cur.available, prev.available))
+                    cands.setdefault(cur.end, []).append((max(cur.available, prev.available), 1, cur.val - prev.val))
                     break
+
+    out: dict[pd.Timestamp, tuple[float, pd.Timestamp]] = {}
+    for end, cs in cands.items():
+        avail, _, val = min(cs, key=lambda c: (c[0], c[1]))
+        out[end] = (val, avail)
 
     q = pd.DataFrame(
         [(e, v, a) for e, (v, a) in out.items()], columns=["end", "val", "available"]
@@ -150,8 +161,10 @@ def monthly_shares(facts: pd.DataFrame, splits: pd.Series, months: pd.DatetimeIn
     out = pd.Series(np.nan, index=months, dtype=float)
     if facts.empty:
         return out
-    # One value per period end: preferred tag, then its earliest (first-reported) filing.
-    rec = facts.sort_values(["end", "priority", "filed"]).drop_duplicates("end", keep="first").copy()
+    # One value per period end: its earliest filing; tag priority only breaks
+    # ties on the same filing date. (Priority first let a preferred tag filed a
+    # year later hide a count that was already public; fixed 2026-11-23.)
+    rec = facts.sort_values(["end", "filed", "priority"]).drop_duplicates("end", keep="first").copy()
     rec["adj"] = [v * split_factor_after(splits, f) for v, f in zip(rec["val"], rec["filed"])]
     rec = rec.sort_values("end")
     for m in months:

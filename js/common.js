@@ -34,7 +34,9 @@
     el.innerHTML = "<strong>" + t(stale ? "banner.stale" : "banner.live") + "</strong> " +
       t("banner.body", { run: esc(health.run_at || "—"), through: esc(health.data_through || "—"), panel: esc(health.panel_end || "—"),
         pass: pass, total: checks.length }) +
-      (stale ? t("banner.staleNote", { days: Math.floor(ageDays) }) : "");
+      (stale ? t("banner.staleNote", { days: Math.floor(ageDays) }) : "") +
+      (health.mode === "offline" ? t("banner.offline") : "") +
+      ((health.report_issues || []).length ? t("banner.issues", { list: esc(health.report_issues.map((i) => i.component).join(", ")) }) : "");
   }
 
   function regimeLabel(code, fallback) {

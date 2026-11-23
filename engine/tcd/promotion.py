@@ -16,7 +16,7 @@ import pandas as pd
 
 from .backtest import metrics
 from .config import BacktestConfig, FeatureConfig, PromotionRule, TiltGrid
-from .validation import probabilistic_sharpe
+from .validation import sharpe_diff_test
 
 SPEC_SOURCES = ("model_tilt.py", "features.py", "fundamentals.py", "backtest.py")
 
@@ -66,8 +66,8 @@ def evaluate(*, dates: pd.DatetimeIndex, v3_ret: np.ndarray, bh_ret: np.ndarray,
         c = min(1.0, mv["ann_vol"] / mb["ann_vol"]) if mb["ann_vol"] > 0 else 1.0
         vm_ret = c * bh_ret[post] + (1 - c) * safe[post]
         mvm = metrics(vm_ret, safe[post])
-        psr = probabilistic_sharpe(mv["sharpe_monthly"], mb["sharpe_monthly"], n, mv["skew"], mv["kurtosis"])
-        out["post_window"] = {"v3": mv, "bh": mb, "vol_matched_bh": {**mvm, "risk_fraction": c}, "psr_v3_vs_bh": psr}
+        out["post_window"] = {"v3": mv, "bh": mb, "vol_matched_bh": {**mvm, "risk_fraction": c},
+                              "sharpe_diff_vs_bh": sharpe_diff_test(v3_ret[post], bh_ret[post], safe[post])}
         crit.append({"id": "C2", "name": "v3 Sharpe > vol-matched B&H Sharpe (post-design)",
                      "pass": mv["sharpe"] > mvm["sharpe"], "detail": f"{mv['sharpe']:.2f} vs {mvm['sharpe']:.2f}"})
         crit.append({"id": "C3", "name": f"v3 Max DD no worse than vol-matched B&H by > {rule.mdd_tolerance:.0%}",
