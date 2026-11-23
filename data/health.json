@@ -1,0 +1,7 @@
+{
+  "ok": true,
+  "mode": "static_snapshot",
+  "as_of": "20261121T035000Z",
+  "backtest": "data/series.json",
+  "label": "Baked snapshot / sample data"
+}

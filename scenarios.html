@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tech Cycle — Scenarios</title>
+  <link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>Tech Cycle — Scenarios</h1>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="index.html">Backtest</a>
+      <a class="active" href="scenarios.html">Scenarios</a>
+    </nav>
+  </header>
+  <div class="subbar" id="asof-line">Loading snapshot…</div>
+  <div class="banner">
+    <strong>Baked snapshot / sample data.</strong>
+    Scenario brief is a frozen risk narrative (not investment advice, not live refresh).
+  </div>
+
+  <main>
+    <section class="metrics">
+      <div class="card">
+        <div class="label">As of</div>
+        <div class="value" id="m-asof" style="font-size:1.05rem">—</div>
+        <div class="sub" id="m-asof-sub">—</div>
+      </div>
+      <div class="card">
+        <div class="label">Regime</div>
+        <div class="value" id="m-regime">—</div>
+        <div class="sub" id="m-regime-sub">—</div>
+      </div>
+      <div class="card">
+        <div class="label">Lag-1 weight</div>
+        <div class="value" id="m-weight">—</div>
+        <div class="sub" id="m-weight-sub">—</div>
+      </div>
+      <div class="card">
+        <div class="label">VIX · Overheat</div>
+        <div class="value" id="m-vix" style="font-size:1.15rem">—</div>
+        <div class="sub" id="m-vix-sub">—</div>
+      </div>
+    </section>
+
+    <section class="interp" id="interpretation">Loading interpretation…</section>
+
+    <section class="panel">
+      <h2>3–6 month scenarios</h2>
+      <div class="preview-grid" id="scenarioGrid"></div>
+      <div class="disclaimer" id="disclaimer"></div>
+    </section>
+  </main>
+
+  <footer id="footer">Loading…</footer>
+  <script src="js/scenarios.js"></script>
+</body>
+</html>
