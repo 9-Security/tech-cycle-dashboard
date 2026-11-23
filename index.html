@@ -22,6 +22,14 @@
   <div class="banner" id="banner" data-i18n="common.loadingStatus">Loading data status…</div>
 
   <main>
+    <section class="light" id="light" hidden>
+      <div class="light-head"><span class="light-dot" aria-hidden="true"></span><div>
+        <div class="light-kicker" data-i18n="light.h2">Today's risk light</div>
+        <h2 id="light-title">—</h2></div></div>
+      <ul id="light-points"></ul>
+      <p class="light-foot" id="light-foot"></p>
+    </section>
+
     <section class="metrics posture">
       <div class="card"><div class="label" data-i18n="index.card.regime">Official regime</div><div class="value" id="p-regime">—</div><div class="sub" id="p-regime-sub">—</div></div>
       <div class="card"><div class="label" data-i18n="index.card.weight">Risk weight in force</div><div class="value" id="p-weight">—</div><div class="sub" id="p-weight-sub">—</div></div>

@@ -24,6 +24,7 @@ from .fetch import fetch_all
 from .quality import DataQualityError, enforce, run_checks
 from . import promotion
 from .cross_market import fetch_markets, run_cross_market
+from .light import build_light
 from .risk_model import run_risk
 from .short_risk import run_short_risk
 from .signal_study import run_study
@@ -201,6 +202,8 @@ def refresh(args: argparse.Namespace) -> int:
         "short_term": risk["short_term"]["current"],
         "short_term_epu_verdict": risk["short_term"]["epu_verdict"],
     }
+    status["light"] = build_light(risk["short_term"]["current"], panel)
+    history_row["light"] = status["light"]["level"]
     history_row["p_dd20_12m_model"] = round(cur["p"], 4)
     history_row["vol_fcst_next_month"] = round(status["risk"]["vol_forecast_next_month"]["vol"], 4)
     history_row["var95_1d"] = round(risk["short_term"]["current"]["var95_1d_simple_ret"], 5)

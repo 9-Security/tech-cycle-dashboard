@@ -68,6 +68,29 @@
   add("unit.months", "{n} months", "{n} 個月");
   add("off", "off", "關閉");
 
+  // -------------------------------------------------------------- light
+  add("light.h2", "Today's risk light", "今日風險燈號");
+  add("light.title.green", "Green: markets are relatively calm", "綠燈：市場相對平靜");
+  add("light.title.yellow", "Yellow: volatility is elevated, stay alert", "黃燈：波動偏高，請留意");
+  add("light.title.red", "Red: markets are turbulent, short-term risk is clearly elevated", "紅燈：市場處於動盪期，短期風險明顯偏高");
+  add("light.vol.high", "Tomorrow's expected volatility is about {r}× the usual level, higher than on {p} of trading days since {y}. Daily moves of ±{m} are ordinary right now.",
+    "預估明天的波動約是平常的 {r} 倍，高於 {y} 年以來 {p} 的交易日。現在單日漲跌 ±{m} 都算正常範圍。");
+  add("light.vol.low", "Tomorrow's expected volatility is about {r}× the usual level, lower than on {q} of trading days since {y}. Typical daily moves are around ±{m}.",
+    "預估明天的波動約是平常的 {r} 倍，低於 {y} 年以來 {q} 的交易日。目前單日漲跌大約在 ±{m}。");
+  add("light.var", "About 1 trading day in 20 could see a loss larger than {v}.", "每 20 個交易日中，大約有 1 天可能跌超過 {v}。");
+  add("light.mtd", "Month to date ({m}): {r}.", "本月至今（{m}）：{r}。");
+  add("light.val.below", "Valuation is not stretched: aggregate P/E {pe}×, below its 10-year average.", "估值不貴：大型科技股合計本益比 {pe} 倍，低於近 10 年平均。");
+  add("light.val.near", "Valuation is near normal: aggregate P/E {pe}×, close to its 10-year average.", "估值接近平常：大型科技股合計本益比 {pe} 倍，接近近 10 年平均。");
+  add("light.val.above", "Valuation is elevated: aggregate P/E {pe}×, above its 10-year average.", "估值偏高：大型科技股合計本益比 {pe} 倍，高於近 10 年平均。");
+  add("light.earn.growing", "Earnings momentum is strong.", "獲利動能強勁。");
+  add("light.earn.flat", "Earnings are still growing at a moderate pace.", "獲利仍在溫和成長。");
+  add("light.earn.weakening", "Earnings momentum is weakening — historically this came before more frequent large drawdowns.", "獲利動能正在轉弱；歷史上這種情況之後較常出現大跌。");
+  add("light.backdrop", "These describe the backdrop; the site's tests show valuation and Capex do not time crashes.", "以上是背景資訊；網站的檢驗顯示，估值與資本支出無法用來預測崩盤時點。");
+  add("light.disclaimer", "A risk reminder, not a buy or sell signal. The site cannot predict when a crash happens.", "這是風險提醒，不是買賣建議；網站無法預測何時崩盤。");
+  add("light.rule", "How the light works: green when tomorrow's forecast volatility is below the historical median, yellow between the 50th and 80th percentile, red at or above the 80th percentile. Updated after every US trading day from {d} data.",
+    "燈號規則：明日預估波動低於歷史中位數為綠燈，介於第 50 到第 80 百分位為黃燈，達第 80 百分位以上為紅燈。每個美股交易日收盤後自動更新，本次依 {d} 的資料。");
+  add("light.more", "Details on the <a href='risk.html'>Risk</a> page.", "詳細數字請見<a href='risk.html'>風險頁</a>。");
+
   // ------------------------------------------------------------ index
   add("index.title", "Tech Cycle Backtest", "科技週期回測");
   add("index.asof", "Lag-1 regime strategy · nested walk-forward · as of <strong>{asof}</strong> · regime: <strong>{regime}</strong>",

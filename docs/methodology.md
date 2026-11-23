@@ -1,4 +1,4 @@
-# Methodology — engine v3.3 (live, point-in-time, nested walk-forward)
+# Methodology — engine v3.4 (live, point-in-time, nested walk-forward)
 
 Engine source: [`engine/tcd/`](../engine/tcd). Rebuilt from the v1 specification in this folder; v1 documents are kept for history.
 
@@ -276,3 +276,13 @@ Reading:
 * A constant, lower equity allocation with the same volatility (vol-matched buy & hold) did as well or better in 8 of 9 markets: on this evidence the simple alternative is "hold less", not "time the cycle".
 
 **Consequences.** The promotion rule (model-promotion.md) is unchanged and still governs v3; this result is recorded as additional evidence against promotion and should weigh heavily if v3 is ever close to eligibility.
+
+
+## 12. Daily risk light (plain-language summary)
+
+Module `engine/tcd/light.py`; shown at the top of the home page in the reader's language; stored in `data/status.json → light`.
+
+* **Rule (fixed):** tomorrow's HAR + VIX volatility forecast (§ 10) is ranked against every day's 22-day realized volatility since 1990, using data up to the latest close. Below the median → green; 50th–80th percentile → yellow; ≥ 80th percentile → red.
+* **Text:** the engine writes codes and numbers only (level, percentile, ratio to the historical median, typical daily move, 1-day 95% VaR, month-to-date return, aggregate P/E state vs its 10-year average, earnings-momentum state). The page turns them into sentences from en / zh-TW templates in `js/i18n.js`, so both languages always show the same numbers and change automatically with each daily refresh.
+* The light is built only on the volatility forecast, the one risk estimate with demonstrated out-of-sample skill. Valuation and earnings are shown as backdrop with an explicit note that they do not time crashes.
+* The level is also logged daily in `data/history.csv` (`light` column).
