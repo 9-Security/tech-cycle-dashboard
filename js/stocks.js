@@ -82,9 +82,9 @@
     }
     const oc = OFFICIAL && OFFICIAL.stocks ? OFFICIAL.stocks[s.symbol] : null;
     if (oc) {
-      if (oc.status === "unavailable") pts.push(t("st.d.off.na"));
+      if (oc.status === "unavailable") pts.push(t("st.d.off.na", { src: t("st.off.src." + s.market) }));
       else {
-        let x = t("st.d.off", { n: oc.compared, w0: oc.window[0], w1: oc.window[1], m: oc.n_mismatch, mx: pct(oc.max_abs_diff || 0, 2), miss: oc.n_missing });
+        let x = t("st.d.off", { src: t("st.off.src." + s.market), n: oc.compared, w0: oc.window[0], w1: oc.window[1], m: oc.n_mismatch, mx: pct(oc.max_abs_diff || 0, 2), miss: oc.n_missing });
         if (oc.n_extra) x += (zh ? "" : " ") + t("st.d.off.extra", { d: oc.extra.join(", ") });
         pts.push(x);
       }
@@ -144,11 +144,15 @@
 
   function renderOfficial(oc) {
     if (!oc) return;
-    const sm = oc.summary || {}, list = Object.values(oc.stocks || {});
-    const diff = list.filter((v) => v.n_mismatch || v.n_missing).length;
-    const extraOnly = list.filter((v) => v.status === "warn" && !v.n_mismatch && !v.n_missing).length;
-    setHTML("off-tw", t("st.off.line", { n: oc.n, ok: sm.ok || 0, diff: diff, ex: extraOnly, na: sm.unavailable || 0,
-      u: esc(stampFmt(oc.as_of)) }));
+    ["US", "TW"].forEach((mk) => {
+      const list = Object.entries(oc.stocks || {}).filter(([sym, v]) => (v.market || (sym.indexOf(".TW") > 0 ? "TW" : "US")) === mk).map(([, v]) => v);
+      if (!list.length) return;
+      const ok = list.filter((v) => v.status === "ok").length, na = list.filter((v) => v.status === "unavailable").length;
+      const diff = list.filter((v) => v.n_mismatch || v.n_missing).length;
+      const ex = list.filter((v) => v.status === "warn" && !v.n_mismatch && !v.n_missing).length;
+      const u = (oc.updated || {})[mk] || oc.as_of;
+      setHTML("off-" + mk.toLowerCase(), t("st.off.line." + mk, { n: list.length, ok: ok, diff: diff, ex: ex, na: na, u: esc(stampFmt(u)) }));
+    });
   }
 
   function renderLive(rv) {

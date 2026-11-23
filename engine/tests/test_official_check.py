@@ -43,3 +43,29 @@ def test_compare_categories():
     assert r["not_yet"] == [str(d[5].date())]
     ok = compare(pd.Series([100.0, 101.0], index=d[:2]), pd.Series({d[0]: 100.0, d[1]: 101.2}, dtype=object), OfficialConfig())
     assert ok["status"] == "ok" and ok["compared"] == 2
+
+
+def test_parse_nasdaq():
+    from tcd.sources import nasdaq
+    raw = {"data": {"symbol": "ORCL", "tradesTable": {"rows": [
+        {"date": "11/20/2026", "close": "$101.19"}, {"date": "11/19/2026", "close": "$1,110.57"}]}}}
+    s = nasdaq.parse(json.dumps(raw).encode(), "ORCL")
+    assert list(s.index) == [pd.Timestamp("2026-11-19"), pd.Timestamp("2026-11-20")]
+    assert s[pd.Timestamp("2026-11-19")] == 1110.57
+    with pytest.raises(FetchError):
+        nasdaq.parse(json.dumps({"data": None, "status": {"rCode": 400, "bCodeMessage": [{"errorMessage": "x"}]}}).encode(), "X")
+    with pytest.raises(FetchError):
+        nasdaq.parse(b"<html>", "X")
+
+
+def test_merge_keeps_other_market():
+    from tcd.official_check import merge
+    wl = {"stocks": [{"symbol": "A", "market": "US"}, {"symbol": "B", "market": "TW"}]}
+    existing = {"as_of": "t0", "stocks": {"B": {"status": "warn"}}}  # older file: no market fields, no stamps
+    new = {"stocks": {"A": {"market": "US", "status": "ok"}}, "updated": {"US": "t1"}}
+    m = merge(existing, new, ("US",), wl)
+    assert list(m["stocks"]) == ["A", "B"] and m["stocks"]["B"]["market"] == "TW"
+    assert m["summary_by_market"] == {"US": {"ok": 1}, "TW": {"warn": 1}}
+    assert m["updated"] == {"TW": "t0", "US": "t1"}
+    m2 = merge(m, {"stocks": {"B": {"market": "TW", "status": "ok"}}, "updated": {"TW": "t2"}}, ("TW",), wl)
+    assert m2["stocks"]["A"]["status"] == "ok" and m2["stocks"]["B"]["status"] == "ok"

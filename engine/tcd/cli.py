@@ -261,13 +261,16 @@ def _write_json_atomic(path: Path, obj) -> None:
     os.replace(tmp, path)
 
 
-def _official(args, prices: dict, wl: dict, as_of: str, cfg: EngineConfig) -> None:
-    """Cross-check Taiwan closes with TWSE / TPEx (report only, never blocks)."""
+def _official(args, prices: dict, wl: dict, as_of: str, cfg: EngineConfig,
+              markets: tuple[str, ...] = ("US", "TW")) -> None:
+    """Second-source close check: TW vs TWSE / TPEx, US vs Nasdaq (report only, never blocks)."""
     try:
         store = RawStore(Path(args.cache) / "official", offline=args.offline, timeout=cfg.fetch.timeout_s, retries=1)
-        res = official_check.run(prices, wl, store, as_of)
-        _write_json_atomic(Path(args.out) / "official_check.json", res)
-        log.info("official close check: %s", res["summary"])
+        res = official_check.run(prices, wl, store, as_of, markets=markets)
+        path = Path(args.out) / "official_check.json"
+        res = official_check.merge(_read_json(path), res, markets, wl)
+        _write_json_atomic(path, res)
+        log.info("second-source close check %s: %s", "/".join(markets), res["summary_by_market"])
     except Exception as exc:  # noqa: BLE001
         log.error("official close check skipped: %s", exc)
 
@@ -295,8 +298,7 @@ def stocks_refresh(args: argparse.Namespace) -> int:
                                      "raw_manifest": {**(existing or {}).get("raw_manifest", {}), **manifest}},
                           markets, wl, as_of)
     _write_json_atomic(out, merged)
-    if "TW" in markets:
-        _official(args, prices, wl, as_of, cfg)
+    _official(args, prices, wl, as_of, cfg, markets)
     try:
         ledger.update(Path(args.out), fresh["stocks"], prices, markets, as_of, now, __version__, StockConfig(),
                       all_rows=merged["stocks"])
