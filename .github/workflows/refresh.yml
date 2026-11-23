@@ -1,0 +1,88 @@
+name: Daily refresh & deploy
+
+on:
+  schedule:
+    # 22:15 UTC Mon-Fri: after the US close (20:00/21:00 UTC) so the day's bar exists.
+    - cron: "15 22 * * 1-5"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "docs/**"
+      - "**.md"
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: refresh-and-pages
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    # Pushes only redeploy; data refresh runs on schedule / manual dispatch.
+    if: github.event_name != 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # Repository variable: "<org or app name> <contact email>" (SEC fair-access policy).
+      SEC_USER_AGENT: ${{ vars.SEC_USER_AGENT }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: engine/requirements-dev.txt
+      - name: Install
+        run: pip install -r engine/requirements-dev.txt
+      - name: Unit tests (look-ahead / lag-1 guards)
+        working-directory: engine
+        run: python -m pytest -q tests
+      - name: Refresh data (fail-closed)
+        working-directory: engine
+        run: python -m tcd refresh --out ../data --cache .cache/raw
+      - name: Commit refreshed data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/
+          if git diff --cached --quiet; then
+            echo "No data changes."
+            exit 0
+          fi
+          git commit -m "data: daily refresh $(date -u +%Y-%m-%d)"
+          for i in 1 2 3; do
+            git pull --rebase origin main && git push origin HEAD:main && exit 0
+            sleep $((i * 10))
+          done
+          exit 1
+
+  deploy:
+    needs: refresh
+    # Deploy after a successful refresh, or on push (refresh skipped).
+    # A failed refresh skips deploy, so the site keeps the last good data.
+    if: always() && (needs.refresh.result == 'success' || needs.refresh.result == 'skipped')
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Stage static site
+        run: |
+          mkdir -p _site
+          cp -r index.html validation.html signals.html risk.html scenarios.html css js static data _site/
+          touch _site/.nojekyll
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4

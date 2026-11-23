@@ -1,38 +1,161 @@
 {
-  "DATA_SOURCE": "REAL",
-  "as_of": "20261121T035000Z",
-  "data_source": "REAL",
-  "fetched": false,
-  "metrics": {
-    "ann_turnover": 1.62,
-    "ann_vol_pct": 9.09,
-    "bh_final_nav": 24.90644500734125,
-    "cagr_pct": 5.76,
-    "final_nav": 5.033121229492458,
-    "max_dd_pct": -23.8,
-    "sharpe": 0.66,
-    "total_cost_pct": 6.99
-  },
-  "n_months": 346,
-  "panel_end": "2026-10-31",
-  "panel_start": "1998-01-31",
+ "as_of": "20261123T065233Z",
+ "DATA_SOURCE": "REAL",
+ "data_source": "REAL",
+ "engine_version": "3.1.1",
+ "git_sha": null,
+ "n_months": 322,
+ "panel_start": "2000-01-31",
+ "panel_end": "2026-10-31",
+ "regime": {
+  "code": 4,
+  "label": "Normal"
+ },
+ "signals": {
+  "vix": 16.895909222689543,
+  "vix_last": 19.420000076293945,
+  "overheat_score": 1.3423173586589616,
+  "val_z": -1.270029668760816,
+  "val_src": "PE",
+  "pe_agg": 18.387694656321784,
+  "capex_z": 3.954664386078739,
+  "capex_ratio_firm": 0.3054628418036458,
+  "capex_src": "SEC",
+  "earn_score": 0.6793777456793308,
+  "earn_src": "SEC",
+  "shock_flag": 0
+ },
+ "weights": {
+  "executed_weight": 1.0,
+  "recommended_weight": 1.0,
+  "in_force_month": "2026-11",
+  "note": "Risk weight decided at 2026-10-31 month-end and held through 2026-11 (lag-1).",
+  "target_weight": 0.25
+ },
+ "params": {
+  "vix_threshold": 18.0,
+  "overheat_threshold": 1.5,
+  "earn_threshold": -1.0,
+  "w_overheat": 0.75,
+  "w_shock": 0.25,
+  "w_digestion": 0.5,
+  "w_normal": 1.0,
+  "fit_for_year": 2026
+ },
+ "provisional": {
+  "month": "2026-11",
+  "data_through": "2026-11-20",
   "regime": {
-    "code": 4,
-    "label": "Normal"
+   "code": 2,
+   "label": "Shock"
   },
   "signals": {
-    "capex_ratio": 0.18247936436347975,
-    "eps_rev_3m": 0.0706379483918826,
-    "overheat_score": 1.1764136182152736,
-    "shock_flag": 0,
-    "val_pct": 35.0,
-    "vix": 19.42
+   "vix": 22.969333140055337,
+   "vix_last": 35.88999938964844,
+   "overheat_score": 0.815108272547914,
+   "val_z": -2.029405882266463,
+   "val_src": "PE",
+   "pe_agg": 16.18672230717038,
+   "capex_z": 3.659622427362291,
+   "capex_ratio_firm": 0.3035097071214551,
+   "capex_src": "SEC",
+   "earn_score": 0.27154020877324897,
+   "earn_src": "SEC",
+   "shock_flag": 1
   },
-  "weights": {
-    "executed_weight": 0.5897,
-    "note": "recommended_weight is lag-1 executed risk weight (no same-month look-ahead).",
-    "recommended_weight": 0.5897,
-    "target_weight": 1.0
+  "next_month_weight_if_month_ended_today": 0.25,
+  "note": "Month-to-date signals. Not final until month-end; not used in the backtest."
+ },
+ "candidate": {
+  "model": "tilt_v3",
+  "label": "v3 candidate: valuation/Capex tilts + vol targeting",
+  "design_date": "2026-11-23",
+  "panel_end": "2026-10-31",
+  "executed_weight": 0.19131975635660223,
+  "month_end": {
+   "weight": 0.19131975635660223,
+   "state": {
+    "code": 2,
+    "label": "Vol-capped"
+   },
+   "tilt": -0.4656266176585442,
+   "base_weight": 0.2843733823414558,
+   "earnings_cut_active": false,
+   "vol_forecast": 0.2972755012413985,
+   "vol_scale": 0.672776596674856
   },
-  "snapshot_label": "Baked snapshot (sample) \u2014 not live-refreshed"
+  "params": {
+   "c_px": 0.25,
+   "c_pe": 0.25,
+   "c_capex": 0.0,
+   "base": 0.75,
+   "earn_cut": 0.75,
+   "earn_threshold": -1.0,
+   "vol_input": "rv21",
+   "vol_target": 0.2,
+   "band": 0.05,
+   "fit_for_year": 2026
+  },
+  "provisional": {
+   "month": "2026-11",
+   "data_through": "2026-11-20",
+   "weight": 0.0,
+   "state": {
+    "code": 2,
+    "label": "Vol-capped"
+   },
+   "tilt": -0.9672259551180379,
+   "base_weight": 0.0,
+   "earnings_cut_active": false,
+   "vol_forecast": 0.4987581587458751,
+   "vol_scale": 0.40099594661849547
+  },
+  "since_design": null,
+  "note": "Candidate only. Live posture remains the v2 regime model until v3 earns out-of-sample evidence after its design date.",
+  "promotion": {
+   "state": "collecting",
+   "note": "Collecting post-design evidence: 0/24 months. No decision before 2028-11.",
+   "months": 0,
+   "earliest_decision_after": "2028-11"
+  }
+ },
+ "metrics": {
+  "sharpe": 0.1123219357944076,
+  "sortino": 0.0877538931083056,
+  "cagr": 0.025132025258623347,
+  "ann_vol": 0.14392265033856957,
+  "max_dd": -0.7190493597117757,
+  "calmar": 0.034951738596495356,
+  "final_nav": 1.946516087625096,
+  "period_return": 0.946516087625096,
+  "ann_turnover": 1.3975155279503106,
+  "avg_weight": 0.6187888198757764,
+  "total_cost": 0.05625000000000001,
+  "months": 322
+ },
+ "metrics_basis": "nested walk-forward out-of-sample",
+ "snapshot_label": "Live - refreshed daily",
+ "risk": {
+  "target": "P(drawdown worse than -20% within 12 months)",
+  "verdict": "no skill: worse than the base rate out-of-sample - use the base rate",
+  "headline_source": "base_rate",
+  "headline_p": 0.15571776155717762,
+  "base_rate": 0.15571776155717762,
+  "model_p": 0.3380929220884282,
+  "model_ci90": [
+   0.0725134363625821,
+   0.5697710222056184
+  ],
+  "as_of_row": "2026-11-30",
+  "vol_forecast_next_month": {
+   "date": "2026-11-30",
+   "vol": 0.3512954325630241,
+   "band90": [
+    0.1940658603036979,
+    0.6751785105246775
+   ],
+   "current_rv21": 0.4987581587458751
+  },
+  "vol_forecast_oos_r2": 0.49786088498214365
+ }
 }

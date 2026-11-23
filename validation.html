@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tech Cycle — Validation</title>
+  <link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>Tech Cycle — Validation</h1>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="index.html">Backtest</a>
+      <a class="active" href="validation.html">Validation</a>
+      <a href="signals.html">Signals</a>
+      <a href="risk.html">Risk</a>
+      <a href="scenarios.html">Scenarios</a>
+    </nav>
+  </header>
+  <div class="subbar" id="asof-line">Loading…</div>
+  <div class="banner" id="banner">Loading data status…</div>
+
+  <main>
+    <section class="panel">
+      <h2>Model comparison — v2 regime (live) vs v3 tilt + vol target (candidate)</h2>
+      <div class="table-wrap"><table id="modelTable"></table></div>
+      <p class="note" id="designNote"></p>
+    </section>
+
+    <section class="panel">
+      <h2>v3 promotion rule — pre-registered (<a href="https://github.com/9-Security/tech-cycle-dashboard/blob/main/docs/model-promotion.md">docs/model-promotion.md</a>)</h2>
+      <p class="interp" id="promoState">—</p>
+      <div class="table-wrap"><table id="promoTable"></table></div>
+      <p class="note">Status is computed daily and reported only. The engine never switches the live model; the owner decides.</p>
+    </section>
+
+    <div class="model-pick" id="modelPick" role="tablist" aria-label="Model">
+      <span class="muted small">Details for:</span>
+      <button class="active" data-model="regime_v2">v2 regime (live)</button>
+      <button data-model="tilt_v3">v3 candidate</button>
+    </div>
+
+    <section class="interp" id="summary">Loading…</section>
+
+    <section class="panel">
+      <h2>Out-of-sample vs hindsight vs benchmarks</h2>
+      <div class="table-wrap"><table id="cmpTable"></table></div>
+    </section>
+
+    <section class="panel">
+      <h2>Multiple-testing statistics</h2>
+      <div class="metrics" id="stats"></div>
+      <p class="note">DSR = Deflated Sharpe Ratio (Bailey &amp; López de Prado): probability the in-sample best Sharpe is real after accounting for every configuration tried. PSR = Probabilistic Sharpe Ratio of the out-of-sample track record. Both assume roughly i.i.d. monthly returns.</p>
+    </section>
+
+    <section class="panel">
+      <h2>Valuation input (v2 model) — aggregate P/E vs price-extension proxy</h2>
+      <div class="table-wrap"><table id="valTable"></table></div>
+      <p class="note">IC = correlation of the valuation z-score with the next 12-month log return of the risk asset, over the window where firm-level P/E exists (negative = high valuation preceded weaker returns). Overlapping windows: descriptive only, not a significance test.</p>
+    </section>
+
+    <section class="panel">
+      <h2>Ablation — each variant gets its own nested walk-forward</h2>
+      <div class="table-wrap"><table id="ablTable"></table></div>
+    </section>
+
+    <section class="panel">
+      <h2>Crisis sub-periods (OOS strategy vs buy &amp; hold)</h2>
+      <div class="table-wrap"><table id="subTable"></table></div>
+    </section>
+
+    <section class="panel">
+      <h2>Parameter sensitivity — full-sample Sharpe</h2>
+      <p class="note" id="sensNote"></p>
+      <div class="table-wrap"><table id="heat" class="heat"></table></div>
+    </section>
+
+    <section class="panel">
+      <h2>Walk-forward folds — parameters chosen each January</h2>
+      <div class="table-wrap"><table id="foldTable"></table></div>
+    </section>
+
+    <section class="panel">
+      <h2>Data quality &amp; provenance (latest run)</h2>
+      <div class="table-wrap"><table id="dqTable"></table></div>
+      <div class="table-wrap"><table id="srcTable"></table></div>
+    </section>
+  </main>
+
+  <footer id="footer">Loading…</footer>
+  <script src="js/common.js"></script>
+  <script src="js/validation.js"></script>
+</body>
+</html>

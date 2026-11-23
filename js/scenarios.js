@@ -1,98 +1,56 @@
 (function () {
-  const fmt = (x, d = 2) =>
-    x == null || Number.isNaN(Number(x)) ? "—" : Number(x).toFixed(d);
-
-  async function loadJSON(path) {
-    const res = await fetch(path);
-    if (!res.ok) throw new Error(path + " → " + res.status);
-    return res.json();
-  }
+  const { fmt, esc, loadJSON, setText, renderBanner, regimeBadge } = window.TCD;
 
   async function boot() {
-    const [status, scenarios] = await Promise.all([
+    const [status, sc, health] = await Promise.all([
       loadJSON("data/status.json"),
       loadJSON("data/scenarios.json"),
+      loadJSON("data/health.json").catch(() => null),
     ]);
-
     document.body.dataset.ready = "1";
-
-    const asOf = status.as_of || scenarios.as_of || "—";
-    const regime = (status.regime && status.regime.label) || "—";
-    const regimeCode = (status.regime && status.regime.code) || "—";
-    const weights = status.weights || scenarios.weights || {};
-    const signals = status.signals || scenarios.signals || {};
+    renderBanner(health);
 
     document.getElementById("asof-line").innerHTML =
-      "3–6 month risk narratives · lag-1 engine · not trade signals · as of <strong>" +
-      asOf +
-      "</strong> · live regime: <strong>" +
-      regime +
-      "</strong>";
+      "Rule-based risk brief · lag-1 engine · not trade signals · as of <strong>" + esc(status.as_of) + "</strong>";
 
-    document.getElementById("m-asof").textContent = asOf;
-    document.getElementById("m-asof-sub").textContent =
-      (status.DATA_SOURCE || status.data_source || "REAL") +
-      " · panel " +
-      (status.panel_end || scenarios.panel_end || "—");
-    document.getElementById("m-regime").textContent = regime;
-    document.getElementById("m-regime-sub").textContent = "code " + regimeCode;
-    document.getElementById("m-weight").textContent = fmt(
-      weights.recommended_weight ?? weights.executed_weight,
-      4
-    );
-    document.getElementById("m-weight-sub").textContent =
-      "target " + fmt(weights.target_weight, 1);
-    document.getElementById("m-vix").textContent =
-      fmt(signals.vix, 2) + " · " + fmt(signals.overheat_score, 3);
-    document.getElementById("m-vix-sub").textContent =
-      "shock_flag " + (signals.shock_flag ?? "—");
+    const w = status.weights || {};
+    document.getElementById("m-regime").innerHTML = regimeBadge(status.regime);
+    setText("m-regime-sub", "month-end " + status.panel_end);
+    setText("m-weight", fmt(w.executed_weight, 2));
+    setText("m-weight-sub", "held through " + (w.in_force_month || "—"));
+    const prov = status.provisional;
+    if (prov) {
+      document.getElementById("m-prov").innerHTML = regimeBadge(prov.regime);
+      setText("m-prov-sub", "data through " + prov.data_through);
+    } else {
+      setText("m-prov-sub", "no month in progress");
+    }
+    setText("m-fit", status.params ? String(status.params.fit_for_year) : "—");
+    setText("interpretation", sc.interpretation || "");
 
-    document.getElementById("interpretation").textContent =
-      scenarios.interpretation || "";
+    const trig = document.getElementById("trigTable");
+    trig.innerHTML = "<thead><tr><th>Trigger</th><th>Signal</th><th>Value</th><th>Threshold</th><th>Fires when</th><th>Distance</th><th>Status</th><th>Weight if active</th></tr></thead><tbody>" +
+      (sc.triggers || []).map((t) =>
+        "<tr><td>" + esc(t.id) + "</td><td>" + esc(t.signal) + "</td><td>" + fmt(t.value) + "</td><td>" + fmt(t.threshold) +
+        "</td><td>" + esc(t.direction) + "</td><td>" + fmt(t.distance) + "</td><td>" +
+        (t.active ? '<span class="dq FAIL">ACTIVE</span>' : '<span class="dq PASS">inactive</span>') +
+        "</td><td>" + fmt(t.weight, 2) + "</td></tr>").join("") + "</tbody>";
 
     const grid = document.getElementById("scenarioGrid");
-    (scenarios.scenarios || []).forEach(function (s) {
+    (sc.scenarios || []).forEach((s) => {
       const el = document.createElement("article");
       el.className = "scenario-card " + s.id;
       const posture = s.suggested_defensive_posture || {};
-      const flips = (s.flip_conditions || [])
-        .map(function (f) {
-          return "<li>" + f + "</li>";
-        })
-        .join("");
-      el.innerHTML =
-        "<h3>" +
-        s.id +
-        " <span style='font-weight:500;color:#6b6560;font-size:0.8rem'>(" +
-        (s.horizon || "3-6 months") +
-        ")</span></h3>" +
-        "<p>" +
-        (s.thesis || "") +
-        "</p>" +
-        (flips ? "<ul>" + flips + "</ul>" : "") +
-        "<p>Suggested defensive posture: <span class='weight'>" +
-        fmt(posture.risk_weight, 4) +
-        "</span></p>" +
-        "<p style='color:#6b6560;font-size:0.8rem'>" +
-        (posture.rationale || "") +
-        "</p>";
+      const flips = (s.flip_conditions || []).map((f) => "<li>" + esc(f) + "</li>").join("");
+      el.innerHTML = "<h3>" + esc(s.id) + " <span class='muted small'>(" + esc(s.horizon) + ")</span></h3>" +
+        "<p>" + esc(s.thesis) + "</p>" + (flips ? "<ul>" + flips + "</ul>" : "") +
+        "<p>Risk weight: <span class='weight'>" + fmt(posture.risk_weight, 2) + "</span></p>" +
+        "<p class='muted small'>" + esc(posture.rationale) + "</p>";
       grid.appendChild(el);
     });
-
-    document.getElementById("disclaimer").textContent =
-      scenarios.disclaimer ||
-      "Scenario analysis for risk discussion only. Not investment advice. Not an auto-trading signal.";
-
-    document.getElementById("footer").textContent =
-      "Snapshot: " +
-      (scenarios.snapshot_label || "baked scenario brief") +
-      " · as_of " +
-      asOf +
-      " · DATA_SOURCE=" +
-      (scenarios.DATA_SOURCE || status.DATA_SOURCE || "REAL");
+    setText("disclaimer", sc.disclaimer || "Not investment advice.");
+    setText("footer", "Snapshot: " + (sc.snapshot_label || "") + " · as_of " + status.as_of + " · DATA_SOURCE=" + (status.DATA_SOURCE || "REAL"));
   }
 
-  boot().catch(function (e) {
-    document.getElementById("footer").textContent = "Failed to load: " + e;
-  });
+  boot().catch((e) => setText("footer", "Failed to load: " + e));
 })();
