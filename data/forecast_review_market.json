@@ -1,5 +1,5 @@
 {
- "as_of": "20261123T140224Z",
+ "as_of": "20261123T142545Z",
  "settings": {
   "var_level": 0.05,
   "min_days_var": 250,
@@ -7,10 +7,10 @@
   "rolling_days": 60
  },
  "current_models": {
-  "var_1d": "8d7e08f31003",
-  "vol_5d": "8d7e08f31003",
-  "vol_1m": "ebc4fcd6e218",
-  "var_1d_challenger": "117dc393ad20"
+  "var_1d": "d0e3a1794a49",
+  "vol_5d": "d0e3a1794a49",
+  "vol_1m": "f12a73c641b7",
+  "var_1d_challenger": "74a147431e24"
  },
  "targets": {
   "var_1d": {
@@ -21,24 +21,30 @@
    "christoffersen_p": null,
    "verdict": "insufficient",
    "first_date": null,
-   "logged": 1,
-   "logged_since": "2026-11-20",
-   "other_models": {},
+   "logged": 0,
+   "logged_since": null,
+   "other_models": {
+    "8d7e08f31003": 1
+   },
    "pending": 1
   },
   "vol_5d": {
    "n": 0,
-   "logged": 1,
-   "logged_since": "2026-11-20",
-   "other_models": {},
+   "logged": 0,
+   "logged_since": null,
+   "other_models": {
+    "8d7e08f31003": 1
+   },
    "pending": 1
   },
   "vol_1m": {
    "n": 0,
    "verdict": "insufficient",
-   "logged": 1,
-   "logged_since": "2026-10-31",
-   "other_models": {},
+   "logged": 0,
+   "logged_since": null,
+   "other_models": {
+    "ebc4fcd6e218": 1
+   },
    "pending": 1
   },
   "var_1d_challenger": {
@@ -49,14 +55,16 @@
    "christoffersen_p": null,
    "verdict": "insufficient",
    "first_date": null,
-   "logged": 1,
-   "logged_since": "2026-11-20",
-   "other_models": {},
+   "logged": 0,
+   "logged_since": null,
+   "other_models": {
+    "117dc393ad20": 1
+   },
    "pending": 1
   }
  },
  "last_run": {
-  "forecasts_added": 1
+  "forecasts_added": 0
  },
  "challenger_comparison": {
   "common_days": 0,
