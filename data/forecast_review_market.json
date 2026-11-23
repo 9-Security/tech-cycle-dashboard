@@ -1,0 +1,47 @@
+{
+ "as_of": "20261123T135156Z",
+ "settings": {
+  "var_level": 0.05,
+  "min_days_var": 250,
+  "min_months_vol": 24,
+  "rolling_days": 60
+ },
+ "current_models": {
+  "var_1d": "8d7e08f31003",
+  "vol_5d": "8d7e08f31003",
+  "vol_1m": "ebc4fcd6e218"
+ },
+ "targets": {
+  "var_1d": {
+   "n": 0,
+   "breaches": 0,
+   "breach_rate": null,
+   "kupiec_p": null,
+   "christoffersen_p": null,
+   "verdict": "insufficient",
+   "first_date": null,
+   "logged": 1,
+   "logged_since": "2026-11-20",
+   "other_models": {},
+   "pending": 1
+  },
+  "vol_5d": {
+   "n": 0,
+   "logged": 1,
+   "logged_since": "2026-11-20",
+   "other_models": {},
+   "pending": 1
+  },
+  "vol_1m": {
+   "n": 0,
+   "verdict": "insufficient",
+   "logged": 1,
+   "logged_since": "2026-10-31",
+   "other_models": {},
+   "pending": 1
+  }
+ },
+ "last_run": {
+  "forecasts_added": 3
+ }
+}
