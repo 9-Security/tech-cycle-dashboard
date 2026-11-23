@@ -236,6 +236,7 @@ def analyze_stock(spec: dict, px: pd.DataFrame, bench: pd.Series | None, cfg: St
     risk = current_risk(df, cfg)
     row = {**{k: spec[k] for k in ("symbol", "market", "segment", "name_en", "name_zh")},
            "history_start": str(close.index[0].date()), **market_stats(close, bench), **risk,
+           "model_last_date": str(df.index[-1].date()),  # last day the forecast is built on
            "backtest": backtest(df, fc, cfg), "fundamentals": None}
     if sec is not None:
         row["fundamentals"] = us_fundamentals(sec["facts"], sec["shares"], sec["splits"], px["close"], close.index[-1])

@@ -360,6 +360,13 @@ Module `engine/tcd/ledger.py`; files `data/forecasts/stocks_ledger.csv` (append-
 
 Also reported (descriptive, no verdict): variance ratio with clustered 90% CI (target 1.0), HAR vs EWMA per-date mean QLIKE difference with a Newey-West t, the last 60 days separately, and realized vs forecast volatility by risk-light level.
 
+**Refinements of 2026-11-23 (review round 3; made before any outcome existed):**
+* A forecast is logged only if its origin is a real trading day of the market benchmark (`^TWII`, `^NDX`: a bar exists and its close moved) and the model's data end on that same day (a halted or filtered stock is not logged). Targets are the next bar on a benchmark trading day; a bar after the benchmark's last bar waits.
+* Outcomes with status `scored`, `gap` or `data_error` are **final**: kept exactly as first computed. A failed price fetch, a watchlist removal, a data revision or a non-trading day leaving the second-source window can no longer erase or change them; only `pending`, `no_price` and `origin_missing` rows are re-evaluated.
+* CSV columns are read back as text (an all-digit `model_id` stays a string).
+* Verdicts use only the current model's forecasts; other models are counted in `other_models`. `model_id` hashes the forecasting functions (incl. shared fitting code and the light rule) and `StockConfig`; a test pins the current id. The ledger's first 28 rows carry the old-formula id `333e22e1aab1`; their forecasting code was checked to be byte-identical to the current one, so `MODEL_ID_ALIASES` maps them to `9c9661d3517e`.
+* Pooled confidence interval: deviations summed per date (names breaching on the same day) **and** Newey-West over the date-ordered sums with a 5-trading-day lag (breaches clustering over consecutive days). Date clustering alone was too narrow.
+
 **No automatic recalibration.** Results never feed back into the model. If a verdict says the VaR is miscalibrated, a fix is a code change with a new `model_id`; the old rows stay in the ledger and the new model's record starts from zero.
 
 Expected timing: market verdicts after about 3 months, single-stock verdicts after about 1 year. Until then the page shows "not enough data yet", which is not evidence for or against the model.
@@ -402,6 +409,8 @@ Four independent reviewers (point-in-time correctness, statistical methods, stoc
 
 **Fixed in the second round (operations and security, no effect on published numbers):** report-only failures recorded in health.json and the banner; second-source outages keep the last good results; per-job concurrency groups; hash-pinned dependencies and no persisted write token; ci.yml with read-only permissions; freshness and no-new-bar gates on the Taiwan-only run; secret sanitising and redacted request errors; pre-commit data validation (strict JSON/CSV, append-only ledger against the previous commit, no e-mail addresses); git commit and run mode recorded; full request URLs in manifests; a real append check in the ledger. Not done: pinning Actions by commit SHA.
 
-**Found, not yet fixed:** ledger edge cases (holiday-dated origins, outcomes wiped on a failed fetch, model_id dtype on read-back, verdicts pooling model ids, stale-run origin dates). Minor: Sortino definition, `r2_log` diagnostic, BDay-based cutoffs ignoring exchange holidays, BSS verdict sensitivity to block length, partial-month flag on holiday month-ends, no CSP header, a few engine-generated values inserted into HTML without escaping.
+**Fixed in the third round (forecast ledger):** benchmark-calendar origins and targets, final outcomes frozen, text dtypes on read-back, verdicts per current model with a verified alias for the first rows, model-date check for halted names, CI robust to serial clustering; see § 14.
+
+**Found, not yet fixed — minor:** Sortino definition, `r2_log` diagnostic, BDay-based cutoffs ignoring exchange holidays, BSS verdict sensitivity to block length, partial-month flag on holiday month-ends, no CSP header, a few engine-generated values inserted into HTML without escaping.
 
 **Known limitations, unchanged:** survivorship (today's ten leaders), design choices made after full-sample work, macro proxies from the latest FRED vintage. The market VaR, although it passes over 2000–2026 (4.76%), breached 7.15% of days over the last three years (Kupiec p 0.011); per the decision to judge stock and market VaR changes on live data, this is monitored, not tuned on the backtest.

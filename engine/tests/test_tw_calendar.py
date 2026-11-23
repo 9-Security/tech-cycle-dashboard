@@ -26,3 +26,13 @@ def test_clean_is_noop_without_index():
     a = _df(["2024-01-02"], [1])
     out, rep = tw_calendar.clean({"A.TW": a}, wl)
     assert out["A.TW"] is a and rep["applied"] is False
+
+
+def test_bar_after_index_end_dropped_only_if_unchanged():
+    wl = {"stocks": [{"symbol": "A.TW", "market": "TW"}, {"symbol": "B.TW", "market": "TW"}]}
+    twii = _df(["2026-10-21", "2026-10-22"], [100, 101])
+    a = _df(["2026-10-21", "2026-10-22", "2026-10-23"], [10, 11, 11])   # carried forward on a closure
+    b = _df(["2026-10-21", "2026-10-22", "2026-10-23"], [10, 11, 12])   # index lags; real move kept
+    out, _ = tw_calendar.clean({"^TWII": twii, "A.TW": a, "B.TW": b}, wl)
+    assert list(out["A.TW"].index.strftime("%Y-%m-%d")) == ["2026-10-21", "2026-10-22"]
+    assert len(out["B.TW"]) == 3
