@@ -1,5 +1,5 @@
 {
- "as_of": "20261123T093013Z",
+ "as_of": "20261123T094631Z",
  "settings": {
   "var_level": 0.05,
   "min_days_stock": 250,
@@ -36,7 +36,7 @@
    "status_counts": {
     "pending": 18
    },
-   "backtest_breach_rate_mean": 0.05201036788416177
+   "backtest_breach_rate_mean": 0.05201303723373919
   }
  },
  "stocks": {
@@ -137,7 +137,7 @@
    "kupiec_p": null,
    "christoffersen_p": null,
    "verdict": "insufficient",
-   "backtest_breach_rate": 0.04377647770829131
+   "backtest_breach_rate": 0.043785310734463276
   },
   "2454.TW": {
    "n": 0,
@@ -164,7 +164,7 @@
    "kupiec_p": null,
    "christoffersen_p": null,
    "verdict": "insufficient",
-   "backtest_breach_rate": 0.051686615886833515
+   "backtest_breach_rate": 0.05170068027210884
   },
   "2317.TW": {
    "n": 0,
@@ -290,7 +290,7 @@
    "kupiec_p": null,
    "christoffersen_p": null,
    "verdict": "insufficient",
-   "backtest_breach_rate": 0.06242448650825614
+   "backtest_breach_rate": 0.062449637389202256
   }
  },
  "model_ids": [
@@ -298,6 +298,7 @@
  ],
  "last_run": {
   "markets": [
+   "US",
    "TW"
   ],
   "forecasts_added": 0
