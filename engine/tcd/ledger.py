@@ -355,12 +355,15 @@ def _pooled(s: pd.DataFrame, cfg: ReviewConfig) -> dict:
     # breaches" is tested; "too few" is NOT, because no tested method controls
     # its false-positive rate when names breach together (simulated 6-27% at a
     # nominal 5%). The interval above is descriptive only.
-    if n_dates < cfg.min_dates_pooled:
-        out["verdict"] = "insufficient"
-    elif pt < 0.05:
-        out["verdict"] = "too_many"     # VaR too aggressive
-    else:
-        out["verdict"] = "not_rejected"
+    # Verdict only at the registered interim looks (60 / 120 / 250 dates, alpha
+    # 1% / 1.5% / 2.5%; section 20): re-testing the growing sample every day
+    # would inflate false alarms. too_many_z/p above are the current sample's,
+    # for display only.
+    from . import sequential
+    out["interim"] = sequential.pooled(br, dates)
+    v = out["interim"]["verdict"]
+    out["verdict"] = ("insufficient" if v == "before_first_look"
+                      else "too_many" if v.startswith("too_many") else "not_rejected")
     last = sorted(s["target_date"].unique())[-cfg.rolling_dates:]
     r = s[s["target_date"].isin(last)]
     out["rolling"] = {"n_dates": len(last), "n": int(len(r)), "breaches": int(r["breach"].sum()),

@@ -488,3 +488,20 @@ Three independent reviewers read the code added after the first review (§ 16: l
 | A few numbers inserted into HTML unescaped | Escaped. |
 
 **Known limitations (documented, not changed):** Christoffersen is applied to logged days, which can have gaps (failed runs, no backfill); incumbent and challenger rows for one day may come from different data vintages if one is added by a re-run; a lagging benchmark drops that day's forecasts (not recovered) and the after-window Taiwan rule can drop a real unchanged-close bar for one run; Yahoo's dividend adjustment may lag the ex-date, so a return scored on an ex-dividend day can include the dividend drop; the e-mail check in `validate_data.py` does not catch encoded addresses; a `<meta>` CSP cannot set `frame-ancestors` (GitHub Pages sets no headers).
+
+## 20. Earlier live verdicts: interim looks and a multi-market panel (registered 2026-11-23)
+
+Registered in the commit that adds this section, **before any live outcome existed and before the panel's results were computed** (modules `engine/tcd/sequential.py`, `engine/tcd/var_panel.py`).
+
+**Why.** A 95% VaR breaches on 1 day in 20, so one series yields few events: after 250 days (≈ 12 expected breaches) a true rate of 7% is detected with less than even odds; ≈ 730 days are needed for 80%. Waiting a year gives a verdict, but a weak one.
+
+**A — interim looks (early warning).** Verdicts on "too many breaches" are taken only at fixed looks with a split error budget; re-testing a growing sample every day would inflate false alarms (this also replaces the daily re-test of the pooled stock verdict of § 14):
+
+| Look (scored days or dates) | 60 | 120 | 250 |
+|---|---:|---:|---:|
+| One-sided alpha | 1% | 1.5% | 2.5% |
+| Single series (market VaR, challenger): breaches in the first *n* days ≥ | 8 | 13 | 21 |
+
+Pooled series (stock ledger per market, panel below) use the null-centred, date-summed Newey-West z-test of § 19 on the first *n* dates at the same alphas. A warning, once raised at a look, stays raised. Simulated overall false-alarm rate: single series 2.4% (independent breaches), 5.0% (mild clustering), 8.6% (strong clustering, which Christoffersen flags separately); pooled 1.1–5.0%. Power of the single series: true rate 10% → 24% by day 60 and 84% by day 250; 12% → 43% and 97%. **The 3-month look catches only gross under-coverage.** The Kupiec + Christoffersen verdict at 250 days (§ 17) and the challenger rule (§ 18) are unchanged.
+
+**B — multi-market panel of the VaR method.** The live VaR's method without the VIX term (VIX measures US large-cap volatility only): log-HAR on (rv_d, rv_w, rv_m) of each series' own daily log returns, one-day target, annual walk-forward refits, Duan smearing, 1-day 95% VaR from the 5% quantile of all earlier out-of-sample standardized returns (≥ 500). Series: `^NDX ^SOX SPY XLF XLE XLV EWJ EWG EWU EEM` (Yahoo adjusted close; already fetched for § 11). Logged daily in the market ledger as `panel_var_1d:<symbol>` (own `model_id`), scored on each series' next bar after the US close is final. Pooled verdict at the interim looks above; with ten correlated series the first look (60 dates ≈ 3 months) has far more breaches than the single series. It judges the **method**, not the XLK VaR on the site. Its backtest per series is published as context only (`backtest_context`).
