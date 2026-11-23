@@ -15,6 +15,8 @@
     const m = data.metrics || {};
     setHTML("asof-line", t("index.asof", { asof: esc(status.as_of), regime: esc(regimeLabel(status.regime && status.regime.code, status.regime && status.regime.label)) }));
 
+    renderLight(status.light);
+
     // Posture
     const w = status.weights || {};
     setHTML("p-regime", regimeBadge(status.regime));
@@ -141,6 +143,29 @@
         "<p>" + esc(s.thesis) + "</p><p>" + esc(t("index.sc.weight")) + " <span class='weight'>" + fmt(s.weight, 2) + "</span></p>";
       preview.appendChild(el);
     });
+  }
+
+  function renderLight(L) {
+    if (!L) return;
+    const box = document.getElementById("light");
+    box.hidden = false;
+    box.dataset.level = L.level;
+    setText("light-title", t("light.title." + L.level));
+    const y = (L.hist_start || "").slice(0, 4);
+    const pts = [];
+    pts.push(L.vol_percentile >= 0.5
+      ? t("light.vol.high", { r: fmt(L.vol_ratio, 1), p: pct(L.vol_percentile, 0), y: y, m: pct(L.daily_move, 1) })
+      : t("light.vol.low", { r: fmt(L.vol_ratio, 1), q: pct(1 - L.vol_percentile, 0), y: y, m: pct(L.daily_move, 1) }));
+    pts.push(t("light.var", { v: pct(L.var95, 1) }));
+    if (L.mtd_month && L.mtd_return != null) pts.push(t("light.mtd", { m: L.mtd_month, r: (L.mtd_return >= 0 ? "+" : "") + pct(L.mtd_return, 1) }));
+    const bg = [];
+    if (L.val_state !== "unknown" && L.pe != null) bg.push(t("light.val." + L.val_state, { pe: fmt(L.pe, 1) }));
+    if (L.earn_state !== "unknown") bg.push(t("light.earn." + L.earn_state));
+    const sp = window.TCD_I18N.lang === "en" ? " " : "";
+    if (bg.length) pts.push(bg.concat(t("light.backdrop")).join(sp));
+    pts.push(t("light.disclaimer"));
+    document.getElementById("light-points").innerHTML = pts.map((x) => "<li>" + esc(x) + "</li>").join("");
+    setHTML("light-foot", esc(t("light.rule", { d: L.date })) + sp + t("light.more"));
   }
 
   function monthsBetween(a, b) {

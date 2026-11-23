@@ -28,7 +28,7 @@ PANEL_COLUMNS = [
 HISTORY_FIELDS = [
     "run_at", "panel_end", "regime", "executed_weight", "provisional_month", "provisional_regime",
     "provisional_weight", "vix", "overheat_score", "earn_score", "oos_sharpe", "v3_weight",
-    "v3_month_end_weight", "p_dd20_12m_model", "vol_fcst_next_month", "var95_1d", "git_sha",
+    "v3_month_end_weight", "p_dd20_12m_model", "vol_fcst_next_month", "var95_1d", "light", "git_sha",
 ]
 
 

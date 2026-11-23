@@ -286,6 +286,13 @@ def current(df: pd.DataFrame, cfg: ShortRiskConfig, model: str) -> dict:
             out["var95_1d"] = float(-(q * sqrt(fv)))  # positive = loss
             out["var95_1d_simple_ret"] = float(1 - exp(q * sqrt(fv)))
     out["ewma_vol_ann"] = sqrt(float(df["ewma"].iloc[-1]) * 252)
+    # Where tomorrow's forecast sits in the history of 22-day realized vol
+    # (all days up to the latest close; point-in-time).
+    hist = np.sqrt(df["rv_m"].dropna() * 252)
+    out["vol_hist_percentile"] = float((hist <= out["vol_1d_ann"]).mean())
+    out["vol_hist_median"] = float(hist.median())
+    out["vol_hist_start"] = str(hist.index[0].date())
+    out["vol_hist_days"] = int(len(hist))
     return out
 
 
