@@ -28,7 +28,7 @@ from .cross_market import fetch_markets, run_cross_market
 from .light import build_light
 from .export import clean
 from .sources.http import redact
-from . import ledger, official_check, tw_calendar
+from . import ledger, market_ledger, official_check, tw_calendar
 from .sources.store import RawStore
 from .stocks import StockConfig, fetch_prices as fetch_stock_prices, load_watchlist, merge_stocks, run_stocks
 from .risk_model import run_risk
@@ -269,6 +269,11 @@ def refresh(args: argparse.Namespace) -> int:
                           datetime.now(timezone.utc), __version__, StockConfig(), all_rows=stocks["stocks"])
         except Exception as exc:  # noqa: BLE001
             _issue(issues, "forecast_ledger", exc)
+    try:  # market-level live forecast ledger (report only)
+        market_ledger.update(Path(args.out), raw, panel, risk["short_term"]["current"], risk["vol_forecast"]["current"],
+                             status["light"].get("level"), as_of, datetime.now(timezone.utc), __version__)
+    except Exception as exc:  # noqa: BLE001
+        _issue(issues, "market_ledger", exc)
     health["degraded"] = bool(issues)
     written = write_all(Path(args.out), series=series, status=status, scenarios=scenarios,
                         validation=validation, health=health, panel=panel, history_row=history_row,

@@ -20,7 +20,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-LEDGER = "forecasts/stocks_ledger.csv"
+LEDGERS = ("forecasts/stocks_ledger.csv", "forecasts/market_ledger.csv")
 EMAIL = re.compile(rb"[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}")
 
 
@@ -70,11 +70,11 @@ def main() -> int:
         if (e := check_csv(p)):
             errors.append(e)
 
-    ledger = data / LEDGER
-    if ledger.exists():
-        rel = str(Path(data.name) / LEDGER)
+    for name in LEDGERS:
+        ledger = data / name
+        rel = str(Path(data.name) / name)
         old = committed_bytes(data.parent, args.base_ref, rel)
-        if old is not None and not ledger.read_bytes().startswith(old):
+        if old is not None and (not ledger.exists() or not ledger.read_bytes().startswith(old)):
             errors.append(f"{ledger}: not append-only against {args.base_ref} (existing rows changed or removed)")
 
     for p in sorted(data.rglob("*")):

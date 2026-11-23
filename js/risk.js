@@ -55,8 +55,30 @@
     setHTML("epuNote", t("risk.st.epu", { v: esc(epuText(st.epu_verdict)), spec: esc(t("spec." + st.robustness.spec)), rv: esc(epuText(st.robustness.epu_verdict)) }));
   }
 
+  function renderMarketLive(rv) {
+    if (!rv) { setText("mlive-note", t("risk.live.none")); return; }
+    const T = rv.targets || {}, a = T.var_1d || {}, b = T.vol_5d || {}, c = T.vol_1m || {};
+    const v = (x) => esc(t("st.live.v." + (x || "insufficient")));
+    const since = (x) => (x.logged_since ? " (" + esc(t("st.live.since", { d: x.logged_since })) + ")" : "");
+    const rows = [
+      [esc(t("risk.live.var1d")), String(a.logged || 0) + since(a), String(a.n || 0),
+        a.breach_rate == null ? "—" : String(a.breaches) + " · " + pct(a.breach_rate, 1) + (a.rolling ? " (" + t("risk.live.last", { n: a.rolling.n }) + " " + pct(a.rolling.breach_rate, 1) + ")" : ""),
+        a.var_ratio == null ? "—" : fmt(a.var_ratio, 2), "<strong>" + v(a.verdict) + "</strong>"],
+      [esc(t("risk.live.vol5d")), String(b.logged || 0) + since(b), String(b.n || 0), "—",
+        b.var_ratio == null ? "—" : fmt(b.var_ratio, 2), esc(t("risk.live.descriptive"))],
+      [esc(t("risk.live.vol1m")), String(c.logged || 0) + since(c), String(c.n || 0),
+        c.band_coverage == null ? "—" : t("risk.live.band", { c: pct(c.band_coverage, 0) }),
+        c.mean_log_error == null ? "—" : fmt(Math.exp(c.mean_log_error), 2), "<strong>" + v(c.verdict) + "</strong>"],
+    ];
+    table("mliveTable", cols("risk.live.cols"), rows);
+    const st = rv.settings || {};
+    setHTML("mlive-note", t("risk.live.note", { d: st.min_days_var, m: st.min_months_vol, r: st.rolling_days }));
+  }
+
   async function boot() {
-    const [r, health] = await Promise.all([loadJSON("data/risk.json"), loadJSON("data/health.json").catch(() => null)]);
+    const [r, health, mrev] = await Promise.all([loadJSON("data/risk.json"), loadJSON("data/health.json").catch(() => null),
+      loadJSON("data/forecast_review_market.json").catch(() => null)]);
+    renderMarketLive(mrev);
     document.body.dataset.ready = "1";
     renderBanner(health);
     setHTML("asof-line", t("risk.asof", { asof: esc(r.as_of) }));
