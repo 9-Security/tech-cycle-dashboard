@@ -123,7 +123,7 @@ Implications (not implemented — they would be design changes that need their o
 
 ## 7. Operations
 
-* `.github/workflows/refresh.yml`: Mon–Fri 22:15 UTC → tests → fetch → DQ gates → walk-forward → commit `data/` → deploy GitHub Pages. Any failure stops before commit/deploy (fail-closed); the site keeps the last good data and its banner turns **stale** after 4 days.
+* `.github/workflows/refresh.yml`: Mon–Fri 22:15 UTC → tests → fetch → DQ gates → walk-forward → commit `data/` → deploy GitHub Pages. A second run, Mon–Fri 07:07 UTC (15:07 Taiwan time, after the TWSE close), refreshes only the Taiwan stocks of the Stocks page (`python -m tcd stocks --market TW`); manual runs pick `full` or `tw`. Any failure stops before commit/deploy (fail-closed); the site keeps the last good data and its banner turns **stale** after 4 days.
 * Partial (in-progress) month: shown as **provisional** regime; never enters the backtest.
 * Walk-forward parameters for the live month = the fold for the current year (trained through last December), so live posture and backtest use the same rule.
 * Provenance: `data/health.json` holds DQ results, per-source latest dates and a SHA-256 manifest of every raw file; `data/history.csv` logs one row per run day.
@@ -290,7 +290,7 @@ Module `engine/tcd/light.py`; shown at the top of the home page in the reader's 
 
 ## 13. Stock monitoring (US mega caps + Taiwan AI supply chain)
 
-Module `engine/tcd/stocks.py`; list in `engine/watchlist.json` (edit it to add or remove names); page `stocks.html`; data `data/stocks.json`, refreshed daily (report only, never blocks the refresh). **Risk monitoring only: no buy/sell signals and no per-stock strategy backtests.**
+Module `engine/tcd/stocks.py`; list in `engine/watchlist.json` (edit it to add or remove names); page `stocks.html`; data `data/stocks.json`, refreshed daily (report only, never blocks the refresh). US names update with the 22:15 UTC run, Taiwan names also with the 07:07 UTC run; `stocks.json` keeps a per-market `updated` stamp and the page shows each market's last price date and update time. A market refresh replaces only that market's rows; a name that fails to fetch keeps its previous row flagged `stale: true` (counted on the page); if no name of the market can be analysed, the file is not written and nothing is committed (e.g. Taiwan holidays give no new bar, so no data change). **Risk monitoring only: no buy/sell signals and no per-stock strategy backtests.**
 
 * **Universe (28):** AAPL, MSFT, AMZN, GOOGL, META, NVDA, ORCL, AMD, INTC, AVGO; Taiwan: 2330, 2454, 3661, 3443, 2317, 2382, 3231, 6669, 2356, 2308, 3017, 3324 (TPEx), 2059, 2345, 2383, 3037, 3711, 3131 (TPEx). Benchmarks ^NDX and ^TWII.
 * **Model:** log-HAR on each stock's own daily returns (no VIX), EWMA 0.94 baseline, annual walk-forward refit; 1-day 95% VaR by filtered historical simulation. A VaR is **verified** only with ≥ 500 out-of-sample days and Kupiec and Christoffersen p ≥ 0.05.

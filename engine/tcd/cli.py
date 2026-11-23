@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import logging
 import os
 import sys
@@ -25,7 +26,8 @@ from .quality import DataQualityError, enforce, run_checks
 from . import promotion
 from .cross_market import fetch_markets, run_cross_market
 from .light import build_light
-from .stocks import fetch_prices as fetch_stock_prices, load_watchlist, run_stocks
+from .export import clean
+from .stocks import fetch_prices as fetch_stock_prices, load_watchlist, merge_stocks, run_stocks
 from .risk_model import run_risk
 from .short_risk import run_short_risk
 from .signal_study import run_study
@@ -190,7 +192,8 @@ def refresh(args: argparse.Namespace) -> int:
         sprices, smanifest, swarn = fetch_stock_prices(Path(args.cache), args.offline, cfg.fetch.timeout_s, cfg.fetch.retries,
                                                        syms, already_fetched=set(raw.prices))
         sprices["^NDX"] = raw.ndx
-        stocks = {**meta, **run_stocks(sprices, raw, wl), "fetch_warnings": swarn, "raw_manifest": smanifest}
+        fresh = {**meta, **run_stocks(sprices, raw, wl), "fetch_warnings": swarn, "raw_manifest": smanifest}
+        stocks = merge_stocks(_read_json(Path(args.out) / "stocks.json"), fresh, ("US", "TW"), wl, as_of)
         log.info("stocks: %d analysed, %d verified VaR, skipped %s", len(stocks["stocks"]),
                  sum(r["backtest"]["verified"] for r in stocks["stocks"]), stocks["skipped"])
     except Exception as exc:  # noqa: BLE001 - report-only block
@@ -234,6 +237,47 @@ def refresh(args: argparse.Namespace) -> int:
     return 0
 
 
+def _read_json(path: Path) -> dict | None:
+    try:
+        return json.loads(path.read_text())
+    except (FileNotFoundError, json.JSONDecodeError):
+        return None
+
+
+def _write_json_atomic(path: Path, obj) -> None:
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    tmp.write_text(json.dumps(clean(obj), indent=1, allow_nan=False, ensure_ascii=False) + "\n")
+    os.replace(tmp, path)
+
+
+def stocks_refresh(args: argparse.Namespace) -> int:
+    """Refresh only the stocks of one market (e.g. Taiwan after its close) and
+    merge them into data/stocks.json; everything else is left untouched."""
+    now = datetime.now(timezone.utc)
+    as_of = now.strftime("%Y%m%dT%H%M%SZ")
+    markets = (args.market,)
+    wl = load_watchlist()
+    syms = [x["symbol"] for x in wl["stocks"] if x["market"] in markets] + [wl["benchmarks"][m] for m in markets]
+    cfg = EngineConfig()
+    prices, manifest, warns = fetch_stock_prices(Path(args.cache), args.offline, cfg.fetch.timeout_s, cfg.fetch.retries, syms)
+    for w in warns:
+        log.warning("fetch: %s", w)
+    fresh = run_stocks(prices, None, wl, markets=markets)
+    if not fresh["stocks"]:
+        log.error("no %s stock could be analysed; outputs left untouched", args.market)
+        return 2
+    out = Path(args.out) / "stocks.json"
+    existing = _read_json(out)
+    meta = {"as_of": as_of, "engine_version": __version__, "git_sha": os.environ.get("GITHUB_SHA", "")[:12] or None}
+    merged = merge_stocks(existing, {**meta, **fresh, "fetch_warnings": warns,
+                                     "raw_manifest": {**(existing or {}).get("raw_manifest", {}), **manifest}},
+                          markets, wl, as_of)
+    _write_json_atomic(out, merged)
+    log.info("stocks %s: %d analysed, %d verified, skipped %s", args.market, len(fresh["stocks"]),
+             sum(r["backtest"]["verified"] for r in fresh["stocks"]), fresh["skipped"])
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="tcd", description="Tech Capex-cycle regime engine")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -245,11 +289,19 @@ def main(argv: list[str] | None = None) -> int:
     r.add_argument("--max-staleness-days", type=int, default=7)
     r.add_argument("--run-date", help="override run date (YYYY-MM-DD) for freshness checks")
     r.add_argument("-v", "--verbose", action="store_true")
+    st = sub.add_parser("stocks", help="refresh one market's stocks only and merge into stocks.json")
+    st.add_argument("--market", choices=["TW", "US"], required=True)
+    st.add_argument("--out", default="../data")
+    st.add_argument("--cache", default=".cache/raw")
+    st.add_argument("--offline", action="store_true")
+    st.add_argument("-v", "--verbose", action="store_true")
     args = ap.parse_args(argv)
 
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,
                         format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     try:
+        if args.cmd == "stocks":
+            return stocks_refresh(args)
         return refresh(args)
     except (FetchError, DataQualityError) as exc:
         log.error("refresh aborted, outputs left untouched: %s", exc)

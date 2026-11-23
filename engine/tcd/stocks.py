@@ -261,11 +261,16 @@ def fetch_prices(cache_dir: Path, offline: bool, timeout: float, retries: int, s
     return out, {**cached.manifest, **store.manifest}, warns
 
 
-def run_stocks(prices: dict[str, pd.DataFrame], raw, watchlist: dict, cfg: StockConfig | None = None) -> dict:
+def run_stocks(prices: dict[str, pd.DataFrame], raw, watchlist: dict, cfg: StockConfig | None = None,
+               markets: tuple[str, ...] = ("US", "TW")) -> dict:
+    """Analyse the watchlist names of the given markets. `raw` (main refresh
+    data) is only needed for US fundamentals and may be None."""
     cfg = cfg or StockConfig()
     rows, skipped = [], []
     bench_sym = watchlist["benchmarks"]
     for spec in watchlist["stocks"]:
+        if spec["market"] not in markets:
+            continue
         s = spec["symbol"]
         if s not in prices:
             skipped.append(s)
@@ -273,7 +278,7 @@ def run_stocks(prices: dict[str, pd.DataFrame], raw, watchlist: dict, cfg: Stock
         b = prices.get(bench_sym[spec["market"]])
         bench = b["adjclose"] if b is not None else None
         sec = None
-        if spec["market"] == "US" and s in raw.sec_facts and s in raw.shares:
+        if spec["market"] == "US" and raw is not None and s in raw.sec_facts and s in raw.shares:
             sec = {"facts": raw.sec_facts[s], "shares": raw.shares[s], "splits": raw.splits.get(s, pd.Series(dtype=float))}
         try:
             rows.append(analyze_stock(spec, prices[s], bench, cfg, sec))
@@ -286,3 +291,32 @@ def run_stocks(prices: dict[str, pd.DataFrame], raw, watchlist: dict, cfg: Stock
                          "verified_rule": f">= {cfg.min_oos_days} OOS days and Kupiec and Christoffersen p >= {cfg.verify_p}",
                          "light_rule": "next-day vol forecast vs own history of 22-day realized vol: <50th green, 50-80th yellow, >=80th red",
                          "beta": "1-year daily returns vs ^NDX (US) or ^TWII (Taiwan)"}}
+
+
+def merge_stocks(existing: dict | None, new: dict, markets: tuple[str, ...], watchlist: dict, stamp: str) -> dict:
+    """Combine a fresh run for `markets` with the previous file.
+
+    Rows of other markets are kept unchanged. A symbol of a refreshed market
+    that failed this time keeps its previous row, marked stale, instead of
+    disappearing. Rows are ordered as in the watchlist; per-market update
+    stamps are kept in `updated`.
+    """
+    old_rows = {r["symbol"]: r for r in (existing or {}).get("stocks", [])}
+    new_rows = {r["symbol"]: {**r, "stale": False} for r in new["stocks"]}
+    rows = []
+    for spec in watchlist["stocks"]:
+        sym = spec["symbol"]
+        if spec["market"] in markets:
+            if sym in new_rows:
+                rows.append(new_rows[sym])
+            elif sym in old_rows:
+                rows.append({**old_rows[sym], "stale": True})
+        elif sym in old_rows:
+            rows.append(old_rows[sym])
+    updated = dict((existing or {}).get("updated", {}))
+    for m in markets:
+        if any(r["market"] == m and not r.get("stale") for r in rows):
+            updated[m] = stamp
+    out = {**(existing or {}), **new, "stocks": rows, "updated": updated}
+    out["skipped"] = new.get("skipped", [])
+    return out

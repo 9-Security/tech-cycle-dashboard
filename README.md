@@ -39,7 +39,7 @@ engine/                 Python engine (numpy, pandas, requests)
   tcd/export.py         dashboard JSON / CSV (atomic swap)
   tests/                look-ahead / lag-1 / XBRL tests (synthetic data, offline)
 data/                   generated artifacts (committed by the daily job)
-.github/workflows/      refresh.yml (daily refresh + Pages), ci.yml (tests)
+.github/workflows/      refresh.yml (daily refresh + Pages; extra Taiwan-stocks run 07:07 UTC), ci.yml (tests)
 docs/methodology.md     method, results, limitations
 ```
 

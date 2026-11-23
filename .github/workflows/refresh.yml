@@ -4,7 +4,16 @@ on:
   schedule:
     # 22:15 UTC Mon-Fri: after the US close (20:00/21:00 UTC) so the day's bar exists.
     - cron: "15 22 * * 1-5"
+    # 07:07 UTC Mon-Fri = 15:07 Taiwan time: after the TWSE close (13:30) so the day's bar
+    # exists. Refreshes ONLY the Taiwan stocks on the Stocks page (see "Choose scope").
+    - cron: "7 7 * * 1-5"
   workflow_dispatch:
+    inputs:
+      scope:
+        description: "full = everything (US close run); tw = Taiwan stocks only"
+        type: choice
+        options: [full, tw]
+        default: full
   push:
     branches: [main]
     paths-ignore:
@@ -40,7 +49,23 @@ jobs:
       - name: Unit tests (look-ahead / lag-1 guards)
         working-directory: engine
         run: python -m pytest -q tests
+      - name: Choose scope
+        id: scope
+        env:
+          EVENT_SCHEDULE: ${{ github.event.schedule }}
+          INPUT_SCOPE: ${{ inputs.scope }}
+        run: |
+          if [ "$EVENT_SCHEDULE" = "7 7 * * 1-5" ] || [ "$INPUT_SCOPE" = "tw" ]; then
+            echo "scope=tw" >> "$GITHUB_OUTPUT"
+          else
+            echo "scope=full" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Refresh Taiwan stocks only
+        if: steps.scope.outputs.scope == 'tw'
+        working-directory: engine
+        run: python -m tcd stocks --market TW --out ../data --cache .cache/raw
       - name: Refresh data (fail-closed)
+        if: steps.scope.outputs.scope == 'full'
         working-directory: engine
         env:
           # Repository SECRET (not a variable): "<org or app name> <contact email>" for the SEC
@@ -50,6 +75,8 @@ jobs:
           SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}
         run: python -m tcd refresh --out ../data --cache .cache/raw
       - name: Commit refreshed data
+        env:
+          SCOPE: ${{ steps.scope.outputs.scope }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -58,7 +85,11 @@ jobs:
             echo "No data changes."
             exit 0
           fi
-          git commit -m "data: daily refresh $(date -u +%Y-%m-%d)"
+          if [ "$SCOPE" = "tw" ]; then
+            git commit -m "data: Taiwan stocks refresh $(date -u +%Y-%m-%d)"
+          else
+            git commit -m "data: daily refresh $(date -u +%Y-%m-%d)"
+          fi
           for i in 1 2 3; do
             git pull --rebase origin main && git push origin HEAD:main && exit 0
             sleep $((i * 10))
