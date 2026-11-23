@@ -39,7 +39,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from . import risk_model, short_risk, var_challenger
+from . import risk_model, sequential, short_risk, var_challenger, var_panel
 from .ledger import FINAL_STATUSES, _atomic_write, append_ledger, bar_is_final
 from .short_risk import christoffersen, diebold_mariano, kupiec, qlike
 
@@ -88,6 +88,16 @@ def challenger_model_id(live_model: str) -> str:
                _variance_fp(live_model))
 
 
+def panel_model_id() -> str:
+    """Multi-market panel (var_panel.py): its own frame / walk-forward / quantile
+    code, the shared HAR fitting code and constants."""
+    f = [var_panel.frame, var_panel.walk_forward, var_panel.forecast, short_risk.design, short_risk.fit_var,
+         short_risk.VarModel, short_risk._ols]
+    consts = repr((var_panel.SYMBOLS, var_panel.FEATS, var_panel.MIN_TRAIN, var_panel.MIN_OOS, var_panel.LEVEL,
+                   var_panel.EWMA_LAMBDA, sorted(short_risk.LOGGED)))
+    return _fp(f, {}, consts)
+
+
 def month_model_id() -> str:
     """Monthly volatility regression + the definition of its inputs/target
     (the rv / VIX lines of features.build_panel and the FeatureConfig)."""
@@ -102,8 +112,16 @@ def _num(x, fmt: str) -> str:
 
 
 def forecast_rows(short_current: dict, vol_current: dict, light_level: str | None, issued_at: str,
-                  now_utc: datetime, engine_version: str, challenger: dict | None = None) -> list[dict]:
+                  now_utc: datetime, engine_version: str, challenger: dict | None = None,
+                  panel: dict | None = None) -> list[dict]:
     rows = []
+    pid = panel_model_id() if panel else None
+    for sym, fc in sorted(((panel or {}).get("forecasts") or {}).items()):
+        if bar_is_final("US", fc["date"], now_utc):
+            rows.append({"target": f"panel_var_1d:{sym}", "origin_date": fc["date"], "issued_at": issued_at,
+                         "var95": _num(fc["var95"], ".8f"), "har_var": _num(fc["har_var"], ".10e"),
+                         "ewma_var": _num(fc["ewma_var"], ".10e"), "vol_ann": "", "band_lo": "", "band_hi": "",
+                         "level": "", "engine_version": engine_version, "model_id": pid})
     d = short_current["date"]
     if bar_is_final("US", d, now_utc):
         sid = short_model_id(short_current["model"])
@@ -152,7 +170,7 @@ def _read(path: Path, cols: list[str]) -> pd.DataFrame:
 
 
 def evaluate(ledger: pd.DataFrame, r: pd.Series, panel: pd.DataFrame, skip: set,
-             now_utc: datetime | None = None) -> pd.DataFrame:
+             now_utc: datetime | None = None, panel_returns: dict | None = None) -> pd.DataFrame:
     """r: daily log returns of the risk asset (dated by the bar). panel: monthly
     panel with rv21 and the partial flag."""
     r = r.dropna().sort_index()
@@ -166,9 +184,15 @@ def evaluate(ledger: pd.DataFrame, r: pd.Series, panel: pd.DataFrame, skip: set,
                                      "band_lo", "band_hi", "level", "model_id")}
         rec.update(target_end=None, status="pending", realized=None, breach=None, qlike_har=None,
                    qlike_ewma=None, ratio=None, log_error=None, in_band=None)
-        if f["target"] in ("var_1d", "var_1d_challenger", "vol_5d"):
+        series = r
+        if str(f["target"]).startswith("panel_var_1d:"):
+            series = (panel_returns or {}).get(str(f["target"]).split(":", 1)[1])
+            if series is None:
+                recs.append(rec)  # stays pending until that series is available again
+                continue
+        if f["target"] in ("var_1d", "var_1d_challenger", "vol_5d") or str(f["target"]).startswith("panel_var_1d:"):
             h = 5 if f["target"] == "vol_5d" else 1
-            nxt = r[r.index > o]
+            nxt = series[series.index > o]
             if len(nxt) >= h and (now_utc is None or bar_is_final("US", str(nxt.index[h - 1].date()), now_utc)):
                 w = nxt.iloc[:h]
                 y = float((w ** 2).mean())
@@ -213,6 +237,7 @@ def _summ_var(s: pd.DataFrame, cfg: MarketReviewConfig) -> dict:
                 lv[k] = {"n": int(len(g)), "realized_vol_ann": float(sqrt(g["realized"].astype(float).mean() * 252)),
                          "forecast_vol_ann": float(sqrt(g["har_var"].astype(float).mean() * 252))}
         out["by_light"] = lv
+    out["interim"] = sequential.single_series(br)  # registered early-warning looks (section 20)
     if len(s) >= cfg.min_days_var:
         k, c = kupiec(br, cfg.var_level), christoffersen(br)
         out.update(kupiec_p=k["p_value"], christoffersen_p=c["p_value"])
@@ -254,20 +279,21 @@ def _summ_1m(s: pd.DataFrame, cfg: MarketReviewConfig) -> dict:
 
 def update(out_dir: Path, raw, panel: pd.DataFrame, short_current: dict, vol_current: dict,
            light_level: str | None, issued_at: str, now_utc: datetime, engine_version: str,
-           cfg: MarketReviewConfig | None = None, challenger: dict | None = None) -> dict:
+           cfg: MarketReviewConfig | None = None, challenger: dict | None = None,
+           var_panel_fc: dict | None = None, panel_returns: dict | None = None) -> dict:
     cfg = cfg or MarketReviewConfig()
     out_dir = Path(out_dir)
     lp = out_dir / "forecasts" / "market_ledger.csv"
     op = out_dir / "forecasts" / "market_outcomes.csv"
     added = append_ledger(lp, forecast_rows(short_current, vol_current, light_level, issued_at, now_utc, engine_version,
-                                            challenger),
+                                            challenger, var_panel_fc),
                           COLUMNS, ("target", "origin_date"))
     led = _read(lp, COLUMNS)
     old = _read(op, OUTCOME_COLUMNS)
     final = old[old["status"].isin(FINAL_STATUSES)]
     skip = set(zip(final["target"], final["origin_date"]))
     r = short_risk.daily_frame(raw, short_risk.ShortRiskConfig())["r"]
-    fresh = evaluate(led, r, panel, skip, now_utc)
+    fresh = evaluate(led, r, panel, skip, now_utc, panel_returns)
     outcomes = pd.concat([final, fresh], ignore_index=True) if len(final) else fresh
     outcomes = outcomes.sort_values(["origin_date", "target"], kind="stable").reset_index(drop=True)
     _atomic_write(op, outcomes.to_csv(index=False, lineterminator="\n"))
@@ -286,6 +312,21 @@ def update(out_dir: Path, raw, panel: pd.DataFrame, short_current: dict, vol_cur
                                 "logged_since": lt.loc[lt["model_id"] == mid, "origin_date"].min() if len(lt) else None,
                                 "other_models": {k: int(v) for k, v in lt.loc[lt["model_id"] != mid, "model_id"].value_counts().items()},
                                 "pending": int(((outcomes["target"] == t) & (outcomes["status"] == "pending")).sum())}
+    # Multi-market panel of the VaR method (section 20): pooled interim looks.
+    pid = panel_model_id()
+    ps = sc[sc["target"].astype(str).str.startswith("panel_var_1d:") & (sc["model_id"] == pid)].copy()
+    pl = led[led["target"].astype(str).str.startswith("panel_var_1d:")]
+    if len(ps):
+        ps["b"] = ps["breach"].map(lambda v: v in (True, "True", 1, "1")).astype(float)
+    per = {}
+    for t, g in ps.groupby("target") if len(ps) else []:
+        per[t.split(":", 1)[1]] = {"n": int(len(g)), "breaches": int(g["b"].sum()), "rate": float(g["b"].mean())}
+    review["panel"] = {"model_id": pid, "symbols": list(var_panel.SYMBOLS), "per_symbol": per,
+                       "logged": int((pl["model_id"] == pid).sum()), "n": int(len(ps)),
+                       "n_dates": int(ps["origin_date"].nunique()) if len(ps) else 0,
+                       "rate": float(ps["b"].mean()) if len(ps) else None,
+                       "interim": sequential.pooled(ps["b"].to_numpy(), ps["origin_date"].to_numpy()) if len(ps)
+                       else sequential.pooled(np.array([]), np.array([]))}
     # Registered challenger vs incumbent, on days scored for both (methodology section 18).
     a = sc[(sc["target"] == "var_1d") & (sc["model_id"] == current["var_1d"])]
     b = sc[(sc["target"] == "var_1d_challenger") & (sc["model_id"] == current["var_1d_challenger"])]

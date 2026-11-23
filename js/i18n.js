@@ -537,6 +537,13 @@
   add("risk.live.dec.insufficient", "not enough data yet", "樣本不足，尚不判定");
   add("risk.live.dec.keep_incumbent", "keep the live VaR", "維持現行 VaR");
   add("risk.live.dec.recommend_switch", "switch recommended (owner decides)", "建議替換（由負責人決定）");
+  add("risk.live.panel", "Same VaR method on {k} other markets (pooled)", "同一套 VaR 方法用於其他 {k} 個市場（合併）");
+  add("risk.live.it.before_first_look", "first look at day {next}", "第 {next} 天第一次檢視");
+  add("risk.live.it.not_rejected", "no early warning at day {n} (next look: {next})", "第 {n} 天檢視：無預警（下一次：第 {next} 天）");
+  add("risk.live.it.not_rejected_final", "no warning at any look", "所有檢視點都無預警");
+  add("risk.live.it.too_many", "EARLY WARNING at day {n}: too many breaches", "第 {n} 天提前預警：突破次數過多");
+  add("risk.live.interim", "Live VaR early-warning looks (60 / 120 / 250 days, total false-alarm budget 5%): <strong>{v}</strong>. A warning at 60 days only catches gross under-coverage.",
+    "現行 VaR 的提前預警檢視（第 60／120／250 天，總誤判額度 5%）：<strong>{v}</strong>。第 60 天的檢視只抓得到嚴重低估。");
   add("risk.live.vol5d", "5-day volatility", "5 日波動");
   add("risk.live.vol1m", "Next-month volatility", "下月波動");
   add("risk.live.last", "last {n}:", "最近 {n} 天：");

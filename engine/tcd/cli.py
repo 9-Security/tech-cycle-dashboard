@@ -229,6 +229,7 @@ def refresh(args: argparse.Namespace) -> int:
     # Out-of-domain test of the frozen v3 design (pre-registered; report only).
     # A fetch problem here must not block the daily refresh.
     cross = None
+    mprices: dict = {}  # cross-market prices, also used by the VaR panel
     try:
         mprices, mmanifest, mwarn = fetch_markets(Path(args.cache), args.offline, cfg.fetch.timeout_s, cfg.fetch.retries)
         cross = {**meta, **run_cross_market(mprices, raw.vix, raw.fred["tbill_3m"], panel, cfg.features, cfg.backtest, cfg.tilt_grid),
@@ -296,9 +297,17 @@ def refresh(args: argparse.Namespace) -> int:
         except Exception as exc:  # noqa: BLE001
             _issue(issues, "forecast_ledger", exc)
     try:  # market-level live forecast ledger (report only)
+        from . import var_panel
+        pprices = {**mprices, "^NDX": raw.ndx}
+        try:
+            vp = var_panel.run(pprices)
+        except Exception as exc:  # noqa: BLE001 - the panel is report-only
+            _issue(issues, "var_panel", exc)
+            vp = None
         market_ledger.update(Path(args.out), raw, panel, risk["short_term"]["current"], risk["vol_forecast"]["current"],
                              status["light"].get("level"), as_of, datetime.now(timezone.utc), __version__,
-                             challenger=risk["short_term"].get("challenger"))
+                             challenger=risk["short_term"].get("challenger"), var_panel_fc=vp,
+                             panel_returns=var_panel.returns(pprices))
     except Exception as exc:  # noqa: BLE001
         _issue(issues, "market_ledger", exc)
     health["degraded"] = bool(issues)
