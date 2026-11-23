@@ -83,6 +83,12 @@
       })(),
       [esc(t("risk.live.vol5d")), esc(String(b.logged || 0)) + since(b), esc(String(b.n || 0)), "—",
         b.var_ratio == null ? "—" : fmt(b.var_ratio, 2), esc(t("risk.live.descriptive"))],
+      (() => {
+        const e = T.exposure_cap_5d || {};
+        return [esc(t("risk.live.cap")), esc(String(e.logged || 0)) + since(e), esc(String(e.n || 0)),
+          e.share_above_overshoot == null ? "—" : t("risk.live.capover", { s: pct(e.share_above_overshoot, 0) }),
+          e.median_ratio == null ? "—" : fmt(e.median_ratio, 2), esc(t("risk.live.descriptive"))];
+      })(),
       [esc(t("risk.live.vol1m")), esc(String(c.logged || 0)) + since(c), esc(String(c.n || 0)),
         c.band_coverage == null ? "—" : t("risk.live.band", { c: pct(c.band_coverage, 0) }),
         c.mean_log_error == null ? "—" : fmt(Math.exp(c.mean_log_error), 2), "<strong>" + v(c.verdict) + "</strong>"],
@@ -96,10 +102,49 @@
       t("risk.live.interim", { v: esc(interimText(ia)) }));
   }
 
+  function renderExposure(status, hist, al) {
+    const C = status && status.exposure_cap;
+    if (!C) return;
+    document.getElementById("expo").hidden = false;
+    setHTML("expo-now", t("risk.cap.now", { c: "<strong>" + pct(C.cap, 0) + "</strong>", b: esc(C.band),
+      f: pct(C.forecast_vol_5d_ann, 0), g: pct(C.target_vol, 0), d: esc(C.date) }));
+    if (hist && hist.windows) {
+      const rows = [[esc(t("risk.cap.all", { y: esc((hist.from || "").slice(0, 4)) })), pct(hist.avg_cap, 0),
+        pct(hist.max_dd.capped, 0), pct(hist.max_dd.buy_hold, 0)]];
+      ["dotcom", "gfc", "covid", "2022"].filter((k) => hist.windows[k]).forEach((k) => {
+        const w = hist.windows[k];
+        rows.push([esc(t("risk.cap.w." + k)) + " <span class='muted'>(" + esc(w.from.slice(0, 7)) + " → " + esc(w.to.slice(0, 7)) + ")</span>",
+          pct(w.avg_cap, 0), pct(w.max_dd_capped, 0), pct(w.max_dd_buy_hold, 0)]);
+      });
+      table("expoTable", t("risk.cap.cols").split("|"), rows);
+      const st = (k) => hist[k] || {};
+      const line = (k, name) => t("risk.cap.stab", { n: esc(t(name)), c: fmt(st(k).changes_per_year, 0),
+        r: fmt(st(k).median_run_days, 0), w: pct(st(k).whipsaw_share, 0) });
+      const rev = st("cap_stability").review_triggered || st("light_stability").review_triggered;
+      setHTML("expo-stab", t("risk.cap.vols", { a: pct(hist.vol_ann.capped, 0), b: pct(hist.vol_ann.buy_hold, 0) }) + " " +
+        line("light_stability", "risk.cap.light") + " " + line("cap_stability", "risk.cap.cap") + " " +
+        t(rev ? "risk.cap.review.yes" : "risk.cap.review.no"));
+    }
+    const recent = ((al && al.recent) || []).slice(-10).reverse();
+    document.getElementById("alertList").innerHTML = recent.length
+      ? recent.map((e) => "<li>" + esc(alertText(e)) + "</li>").join("") : "<li class='muted'>" + esc(t("risk.alerts.none")) + "</li>";
+  }
+
+  function alertText(e) {
+    const p0 = (x, d) => (x == null ? "—" : pct(x, d));
+    if (e.type === "light_change") return t("risk.alerts.light", { d: e.date, a: t("light.short." + e.from), b: t("light.short." + e.to) });
+    if (e.type === "cap_band_change") return t("risk.alerts.cap", { d: e.date, a: e.from, b: e.to, x: p0(e.cap_from, 0), y: p0(e.cap_to, 0) });
+    if (e.type === "var_breach") return t("risk.alerts.breach", { d: e.target_end, r: p0(e.ret, 2), v: p0(e.var95, 2) });
+    if (e.type === "validation_warning") return t("risk.alerts.warn", { s: e.series, v: e.verdict });
+    return e.type;
+  }
+
   async function boot() {
     const [r, health, mrev] = await Promise.all([loadJSON("data/risk.json"), loadJSON("data/health.json").catch(() => null),
       loadJSON("data/forecast_review_market.json").catch(() => null)]);
     renderMarketLive(mrev);
+    const [status, al] = await Promise.all([loadJSON("data/status.json").catch(() => null), loadJSON("data/alerts.json").catch(() => null)]);
+    renderExposure(status, (r.short_term || {}).exposure_history, al);
     document.body.dataset.ready = "1";
     renderBanner(health);
     setHTML("asof-line", t("risk.asof", { asof: esc(r.as_of) }));

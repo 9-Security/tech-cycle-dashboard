@@ -39,7 +39,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from . import risk_model, sequential, short_risk, var_challenger, var_panel
+from . import exposure, risk_model, sequential, short_risk, var_challenger, var_panel
 from .ledger import FINAL_STATUSES, _atomic_write, append_ledger, bar_is_final
 from .short_risk import christoffersen, diebold_mariano, kupiec, qlike
 
@@ -50,6 +50,8 @@ COLUMNS = ["target", "origin_date", "issued_at", "var95", "har_var", "ewma_var",
 OUTCOME_COLUMNS = ["target", "origin_date", "target_end", "status", "realized", "breach", "var95", "har_var",
                    "ewma_var", "vol_ann", "band_lo", "band_hi", "qlike_har", "qlike_ewma", "ratio", "log_error",
                    "in_band", "level", "model_id"]
+CAP_OVERSHOOT = 1.5  # capped realized 5-day vol above 1.5x target counts as an overshoot
+
 STR = {"target": str, "origin_date": str, "target_end": str, "status": str, "level": str, "model_id": str,
        "issued_at": str, "engine_version": str}
 
@@ -88,6 +90,14 @@ def challenger_model_id(live_model: str) -> str:
                _variance_fp(live_model))
 
 
+def exposure_model_id(live_model: str) -> str:
+    """Exposure cap (exposure.py): rule code and constants + the 5-day variance
+    forecast it divides by (short_risk.current also computes the target)."""
+    consts = repr((exposure.STEP, exposure.BANDS))
+    return _fp([exposure.cap_for, exposure.band_for, exposure.current, short_risk.current], {},
+               consts + _variance_fp(live_model))
+
+
 def panel_model_id() -> str:
     """Multi-market panel (var_panel.py): its own frame / walk-forward / quantile
     code, the shared HAR fitting code and constants."""
@@ -113,7 +123,7 @@ def _num(x, fmt: str) -> str:
 
 def forecast_rows(short_current: dict, vol_current: dict, light_level: str | None, issued_at: str,
                   now_utc: datetime, engine_version: str, challenger: dict | None = None,
-                  panel: dict | None = None) -> list[dict]:
+                  panel: dict | None = None, cap: dict | None = None) -> list[dict]:
     rows = []
     pid = panel_model_id() if panel else None
     for sym, fc in sorted(((panel or {}).get("forecasts") or {}).items()):
@@ -141,6 +151,11 @@ def forecast_rows(short_current: dict, vol_current: dict, light_level: str | Non
         rows.append({**base, "target": "vol_5d", "var95": "",
                      "har_var": _num(short_current["vol_5d"] ** 2 / 5, ".10e"), "ewma_var": _num(ewma, ".10e"),
                      "level": ""})
+        if cap and cap.get("date") == d:
+            rows.append({**base, "target": "exposure_cap_5d", "model_id": exposure_model_id(short_current["model"]),
+                         "var95": "", "har_var": _num(short_current["vol_5d"] ** 2 / 5, ".10e"), "ewma_var": "",
+                         "vol_ann": _num(cap["target_vol"], ".6f"), "band_lo": _num(cap["cap_raw"], ".6f"),
+                         "band_hi": _num(cap["cap"], ".2f"), "level": cap["band"]})
     else:
         log.info("market ledger: bar %s not final yet, short-horizon forecasts not logged", d)
     me = vol_current.get("month_end")
@@ -190,7 +205,16 @@ def evaluate(ledger: pd.DataFrame, r: pd.Series, panel: pd.DataFrame, skip: set,
             if series is None:
                 recs.append(rec)  # stays pending until that series is available again
                 continue
-        if f["target"] in ("var_1d", "var_1d_challenger", "vol_5d") or str(f["target"]).startswith("panel_var_1d:"):
+        if f["target"] == "exposure_cap_5d":
+            nxt = series[series.index > o]
+            if len(nxt) >= 5 and (now_utc is None or bar_is_final("US", str(nxt.index[4].date()), now_utc)):
+                w = nxt.iloc[:5]
+                y = float((w ** 2).mean())
+                ratio = float(f["band_hi"]) * sqrt(y * 252) / float(f["vol_ann"])
+                rec.update(target_end=str(w.index[-1].date()), status="scored", realized=y, ratio=ratio,
+                           in_band=bool(ratio <= CAP_OVERSHOOT),
+                           log_error=float(np.log(ratio)) if ratio > 0 else None)
+        elif f["target"] in ("var_1d", "var_1d_challenger", "vol_5d") or str(f["target"]).startswith("panel_var_1d:"):
             h = 5 if f["target"] == "vol_5d" else 1
             nxt = series[series.index > o]
             if len(nxt) >= h and (now_utc is None or bar_is_final("US", str(nxt.index[h - 1].date()), now_utc)):
@@ -256,6 +280,16 @@ def _summ_5d(s: pd.DataFrame) -> dict:
     return out
 
 
+def _summ_cap(s: pd.DataFrame) -> dict:
+    """Descriptive only (overlapping 5-day windows): did the cap keep risk near target?"""
+    out = {"n": int(len(s))}
+    if len(s):
+        rt = s["ratio"].astype(float)
+        out.update(median_ratio=float(rt.median()), share_above_overshoot=float((rt > CAP_OVERSHOOT).mean()),
+                   overshoot=CAP_OVERSHOOT)
+    return out
+
+
 def _binom_two_sided(k: int, n: int, p: float) -> float:
     from math import comb
     pmf = [comb(n, i) * p ** i * (1 - p) ** (n - i) for i in range(n + 1)]
@@ -280,13 +314,13 @@ def _summ_1m(s: pd.DataFrame, cfg: MarketReviewConfig) -> dict:
 def update(out_dir: Path, raw, panel: pd.DataFrame, short_current: dict, vol_current: dict,
            light_level: str | None, issued_at: str, now_utc: datetime, engine_version: str,
            cfg: MarketReviewConfig | None = None, challenger: dict | None = None,
-           var_panel_fc: dict | None = None, panel_returns: dict | None = None) -> dict:
+           var_panel_fc: dict | None = None, panel_returns: dict | None = None, cap: dict | None = None) -> dict:
     cfg = cfg or MarketReviewConfig()
     out_dir = Path(out_dir)
     lp = out_dir / "forecasts" / "market_ledger.csv"
     op = out_dir / "forecasts" / "market_outcomes.csv"
     added = append_ledger(lp, forecast_rows(short_current, vol_current, light_level, issued_at, now_utc, engine_version,
-                                            challenger, var_panel_fc),
+                                            challenger, var_panel_fc, cap),
                           COLUMNS, ("target", "origin_date"))
     led = _read(lp, COLUMNS)
     old = _read(op, OUTCOME_COLUMNS)
@@ -299,15 +333,22 @@ def update(out_dir: Path, raw, panel: pd.DataFrame, short_current: dict, vol_cur
     _atomic_write(op, outcomes.to_csv(index=False, lineterminator="\n"))
 
     current = {"var_1d": short_model_id(short_current["model"]), "vol_5d": short_model_id(short_current["model"]),
-               "vol_1m": month_model_id(), "var_1d_challenger": challenger_model_id(short_current["model"])}
+               "vol_1m": month_model_id(), "var_1d_challenger": challenger_model_id(short_current["model"]),
+               "exposure_cap_5d": exposure_model_id(short_current["model"])}
     sc = outcomes[outcomes["status"] == "scored"]
+    # Live VaR breaches scored in THIS run (alerts, section 21).
+    nb = fresh[(fresh["target"] == "var_1d") & (fresh["status"] == "scored") & (fresh["model_id"] == current["var_1d"])
+               & fresh["breach"].map(lambda v: v is True)]
+    new_breaches = [{"origin_date": x["origin_date"], "target_end": x["target_end"],
+                     "var95": float(x["var95"]), "ret": float(np.expm1(r.loc[pd.Timestamp(x["target_end"])]))}
+                    for _, x in nb.iterrows()]
     review = {"as_of": issued_at, "settings": asdict(cfg), "current_models": current, "targets": {},
-              "last_run": {"forecasts_added": added}}
+              "last_run": {"forecasts_added": added, "new_var_breaches": new_breaches}}
     for t, mid in current.items():
         lt = led[led["target"] == t]
         st = sc[(sc["target"] == t) & (sc["model_id"] == mid)]
         summ = (_summ_var(st, cfg) if t in ("var_1d", "var_1d_challenger") else _summ_5d(st) if t == "vol_5d"
-                else _summ_1m(st, cfg))
+                else _summ_cap(st) if t == "exposure_cap_5d" else _summ_1m(st, cfg))
         review["targets"][t] = {**summ, "logged": int((lt["model_id"] == mid).sum()),
                                 "logged_since": lt.loc[lt["model_id"] == mid, "origin_date"].min() if len(lt) else None,
                                 "other_models": {k: int(v) for k, v in lt.loc[lt["model_id"] != mid, "model_id"].value_counts().items()},

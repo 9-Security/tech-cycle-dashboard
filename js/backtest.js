@@ -15,7 +15,7 @@
     const m = data.metrics || {};
     setHTML("asof-line", t("index.asof", { asof: esc(status.as_of), regime: esc(regimeLabel(status.regime && status.regime.code, status.regime && status.regime.label)) }));
 
-    renderLight(status.light);
+    renderLight(status.light, status.exposure_cap);
 
     // Posture
     const w = status.weights || {};
@@ -147,7 +147,7 @@
     });
   }
 
-  function renderLight(L) {
+  function renderLight(L, C) {
     if (!L) return;
     const box = document.getElementById("light");
     box.hidden = false;
@@ -159,6 +159,7 @@
       ? t("light.vol.high", { r: fmt(L.vol_ratio, 1), p: pct(L.vol_percentile, 0), y: y, m: pct(L.daily_move, 1) })
       : t("light.vol.low", { r: fmt(L.vol_ratio, 1), q: pct(1 - L.vol_percentile, 0), y: y, m: pct(L.daily_move, 1) }));
     pts.push(t("light.var", { v: pct(L.var95, 1) }));
+    if (C && C.cap != null) pts.push(t("light.cap", { c: pct(C.cap, 0), b: C.band, f: pct(C.forecast_vol_5d_ann, 0), g: pct(C.target_vol, 0) }));
     if (L.mtd_month && L.mtd_return != null) pts.push(t("light.mtd", { m: L.mtd_month, r: (L.mtd_return >= 0 ? "+" : "") + pct(L.mtd_return, 1) }));
     const bg = [];
     if (L.val_state !== "unknown" && L.pe != null) bg.push(t("light.val." + L.val_state, { pe: fmt(L.pe, 1) }));

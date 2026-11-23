@@ -28,7 +28,7 @@ from .cross_market import fetch_markets, run_cross_market
 from .light import build_light
 from .export import clean
 from .sources.http import redact
-from . import ledger, market_ledger, official_check, tw_calendar
+from . import alerts, exposure, ledger, market_ledger, official_check, tw_calendar
 from .sources.store import RawStore
 from .stocks import StockConfig, fetch_prices as fetch_stock_prices, load_watchlist, merge_stocks, run_stocks
 from .risk_model import run_risk
@@ -280,6 +280,13 @@ def refresh(args: argparse.Namespace) -> int:
     }
     status["light"] = build_light(risk["short_term"]["current"], panel)
     history_row["light"] = status["light"]["level"]
+    prev_status = _read_json(Path(args.out) / "status.json")
+    prev_review = _read_json(Path(args.out) / "forecast_review_market.json")
+    try:  # suggested maximum exposure (display only, section 21)
+        status["exposure_cap"] = exposure.current(risk["short_term"]["current"])
+        history_row["exposure_cap"] = status["exposure_cap"]["cap"]
+    except Exception as exc:  # noqa: BLE001
+        _issue(issues, "exposure_cap", exc)
     history_row["p_dd20_12m_model"] = round(cur["p"], 4)
     history_row["vol_fcst_next_month"] = round(status["risk"]["vol_forecast_next_month"]["vol"], 4)
     history_row["var95_1d"] = round(risk["short_term"]["current"]["var95_1d_simple_ret"], 5)
@@ -307,13 +314,21 @@ def refresh(args: argparse.Namespace) -> int:
         market_ledger.update(Path(args.out), raw, panel, risk["short_term"]["current"], risk["vol_forecast"]["current"],
                              status["light"].get("level"), as_of, datetime.now(timezone.utc), __version__,
                              challenger=risk["short_term"].get("challenger"), var_panel_fc=vp,
-                             panel_returns=var_panel.returns(pprices))
+                             panel_returns=var_panel.returns(pprices), cap=status.get("exposure_cap"))
     except Exception as exc:  # noqa: BLE001
         _issue(issues, "market_ledger", exc)
+    alerts_out = None
+    try:  # risk alerts vs the previously published state (section 21)
+        ev = alerts.events(prev_status, status["light"], status.get("exposure_cap"), prev_review,
+                           _read_json(Path(args.out) / "forecast_review_market.json"))
+        alerts_out = alerts.merge(_read_json(Path(args.out) / "alerts.json"), ev, as_of)
+    except Exception as exc:  # noqa: BLE001
+        _issue(issues, "alerts", exc)
     health["degraded"] = bool(issues)
     written = write_all(Path(args.out), series=series, status=status, scenarios=scenarios,
                         validation=validation, health=health, panel=panel, history_row=history_row,
-                        signals=signals, risk=risk, cross_market=cross, stocks=stocks)
+                        signals=signals, risk=risk, cross_market=cross, stocks=stocks,
+                        alerts=alerts_out)
     if issues:
         log.warning("report-only issues: %s", [i["component"] for i in issues])
     log.info("wrote %d files to %s in %.1fs", len(written), args.out, time.time() - t0)

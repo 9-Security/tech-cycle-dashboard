@@ -292,6 +292,30 @@ jobs:
           elif [ "$R_ARCHIVE_RAN" = "yes" ] && [ "$R_ARCHIVE" = "success" ]; then
             bash .github/scripts/notify.sh "raw-archive-failure" ok "" "Archive succeeded in run $RUN_URL ($today)."
           fi
+          # Risk alerts of THIS run (section 21): one comment on the open
+          # risk-alert issue; the issue is never closed automatically.
+          if [ "$SCOPE" = "full" ]; then
+            abody=$(PYTHONPATH=engine python3 - <<'PY'
+          import json, os
+          from datetime import datetime, timezone
+          from tcd.alerts import describe
+          started = datetime.fromisoformat(os.environ["RUN_STARTED"].replace("Z", "+00:00"))
+          try:
+              a = json.load(open("data/alerts.json"))
+              fresh = datetime.strptime(a.get("as_of", ""), "%Y%m%dT%H%M%SZ").replace(tzinfo=timezone.utc) >= started
+              ev = (a.get("events") or []) if fresh else []
+              print("\n".join(describe(e) for e in ev))
+          except Exception:  # noqa: BLE001 - never let notify crash on a status file
+              pass
+          PY
+            )
+            if [ -n "$abody" ]; then
+              LABEL_COLOR=fbca04 bash .github/scripts/notify.sh "risk-alert" fail "Risk alerts (market)" \
+                "$(printf 'Run %s (%s):\n%s\n\nRules: methodology section 21. Not a trade signal.' "$RUN_URL" "$today" "$abody")"
+            else
+              echo "no risk alerts in this run"
+            fi
+          fi
           if [ -n "$failed" ]; then
             bash .github/scripts/notify.sh "refresh-failure-$SCOPE" fail "Data refresh ($SCOPE) failed" \
               "Run $RUN_URL ($today) did not complete:$failed. A cancelled job can mean a newer queued run replaced it; check the run. If refresh failed nothing was committed; if only build/deploy failed, the data commit is on main but the site was not redeployed by this run. Closes itself after the next successful $SCOPE run."
