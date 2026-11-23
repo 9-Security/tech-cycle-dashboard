@@ -115,3 +115,81 @@ def test_non_trading_bars_are_skipped(tmp_path):
     assert out["target_date"] == "2024-01-04" and bool(out["breach"])
     (tmp_path / "official_check.json").write_text(json.dumps({"stocks": {"T": {"extra": ["2024-01-03"]}, "U": {"extra": []}}}))
     assert L.non_trading_days(tmp_path / "official_check.json") == {"T": {"2024-01-03"}}
+
+
+# ---------------------------------------------------------- review round 3
+def test_origin_must_be_a_benchmark_trading_day_and_model_date_must_match():
+    now = datetime(2026, 10, 24, 12, tzinfo=timezone.utc)
+    od = {"TW": {"2026-10-22"}, "US": None}
+    holiday = _row("T", "TW", d="2026-10-23")              # Yahoo bar on a closure, ^TWII ends 10-22
+    halted = {**_row("H", "US", d="2026-10-22"), "model_last_date": "2026-10-12"}
+    ok = {**_row("U", "US", d="2026-10-22"), "model_last_date": "2026-10-22"}
+    rows = L.forecast_rows([holiday, halted, ok], "t", now, "x", "m", None, od)
+    assert [r["symbol"] for r in rows] == ["U"]
+
+
+def test_target_skips_days_the_benchmark_did_not_trade():
+    led = pd.DataFrame([{"origin_date": "2024-01-02", "symbol": "A", "market": "US", "var95": 0.03,
+                         "har_var": 1e-4, "ewma_var": 1e-4, "level": "green", "model_id": "m"}])
+    px = _px([100, 100, 95])  # 01-03 carried forward; the benchmark has no bar that day
+    od = {"US": {"2024-01-02", "2024-01-04"}, "TW": None}
+    out = L.evaluate(led, {"A": px}, ("US",), L.ReviewConfig(), None, od).iloc[0]
+    assert out["target_date"] == "2024-01-04" and bool(out["breach"])
+
+
+def test_final_outcomes_survive_a_failed_fetch_and_model_id_stays_text(tmp_path):
+    from tcd.stocks import StockConfig
+    mid = "012345678901"  # all digits: must not become a number on read-back
+    p = tmp_path / "forecasts" / "stocks_ledger.csv"
+    p.parent.mkdir(parents=True)
+    L.append_ledger(p, [{"origin_date": "2024-01-02", "symbol": "A", "market": "US", "issued_at": "t",
+                         "var95": "0.03", "har_var": "1e-4", "ewma_var": "1e-4", "vol_1d_ann": "0.2",
+                         "level": "green", "engine_version": "x", "model_id": mid}])
+    now = datetime(2024, 1, 10, tzinfo=timezone.utc)
+    L.update(tmp_path, [], {"A": _px([100, 96])}, ("US",), "t1", now, "x", StockConfig())
+    L.update(tmp_path, [], {}, ("TW",), "t2", now, "x", StockConfig())      # other market: rewrite path
+    L.update(tmp_path, [], {}, ("US",), "t3", now, "x", StockConfig())      # A's prices missing now
+    oc = L.read_outcomes(tmp_path / "forecasts" / "stocks_outcomes.csv")
+    row = oc.iloc[0]
+    assert row["status"] == "scored" and row["model_id"] == mid and row["target_date"] == "2024-01-03"
+
+
+def test_verdicts_use_only_the_current_model_with_aliases():
+    oc = pd.DataFrame([
+        {"origin_date": "2024-01-02", "target_date": "2024-01-03", "symbol": "A", "market": "US", "status": "scored",
+         "ret": -0.05, "var95": 0.03, "breach": True, "har_var": 1e-4, "ewma_var": 1e-4, "level": "green",
+         "qlike_har": 0.0, "qlike_ewma": 0.0, "var_ratio": 25.0, "model_id": "old"},
+        {"origin_date": "2024-01-02", "target_date": "2024-01-03", "symbol": "B", "market": "US", "status": "scored",
+         "ret": 0.0, "var95": 0.03, "breach": False, "har_var": 1e-4, "ewma_var": 1e-4, "level": "green",
+         "qlike_har": 0.0, "qlike_ewma": 0.0, "var_ratio": 0.0, "model_id": "alias_of_new"},
+    ])
+    led = oc[["origin_date", "symbol", "market", "model_id"]]
+    L.MODEL_ID_ALIASES["alias_of_new"] = "new"
+    try:
+        rv = L.summarize(oc, led, [], L.ReviewConfig(), "t", "new")
+    finally:
+        del L.MODEL_ID_ALIASES["alias_of_new"]
+    assert rv["markets"]["US"]["n"] == 1 and rv["markets"]["US"]["breaches"] == 0
+    assert rv["other_models"] == {"old": 1}
+
+
+def test_ci_accounts_for_breaches_clustering_over_days():
+    # 20 names x 120 days; breaches come in 5-day bursts hitting all names.
+    dates = np.repeat(np.arange(120), 20)
+    day_hit = np.zeros(120, bool)
+    for s in range(0, 120, 20):
+        day_hit[s:s + 5] = True
+    x = np.repeat(day_hit, 20).astype(float) * 0.2
+    m, lo0, hi0 = L._clustered_rate(x, dates, 1.6449, lag=0)
+    m, lo5, hi5 = L._clustered_rate(x, dates, 1.6449, lag=5)
+    assert (hi5 - lo5) > 1.5 * (hi0 - lo0)
+
+
+def test_model_id_guard():
+    """Changing how a stock forecast is made changes model_id, and the live record
+    restarts from zero for the new model. If this fails, that is intended only
+    with a documented model change (methodology section 14); update the expected
+    id here, and never add an alias unless the forecasting code is byte-identical."""
+    from tcd.stocks import StockConfig
+    assert L.model_id(StockConfig()) == "9c9661d3517e"
+    assert set(L.MODEL_ID_ALIASES.values()) <= {"9c9661d3517e"}

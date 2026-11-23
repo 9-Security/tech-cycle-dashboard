@@ -49,6 +49,27 @@ LEDGER_COLUMNS = ["origin_date", "symbol", "market", "issued_at", "var95", "har_
 OUTCOME_COLUMNS = ["origin_date", "symbol", "market", "target_date", "status", "ret", "var95", "breach",
                    "har_var", "ewma_var", "level", "qlike_har", "qlike_ewma", "var_ratio", "model_id"]
 
+# Market benchmark whose calendar defines real trading days (a stock bar on a
+# day the benchmark has no bar is a carried-forward holiday bar).
+MARKET_BENCH = {"TW": "^TWII", "US": "^NDX"}
+
+# Outcomes with these statuses are final: kept as first computed, never rebuilt
+# (a later failed fetch, a watchlist removal or a data revision cannot erase or
+# change a scored forecast).
+FINAL_STATUSES = {"scored", "gap", "data_error"}
+
+# model_id values that denote the same forecasting code. The formula of the id
+# changed on 2026-11-23 (whole stocks.py -> forecasting functions only). The
+# ledger's first rows carry the old-formula id 333e22e1aab1 (code at merge
+# 06f3fb7); its forecasting functions (drop_stale_runs, daily_frame,
+# walk_forward_var, current_risk, short_risk.design / fit_var / VarModel,
+# light.level_for) and StockConfig were checked to be byte-identical to the
+# code behind 9c9661d3517e, so those rows are the same model.
+MODEL_ID_ALIASES = {"333e22e1aab1": "9c9661d3517e"}
+
+STR_COLS = {"origin_date": str, "target_date": str, "symbol": str, "market": str, "level": str,
+            "model_id": str, "engine_version": str, "issued_at": str, "status": str}
+
 # Last bar is final once local time passes close + buffer.
 MARKET_CLOSE = {"TW": ("Asia/Taipei", time(14, 30)),        # TWSE closes 13:30
                 "US": ("America/New_York", time(16, 30))}   # NYSE / Nasdaq close 16:00
@@ -89,11 +110,37 @@ def bar_is_final(market: str, origin_date: str, now_utc: datetime) -> bool:
     return d == local.date() and local.time() >= cutoff
 
 
+def market_days(prices: dict[str, pd.DataFrame]) -> dict[str, set[str] | None]:
+    """Real trading days per market from its benchmark (no bar or an unchanged
+    close = market closed). None when the benchmark is unavailable."""
+    out: dict[str, set[str] | None] = {}
+    for m, b in MARKET_BENCH.items():
+        px = prices.get(b)
+        if px is None or px["close"].dropna().empty:
+            out[m] = None
+            continue
+        c = px["close"].dropna()
+        out[m] = set(c.index[~(c.diff() == 0)].strftime("%Y-%m-%d"))
+    return out
+
+
 def forecast_rows(stock_rows: list[dict], issued_at: str, now_utc: datetime, engine_version: str,
-                  mid: str, non_trading: dict[str, set[str]] | None = None) -> list[dict]:
+                  mid: str, non_trading: dict[str, set[str]] | None = None,
+                  open_days: dict[str, set[str] | None] | None = None) -> list[dict]:
     out = []
     for r in stock_rows:
         if r.get("stale") or r.get("har_var") is None:
+            continue
+        days = (open_days or {}).get(r["market"])
+        if days is not None and r["last_date"] not in days:
+            log.warning("ledger: %s bar %s is not a trading day of %s, forecast not logged",
+                        r["symbol"], r["last_date"], MARKET_BENCH[r["market"]])
+            continue
+        if r.get("model_last_date") and r["model_last_date"] != r["last_date"]:
+            # The model's data end earlier (stale run removed, outlier dropped):
+            # the forecast is not for the day after last_date.
+            log.warning("ledger: %s model data end %s != last bar %s, forecast not logged",
+                        r["symbol"], r["model_last_date"], r["last_date"])
             continue
         if r["last_date"] in (non_trading or {}).get(r["symbol"], set()):
             log.warning("ledger: %s bar %s is not an exchange trading day, forecast not logged", r["symbol"], r["last_date"])
@@ -156,18 +203,24 @@ def append_ledger(path: Path, rows: list[dict]) -> int:
 def read_ledger(path: Path) -> pd.DataFrame:
     if not path.exists():
         return pd.DataFrame(columns=LEDGER_COLUMNS)
-    return pd.read_csv(path, dtype={"origin_date": str, "symbol": str, "market": str, "level": str,
-                                    "model_id": str, "engine_version": str, "issued_at": str})
+    return pd.read_csv(path, dtype={k: v for k, v in STR_COLS.items() if k in LEDGER_COLUMNS})
 
 
 # ----------------------------------------------------------- reconciliation
 def evaluate(ledger: pd.DataFrame, prices: dict[str, pd.DataFrame], markets: tuple[str, ...],
-             cfg: ReviewConfig, non_trading: dict[str, set[str]] | None = None) -> pd.DataFrame:
+             cfg: ReviewConfig, non_trading: dict[str, set[str]] | None = None,
+             open_days: dict[str, set[str] | None] | None = None, skip: set | None = None) -> pd.DataFrame:
     """Match each forecast of `markets` with the stock's next real bar.
-    Bars the exchange shows as non-trading days (official check) are skipped."""
+    Bars on days the market benchmark did not trade, or that the second-source
+    check flags as non-trading, are skipped. Keys in `skip` (already final) are
+    not re-evaluated."""
     non_trading = non_trading or {}
+    open_days = open_days or {}
+    skip = skip or set()
     recs = []
     for _, f in ledger[ledger["market"].isin(markets)].iterrows():
+        if (f["symbol"], f["origin_date"]) in skip:
+            continue
         rec = {k: f[k] for k in ("origin_date", "symbol", "market", "var95", "har_var", "ewma_var", "level", "model_id")}
         rec.update(target_date=None, ret=None, breach=None, qlike_har=None, qlike_ewma=None, var_ratio=None)
         px = prices.get(f["symbol"])
@@ -178,9 +231,14 @@ def evaluate(ledger: pd.DataFrame, prices: dict[str, pd.DataFrame], markets: tup
             recs.append(rec)
             continue
         after = close[close.index > o]
-        skip = non_trading.get(f["symbol"])
-        if skip:
-            after = after[~after.index.strftime("%Y-%m-%d").isin(list(skip))]
+        bad = non_trading.get(f["symbol"])
+        if bad:
+            after = after[~after.index.strftime("%Y-%m-%d").isin(list(bad))]
+        days = open_days.get(f["market"])
+        if days is not None and len(after):
+            # Only judge against bars the benchmark confirms; a bar after the
+            # benchmark's last bar waits until the benchmark catches up.
+            after = after[after.index.strftime("%Y-%m-%d").isin(list(days))]
         if after.empty:
             rec["status"] = "pending"
             recs.append(rec)
@@ -203,25 +261,41 @@ def evaluate(ledger: pd.DataFrame, prices: dict[str, pd.DataFrame], markets: tup
     return pd.DataFrame(recs, columns=OUTCOME_COLUMNS)
 
 
+def read_outcomes(path: Path) -> pd.DataFrame:
+    if not path.exists():
+        return pd.DataFrame(columns=OUTCOME_COLUMNS)
+    return pd.read_csv(path, dtype={k: v for k, v in STR_COLS.items() if k in OUTCOME_COLUMNS})
+
+
+def final_keys(old: pd.DataFrame) -> set:
+    f = old[old["status"].isin(FINAL_STATUSES)]
+    return set(zip(f["symbol"], f["origin_date"]))
+
+
 def merge_outcomes(path: Path, fresh: pd.DataFrame, markets: tuple[str, ...]) -> pd.DataFrame:
-    """Replace the outcomes of `markets`, keep those of other markets."""
-    if path.exists():
-        old = pd.read_csv(path, dtype={"origin_date": str, "target_date": str, "symbol": str})
-        old = old[~old["market"].isin(markets)]
-        out = pd.concat([old, fresh], ignore_index=True) if len(old) else fresh
-    else:
-        out = fresh
+    """Rebuild the non-final outcomes of `markets`; keep final outcomes and the
+    other markets' rows exactly as they were."""
+    old = read_outcomes(path)
+    keep = old[~old["market"].isin(markets) | old["status"].isin(FINAL_STATUSES)]
+    out = pd.concat([keep, fresh], ignore_index=True) if len(keep) else fresh
     out = out.sort_values(["origin_date", "market", "symbol"], kind="stable").reset_index(drop=True)
     _atomic_write(path, out.to_csv(index=False, lineterminator="\n"))
     return out
 
 
-def _clustered_rate(x: np.ndarray, dates: np.ndarray, z: float) -> tuple[float, float, float]:
-    """Mean of x with a standard error clustered by date (names breach on the
-    same days, so they are not independent observations)."""
+def _clustered_rate(x: np.ndarray, dates: np.ndarray, z: float, lag: int = 5) -> tuple[float, float, float]:
+    """Mean of x with a standard error robust to both kinds of dependence:
+    names breaching on the same day (deviations are summed per date) and
+    breaches clustering over consecutive days (Newey-West, Bartlett weights,
+    `lag` trading days, over the date-ordered daily sums). Clustering by date
+    alone (the rule until 2026-11-23, before any outcome existed) ignored the
+    second and was too narrow."""
     m = float(x.mean())
-    d = pd.Series(x - m).groupby(dates).sum().to_numpy()
-    se = sqrt(float((d ** 2).sum())) / len(x)
+    d = pd.Series(x - m).groupby(dates).sum().sort_index().to_numpy()
+    S = float((d ** 2).sum())
+    for L in range(1, min(lag, len(d) - 1) + 1):
+        S += 2 * (1 - L / (lag + 1)) * float((d[L:] * d[:-L]).sum())
+    se = sqrt(max(S, 0.0)) / len(x)
     return m, m - z * se, m + z * se
 
 
@@ -277,7 +351,16 @@ def _per_stock(s: pd.DataFrame, cfg: ReviewConfig) -> dict:
 
 
 def summarize(outcomes: pd.DataFrame, ledger: pd.DataFrame, stock_rows: list[dict], cfg: ReviewConfig,
-              as_of: str) -> dict:
+              as_of: str, current_model: str | None = None) -> dict:
+    """Verdicts use only forecasts of the current model (after aliases); rows of
+    other models are counted separately, so a model change starts from zero."""
+    others: dict[str, int] = {}
+    if current_model is not None and len(ledger):
+        canon = ledger["model_id"].map(lambda v: MODEL_ID_ALIASES.get(v, v))
+        others = {k: int(v) for k, v in canon[canon != current_model].value_counts().items()}
+        ledger = ledger[canon == current_model]
+        oc = outcomes["model_id"].map(lambda v: MODEL_ID_ALIASES.get(v, v))
+        outcomes = outcomes[oc == current_model]
     sc = outcomes[outcomes["status"] == "scored"].copy()
     if len(sc):
         sc["breach"] = sc["breach"].map(lambda v: v in (True, "True", 1, "1"))
@@ -298,7 +381,8 @@ def summarize(outcomes: pd.DataFrame, ledger: pd.DataFrame, stock_rows: list[dic
     for sym in ledger["symbol"].unique():
         stocks.setdefault(sym, {**_per_stock(sc.iloc[0:0], cfg), "backtest_breach_rate": bt.get(sym, {}).get("breach_rate")})
     return {"as_of": as_of, "settings": asdict(cfg), "markets": markets, "stocks": stocks,
-            "model_ids": sorted(ledger["model_id"].dropna().unique().tolist()) if len(ledger) else []}
+            "current_model": current_model, "model_id_aliases": MODEL_ID_ALIASES,
+            "other_models": others}
 
 
 def non_trading_days(path: Path) -> dict[str, set[str]]:
@@ -318,11 +402,14 @@ def update(out_dir: Path, stock_rows: list[dict], prices: dict[str, pd.DataFrame
     out_dir = Path(out_dir)
     lp = out_dir / "forecasts" / "stocks_ledger.csv"
     nt = non_trading_days(out_dir / "official_check.json")
-    added = append_ledger(lp, forecast_rows(stock_rows, issued_at, now_utc, engine_version, model_id(stock_cfg), nt))
+    od = market_days(prices)
+    mid = model_id(stock_cfg)
+    added = append_ledger(lp, forecast_rows(stock_rows, issued_at, now_utc, engine_version, mid, nt, od))
     ledger = read_ledger(lp)
-    outcomes = merge_outcomes(out_dir / "forecasts" / "stocks_outcomes.csv",
-                              evaluate(ledger, prices, markets, cfg, nt), markets)
-    review = summarize(outcomes, ledger, all_rows if all_rows is not None else stock_rows, cfg, issued_at)
+    op = out_dir / "forecasts" / "stocks_outcomes.csv"
+    frozen = final_keys(read_outcomes(op))
+    outcomes = merge_outcomes(op, evaluate(ledger, prices, markets, cfg, nt, od, frozen), markets)
+    review = summarize(outcomes, ledger, all_rows if all_rows is not None else stock_rows, cfg, issued_at, mid)
     review["last_run"] = {"markets": list(markets), "forecasts_added": added}
     from .export import clean  # local import: export imports heavy modules
     _atomic_write(out_dir / "forecast_review.json", json.dumps(clean(review), indent=1, allow_nan=False) + "\n")

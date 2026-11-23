@@ -13,8 +13,10 @@ bar is dropped if
   * ^TWII has no bar that day, or
   * ^TWII's close is exactly unchanged from its previous bar (a market-wide
     closure carried forward in the index too: e.g. typhoon days).
-Bars before the first or after the last ^TWII bar are kept (no evidence
-either way; the latter guards against an index series that lags a day).
+Bars before the first ^TWII bar are kept (no evidence). Bars after the last
+^TWII bar are kept only if their close moved (guards against an index series
+that lags a day, while dropping the carried-forward bar Yahoo emits on a
+weekday closure).
 """
 
 from __future__ import annotations
@@ -52,6 +54,13 @@ def clean(prices: dict[str, pd.DataFrame], watchlist: dict, benchmark: str = "^T
         idx = df.index
         inside = (idx >= lo) & (idx <= hi)
         bad = inside & ~idx.isin(open_days)
+        # After the last ^TWII bar: keep a bar only if its close moved (an
+        # unchanged close there is the typical carried-forward holiday bar,
+        # e.g. a typhoon day while ^TWII still ends the day before).
+        after = idx > hi
+        if after.any():
+            c = df["close"]
+            bad |= after & (c == c.shift(1)).to_numpy()
         if bad.any():
             out[s] = df[~bad]
             dropped[s] = {"n": int(bad.sum()), "last": [str(d.date()) for d in idx[bad][-max_listed:]]}
