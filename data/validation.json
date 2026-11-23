@@ -1,0 +1,899 @@
+{
+ "as_of": "20261123T060354Z",
+ "DATA_SOURCE": "REAL",
+ "data_source": "REAL",
+ "engine_version": "2.0.0",
+ "git_sha": null,
+ "n_months": 322,
+ "panel_start": "2000-01-31",
+ "summary": {
+  "oos_start": "2000-01-31",
+  "oos_end": "2026-10-31",
+  "oos_months": 322,
+  "grid_size": 1440,
+  "objective": "Sharpe - 2.0 x max(0, MDD beyond 30%)",
+  "train_start": "1993-01-31",
+  "refit": "every 12 months (January), expanding window"
+ },
+ "oos": {
+  "sharpe": 0.11375517971174358,
+  "sortino": 0.08887112170486343,
+  "cagr": 0.02534527250760421,
+  "ann_vol": 0.14385584178431002,
+  "max_dd": -0.7190493846381121,
+  "calmar": 0.035248305678420334,
+  "final_nav": 1.9574104950668945,
+  "period_return": 0.9574104950668945,
+  "ann_turnover": 1.3695652173913044,
+  "avg_weight": 0.6218944099378882,
+  "total_cost": 0.05512500000000001,
+  "months": 322
+ },
+ "bh": {
+  "sharpe": 0.387159169273099,
+  "sortino": 0.37267040313668914,
+  "cagr": 0.08522421944327929,
+  "ann_vol": 0.23007385697265603,
+  "max_dd": -0.8046646525951471,
+  "calmar": 0.10591271676768728,
+  "final_nav": 8.976478206118545,
+  "period_return": 7.976478206118545,
+  "ann_turnover": 0.0,
+  "avg_weight": 1.0,
+  "total_cost": 0.0,
+  "months": 322
+ },
+ "vol_matched_bh": {
+  "sharpe": 0.38715916927309907,
+  "sortino": 0.3726704031366892,
+  "cagr": 0.06692231681329464,
+  "ann_vol": 0.14372536040348444,
+  "max_dd": -0.6042588835560629,
+  "calmar": 0.11075106818365146,
+  "final_nav": 5.687177497652227,
+  "period_return": 4.687177497652227,
+  "ann_turnover": 0.0,
+  "avg_weight": 0.6252594000778068,
+  "total_cost": 0.0,
+  "months": 322,
+  "risk_fraction": 0.6252594000778067
+ },
+ "insample_best": {
+  "params": {
+   "vix_threshold": 18.0,
+   "overheat_threshold": 1.0,
+   "earn_threshold": -1.0,
+   "w_overheat": 0.5,
+   "w_shock": 0.25,
+   "w_digestion": 0.5,
+   "w_normal": 1.0
+  },
+  "full_sample": {
+   "sharpe": 0.672279612612357,
+   "sortino": 0.7159876423120195,
+   "cagr": 0.08662743006465323,
+   "ann_vol": 0.09363761323709088,
+   "max_dd": -0.2571202750275031,
+   "calmar": 0.33691403781902085,
+   "final_nav": 16.62375491239703,
+   "period_return": 15.623754912397029,
+   "ann_turnover": 0.960591133004926,
+   "avg_weight": 0.5277093596059114,
+   "months": 406
+  },
+  "on_oos_window": {
+   "sharpe": 0.5460873485298697,
+   "sortino": 0.5711446965764407,
+   "cagr": 0.06796934729191495,
+   "ann_vol": 0.09280489729783341,
+   "max_dd": -0.2571202750275031,
+   "calmar": 0.2643484543746873,
+   "final_nav": 5.8388520780629145,
+   "period_return": 4.8388520780629145,
+   "ann_turnover": 1.1273291925465838,
+   "avg_weight": 0.531832298136646,
+   "months": 322
+  }
+ },
+ "stats": {
+  "deflated_sharpe_insample": {
+   "n_trials": 1440,
+   "sr_best_monthly": 0.19407040765622083,
+   "sr0_monthly": 0.08442496679345277,
+   "sr0_annualized": 0.292456663827151,
+   "dsr": 0.9855372186465186
+  },
+  "psr_oos_vs_zero": 0.7161212285664534,
+  "psr_oos_vs_bh_sharpe": 0.08484137134894093
+ },
+ "ablation": [
+  {
+   "variant": "full",
+   "label": "Full model (Shock + Overheat + Digestion)",
+   "sharpe": 0.11375517971174358,
+   "sortino": 0.08887112170486343,
+   "cagr": 0.02534527250760421,
+   "ann_vol": 0.14385584178431002,
+   "max_dd": -0.7190493846381121,
+   "calmar": 0.035248305678420334,
+   "final_nav": 1.9574104950668945,
+   "period_return": 0.9574104950668945,
+   "ann_turnover": 1.3695652173913044,
+   "avg_weight": 0.6218944099378882,
+   "total_cost": 0.05512500000000001,
+   "months": 322
+  },
+  {
+   "variant": "no_shock",
+   "label": "Without Shock (VIX)",
+   "sharpe": 0.390675730463542,
+   "sortino": 0.37643663781498765,
+   "cagr": 0.08284175415053041,
+   "ann_vol": 0.21224210844768415,
+   "max_dd": -0.782956401546073,
+   "calmar": 0.10580634373375845,
+   "final_nav": 8.4624087415654,
+   "period_return": 7.462408741565399,
+   "ann_turnover": 0.68944099378882,
+   "avg_weight": 0.9114906832298136,
+   "total_cost": 0.027750000000000004,
+   "months": 322
+  },
+  {
+   "variant": "no_overheat",
+   "label": "Without Overheat (valuation + Capex)",
+   "sharpe": 0.2549215008852043,
+   "sortino": 0.21414339530566326,
+   "cagr": 0.04505187797660781,
+   "ann_vol": 0.1304511779804585,
+   "max_dd": -0.5664040756001938,
+   "calmar": 0.07954017267419605,
+   "final_nav": 3.2623631960737742,
+   "period_return": 2.2623631960737742,
+   "ann_turnover": 1.3416149068322982,
+   "avg_weight": 0.6195652173913043,
+   "total_cost": 0.054000000000000006,
+   "months": 322
+  },
+  {
+   "variant": "no_digestion",
+   "label": "Without Digestion (earnings)",
+   "sharpe": 0.25602153247681086,
+   "sortino": 0.21411200085062285,
+   "cagr": 0.044523903991739555,
+   "ann_vol": 0.12536673785877095,
+   "max_dd": -0.5437222354808419,
+   "calmar": 0.08188722308250784,
+   "final_nav": 3.21842419771644,
+   "period_return": 2.21842419771644,
+   "ann_turnover": 1.313664596273292,
+   "avg_weight": 0.6048136645962733,
+   "total_cost": 0.052875000000000005,
+   "months": 322
+  },
+  {
+   "variant": "shock_only",
+   "label": "Shock (VIX) only",
+   "sharpe": 0.3822022766999379,
+   "sortino": 0.3478101039291333,
+   "cagr": 0.05802781029069237,
+   "ann_vol": 0.113701802458444,
+   "max_dd": -0.37099726575035763,
+   "calmar": 0.15641034489385974,
+   "final_nav": 4.5429546517638375,
+   "period_return": 3.5429546517638375,
+   "ann_turnover": 1.3229813664596275,
+   "avg_weight": 0.6055900621118012,
+   "total_cost": 0.053250000000000006,
+   "months": 322
+  },
+  {
+   "variant": "buy_hold",
+   "label": "Buy & hold (XLK/NDX)",
+   "sharpe": 0.387159169273099,
+   "sortino": 0.37267040313668914,
+   "cagr": 0.08522421944327929,
+   "ann_vol": 0.23007385697265603,
+   "max_dd": -0.8046646525951471,
+   "calmar": 0.10591271676768728,
+   "final_nav": 8.976478206118545,
+   "period_return": 7.976478206118545,
+   "ann_turnover": 0.0,
+   "avg_weight": 1.0,
+   "total_cost": 0.0,
+   "months": 322
+  },
+  {
+   "variant": "vol_matched_bh",
+   "label": "Vol-matched B&H (0.63 risk / 0.37 cash, ex-post)",
+   "sharpe": 0.38715916927309907,
+   "sortino": 0.3726704031366892,
+   "cagr": 0.06692231681329464,
+   "ann_vol": 0.14372536040348444,
+   "max_dd": -0.6042588835560629,
+   "calmar": 0.11075106818365146,
+   "final_nav": 5.687177497652227,
+   "period_return": 4.687177497652227,
+   "ann_turnover": 0.0,
+   "avg_weight": 0.6252594000778068,
+   "total_cost": 0.0,
+   "months": 322
+  }
+ ],
+ "sensitivity": {
+  "metric": "full-sample Sharpe (other params at in-sample best)",
+  "vix_threshold": [
+   18.0,
+   20.0,
+   22.0,
+   25.0,
+   28.0,
+   32.0
+  ],
+  "overheat_threshold": [
+   0.75,
+   1.0,
+   1.25,
+   1.5,
+   2.0
+  ],
+  "sharpe": [
+   [
+    0.6327656273990141,
+    0.672279612612357,
+    0.6610320942436559,
+    0.6628803845003575,
+    0.6601649209379149
+   ],
+   [
+    0.524616461102619,
+    0.5709150394340305,
+    0.5841617820717266,
+    0.6007432512404037,
+    0.6151504697497429
+   ],
+   [
+    0.44321813788697567,
+    0.48867603895950174,
+    0.5285641835269782,
+    0.5569411709353906,
+    0.5810415533831906
+   ],
+   [
+    0.35830079898793327,
+    0.4031198083774809,
+    0.4442586691554628,
+    0.48465224833320775,
+    0.5140911221205222
+   ],
+   [
+    0.35327560107986417,
+    0.39521420454827766,
+    0.4506436188456062,
+    0.47692764891690703,
+    0.5171986253406056
+   ],
+   [
+    0.3639330962553856,
+    0.41037921143531286,
+    0.47013550813238764,
+    0.4999484224648726,
+    0.5427126736005402
+   ]
+  ]
+ },
+ "subperiods": [
+  {
+   "period": "DotCom 2000-2002",
+   "start": "2000-01-31",
+   "end": "2002-12-31",
+   "strategy_return": -0.6782489674565623,
+   "strategy_max_dd": -0.7190493846381121,
+   "strategy_sharpe": -1.2009005401486346,
+   "bh_return": -0.7245483072962989,
+   "bh_max_dd": -0.8046646525951471,
+   "bh_sharpe": -0.855893982870179
+  },
+  {
+   "period": "GFC 2008-2009",
+   "start": "2008-01-31",
+   "end": "2009-12-31",
+   "strategy_return": 0.01685313965473889,
+   "strategy_max_dd": 0.0,
+   "strategy_sharpe": null,
+   "bh_return": -0.11485762025200597,
+   "bh_max_dd": -0.4640375376234567,
+   "bh_sharpe": -0.13633160005986872
+  },
+  {
+   "period": "COVID 2020",
+   "start": "2020-01-31",
+   "end": "2020-12-31",
+   "strategy_return": 0.0723594231407354,
+   "strategy_max_dd": -0.09320721789251851,
+   "strategy_sharpe": 0.6422079623564961,
+   "bh_return": 0.4361879336617607,
+   "bh_max_dd": -0.1525261773109,
+   "bh_sharpe": 1.447583095294189
+  },
+  {
+   "period": "Rate shock 2022",
+   "start": "2022-01-31",
+   "end": "2022-12-31",
+   "strategy_return": -0.05803812174784295,
+   "strategy_max_dd": -0.07769947089885565,
+   "strategy_sharpe": -1.053532560818807,
+   "bh_return": -0.2772629879195334,
+   "bh_max_dd": -0.31211089685140025,
+   "bh_sharpe": -1.0535325608188069
+  },
+  {
+   "period": "AI Capex 2023+",
+   "start": "2023-01-31",
+   "end": "2026-10-31",
+   "strategy_return": 0.4496773157708889,
+   "strategy_max_dd": -0.13232930310004942,
+   "strategy_sharpe": 0.47702904618461806,
+   "bh_return": 1.9589510538890686,
+   "bh_max_dd": -0.11358639277962657,
+   "bh_sharpe": 1.1776267967187497
+  }
+ ],
+ "folds": [
+  {
+   "test_year": 2000,
+   "train_months": 84,
+   "train_end": "1999-12-31",
+   "params": {
+    "vix_threshold": 28.0,
+    "overheat_threshold": 2.0,
+    "earn_threshold": -1.5,
+    "w_overheat": 0.5,
+    "w_shock": 0.5,
+    "w_digestion": 0.5,
+    "w_normal": 1.0
+   },
+   "train_objective": 1.414447282235895,
+   "train_sharpe": 1.414447282235895,
+   "test_months": 12,
+   "test_return": -0.41780621248972727
+  },
+  {
+   "test_year": 2001,
+   "train_months": 96,
+   "train_end": "2000-12-31",
+   "params": {
+    "vix_threshold": 25.0,
+    "overheat_threshold": 2.0,
+    "earn_threshold": -1.0,
+    "w_overheat": 0.5,
+    "w_shock": 0.5,
+    "w_digestion": 0.5,
+    "w_normal": 1.0
+   },
+   "train_objective": 0.9377994257974556,
+   "train_sharpe": 0.9377994257974556,
+   "test_months": 12,
+   "test_return": -0.3948881509911949
+  },
+  {
+   "test_year": 2002,
+   "train_months": 108,
+   "train_end": "2001-12-31",
+   "params": {
+    "vix_threshold": 18.0,
+    "overheat_threshold": 2.0,
+    "earn_threshold": -1.5,
+    "w_overheat": 0.75,
+    "w_shock": 0.25,
+    "w_digestion": 0.5,
+    "w_normal": 1.0
+   },
+   "train_objective": 0.7677893545600978,
+   "train_sharpe": 0.7677893545600978,
+   "test_months": 12,
+   "test_return": -0.08572544007406047
+  },
+  {
+   "test_year": 2003,
+   "train_months": 120,
+   "train_end": "2002-12-31",
+   "params": {
+    "vix_threshold": 18.0,
+    "overheat_threshold": 2.0,
+    "earn_threshold": -1.5,
+    "w_overheat": 0.75,
+    "w_shock": 0.0,
+    "w_digestion": 0.5,
+    "w_normal": 1.0
+   },
+   "train_objective": 0.7140212441194697,
+   "train_sharpe": 0.7140212441194697,
+   "test_months": 12,
+   "test_return": 0.039785439815133605
+  },
+  {
+   "test_year": 2004,
+   "train_months": 132,
+   "train_end": "2003-12-31",
+   "params": {
+    "vix_threshold": 18.0,
+    "overheat_threshold": 2.0,
+    "earn_threshold": -1.5,
+    "w_overheat": 0.75,
+    "w_shock": 0.0,
+    "w_digestion": 0.5,
+    "w_normal": 1.0
+   },
+   "train_objective": 0.7061587276026184,
+   "train_sharpe": 0.7061587276026184,
+   "test_months": 12,
+   "test_return": 0.056376032143178545
+  },
+  {
+   "test_year": 2005,
+   "train_months": 144,
+   "train_end": "2004-12-31",
+   "params": {
+    "vix_threshold": 18.0,
+    "overheat_threshold": 2.0,
+    "earn_threshold": -1.5,
+    "w_overheat": 0.75,
+    "w_shock": 0.0,
+    "w_digestion": 0.5,
+    "w_normal": 1.0
+   },
+   "train_objective": 0.663219736566211,
+   "train_sharpe": 0.663219736566211,
+   "test_months": 12,
+   "test_return": -0.0031649317057846904
+  },
+  {
+   "test_year": 2006,
+   "train_months": 156,
+   "train_end": "2005-12-31",
+   "params": {
+    "vix_threshold": 18.0,
+    "overheat_threshold": 2.0,
+    "earn_threshold": -1.5,
+    "w_overheat": 0.75,
+    "w_shock": 0.0,
+    "w_digestion": 0.5,
+    "w_normal": 1.0
+   },
+   "train_objective": 0.5708398515971606,
+   "train_sharpe": 0.5708398515971606,
+   "test_months": 12,
+   "test_return": 0.12157269886841249
+  },
+  {
+   "test_year": 2007,
+   "train_months": 168,
+   "train_end": "2006-12-31",
+   "params": {
+    "vix_threshold": 18.0,
+    "overheat_threshold": 2.0,
+    "earn_threshold": -1.5,
+    "w_overheat": 0.75,
+    "w_shock": 0.0,
+    "w_digestion": 0.5,
+    "w_normal": 1.0
+   },
+   "train_objective": 0.5750739701855606,
+   "train_sharpe": 0.5750739701855606,
+   "test_months": 12,
+   "test_return": 0.1322545263620145
+  },
+  {
+   "test_year": 2008,
+   "train_months": 180,
+   "train_end": "2007-12-31",
+   "params": {
+    "vix_threshold": 18.0,
+    "overheat_threshold": 2.0,
+    "earn_threshold": -1.5,
+    "w_overheat": 0.75,
+    "w_shock": 0.0,
+    "w_digestion": 0.5,
+    "w_normal": 1.0
+   },
+   "train_objective": 0.6012230389938491,
+   "train_sharpe": 0.6012230389938491,
+   "test_months": 12,
+   "test_return": 0.015269896428895535
+  },
+  {
+   "test_year": 2009,
+   "train_months": 192,
+   "train_end": "2008-12-31",
+   "params": {
+    "vix_threshold": 18.0,
+    "overheat_threshold": 2.0,
+    "earn_threshold": -1.5,
+    "w_overheat": 0.75,
+    "w_shock": 0.0,
+    "w_digestion": 0.5,
+    "w_normal": 1.0
+   },
+   "train_objective": 0.5816829727676145,
+   "train_sharpe": 0.5816829727676145,
+   "test_months": 12,
+   "test_return": 0.0015594308778501542
+  },
+  {
+   "test_year": 2010,
+   "train_months": 204,
+   "train_end": "2009-12-31",
+   "params": {
+    "vix_threshold": 18.0,
+    "overheat_threshold": 2.0,
+    "earn_threshold": -1.5,
+    "w_overheat": 0.75,
+    "w_shock": 0.0,
+    "w_digestion": 0.5,
+    "w_normal": 1.0
+   },
+   "train_objective": 0.5639323419924634,
+   "train_sharpe": 0.5639323419924634,
+   "test_months": 12,
+   "test_return": -0.06494279195704511
+  },
+  {
+   "test_year": 2011,
+   "train_months": 216,
+   "train_end": "2010-12-31",
+   "params": {
+    "vix_threshold": 18.0,
+    "overheat_threshold": 2.0,
+    "earn_threshold": -1.5,
+    "w_overheat": 0.75,
+    "w_shock": 0.25,
+    "w_digestion": 0.5,
+    "w_normal": 1.0
+   },
+   "train_objective": 0.4994062021528512,
+   "train_sharpe": 0.4994062021528512,
+   "test_months": 12,
+   "test_return": 0.0047618823131179155
+  },
+  {
+   "test_year": 2012,
+   "train_months": 228,
+   "train_end": "2011-12-31",
+   "params": {
+    "vix_threshold": 18.0,
+    "overheat_threshold": 2.0,
+    "earn_threshold": -1.5,
+    "w_overheat": 0.75,
+    "w_shock": 0.25,
+    "w_digestion": 0.5,
+    "w_normal": 1.0
+   },
+   "train_objective": 0.485127108063692,
+   "train_sharpe": 0.485127108063692,
+   "test_months": 12,
+   "test_return": -0.026883578443867906
+  },
+  {
+   "test_year": 2013,
+   "train_months": 240,
+   "train_end": "2012-12-31",
+   "params": {
+    "vix_threshold": 18.0,
+    "overheat_threshold": 2.0,
+    "earn_threshold": -1.0,
+    "w_overheat": 0.75,
+    "w_shock": 0.25,
+    "w_digestion": 0.5,
+    "w_normal": 1.0
+   },
+   "train_objective": 0.46833002817061525,
+   "train_sharpe": 0.46833002817061525,
+   "test_months": 12,
+   "test_return": 0.2624122119622714
+  },
+  {
+   "test_year": 2014,
+   "train_months": 252,
+   "train_end": "2013-12-31",
+   "params": {
+    "vix_threshold": 18.0,
+    "overheat_threshold": 2.0,
+    "earn_threshold": -1.0,
+    "w_overheat": 0.75,
+    "w_shock": 0.25,
+    "w_digestion": 0.5,
+    "w_normal": 1.0
+   },
+   "train_objective": 0.5540758882461424,
+   "train_sharpe": 0.5540758882461424,
+   "test_months": 12,
+   "test_return": 0.13529778056587127
+  },
+  {
+   "test_year": 2015,
+   "train_months": 264,
+   "train_end": "2014-12-31",
+   "params": {
+    "vix_threshold": 18.0,
+    "overheat_threshold": 2.0,
+    "earn_threshold": -1.0,
+    "w_overheat": 0.75,
+    "w_shock": 0.25,
+    "w_digestion": 0.5,
+    "w_normal": 1.0
+   },
+   "train_objective": 0.5904340359563869,
+   "train_sharpe": 0.5904340359563869,
+   "test_months": 12,
+   "test_return": -0.0422114976534782
+  },
+  {
+   "test_year": 2016,
+   "train_months": 276,
+   "train_end": "2015-12-31",
+   "params": {
+    "vix_threshold": 18.0,
+    "overheat_threshold": 2.0,
+    "earn_threshold": -1.0,
+    "w_overheat": 0.75,
+    "w_shock": 0.25,
+    "w_digestion": 0.5,
+    "w_normal": 1.0
+   },
+   "train_objective": 0.5511718491526918,
+   "train_sharpe": 0.5511718491526918,
+   "test_months": 12,
+   "test_return": 0.11489129070860327
+  },
+  {
+   "test_year": 2017,
+   "train_months": 288,
+   "train_end": "2016-12-31",
+   "params": {
+    "vix_threshold": 18.0,
+    "overheat_threshold": 2.0,
+    "earn_threshold": -1.0,
+    "w_overheat": 0.75,
+    "w_shock": 0.25,
+    "w_digestion": 0.5,
+    "w_normal": 1.0
+   },
+   "train_objective": 0.5721287066662338,
+   "train_sharpe": 0.5721287066662338,
+   "test_months": 12,
+   "test_return": 0.34256439902636093
+  },
+  {
+   "test_year": 2018,
+   "train_months": 300,
+   "train_end": "2017-12-31",
+   "params": {
+    "vix_threshold": 18.0,
+    "overheat_threshold": 2.0,
+    "earn_threshold": -1.0,
+    "w_overheat": 0.75,
+    "w_shock": 0.25,
+    "w_digestion": 0.5,
+    "w_normal": 1.0
+   },
+   "train_objective": 0.6599330297920486,
+   "train_sharpe": 0.6599330297920486,
+   "test_months": 12,
+   "test_return": 0.05033842970170577
+  },
+  {
+   "test_year": 2019,
+   "train_months": 312,
+   "train_end": "2018-12-31",
+   "params": {
+    "vix_threshold": 18.0,
+    "overheat_threshold": 2.0,
+    "earn_threshold": -1.0,
+    "w_overheat": 0.75,
+    "w_shock": 0.25,
+    "w_digestion": 0.5,
+    "w_normal": 1.0
+   },
+   "train_objective": 0.6424916267863325,
+   "train_sharpe": 0.6424916267863325,
+   "test_months": 12,
+   "test_return": 0.34192999658736656
+  },
+  {
+   "test_year": 2020,
+   "train_months": 324,
+   "train_end": "2019-12-31",
+   "params": {
+    "vix_threshold": 18.0,
+    "overheat_threshold": 2.0,
+    "earn_threshold": -1.0,
+    "w_overheat": 0.75,
+    "w_shock": 0.25,
+    "w_digestion": 0.5,
+    "w_normal": 1.0
+   },
+   "train_objective": 0.7018360784214968,
+   "train_sharpe": 0.7018360784214968,
+   "test_months": 12,
+   "test_return": 0.0723594231407354
+  },
+  {
+   "test_year": 2021,
+   "train_months": 336,
+   "train_end": "2020-12-31",
+   "params": {
+    "vix_threshold": 18.0,
+    "overheat_threshold": 2.0,
+    "earn_threshold": -1.0,
+    "w_overheat": 0.75,
+    "w_shock": 0.25,
+    "w_digestion": 0.5,
+    "w_normal": 1.0
+   },
+   "train_objective": 0.7007474641843007,
+   "train_sharpe": 0.7007474641843007,
+   "test_months": 12,
+   "test_return": 0.11057755961533045
+  },
+  {
+   "test_year": 2022,
+   "train_months": 348,
+   "train_end": "2021-12-31",
+   "params": {
+    "vix_threshold": 18.0,
+    "overheat_threshold": 2.0,
+    "earn_threshold": -1.0,
+    "w_overheat": 0.75,
+    "w_shock": 0.25,
+    "w_digestion": 0.5,
+    "w_normal": 1.0
+   },
+   "train_objective": 0.7149157361865902,
+   "train_sharpe": 0.7149157361865902,
+   "test_months": 12,
+   "test_return": -0.05803812174784295
+  },
+  {
+   "test_year": 2023,
+   "train_months": 360,
+   "train_end": "2022-12-31",
+   "params": {
+    "vix_threshold": 18.0,
+    "overheat_threshold": 2.0,
+    "earn_threshold": -1.0,
+    "w_overheat": 0.75,
+    "w_shock": 0.25,
+    "w_digestion": 0.5,
+    "w_normal": 1.0
+   },
+   "train_objective": 0.6731527176195234,
+   "train_sharpe": 0.6731527176195234,
+   "test_months": 12,
+   "test_return": 0.20025297524916752
+  },
+  {
+   "test_year": 2024,
+   "train_months": 372,
+   "train_end": "2023-12-31",
+   "params": {
+    "vix_threshold": 18.0,
+    "overheat_threshold": 1.25,
+    "earn_threshold": -1.0,
+    "w_overheat": 0.5,
+    "w_shock": 0.25,
+    "w_digestion": 0.5,
+    "w_normal": 1.0
+   },
+   "train_objective": 0.6968257309028911,
+   "train_sharpe": 0.6968257309028911,
+   "test_months": 12,
+   "test_return": 0.15031759298625325
+  },
+  {
+   "test_year": 2025,
+   "train_months": 384,
+   "train_end": "2024-12-31",
+   "params": {
+    "vix_threshold": 18.0,
+    "overheat_threshold": 1.5,
+    "earn_threshold": -1.0,
+    "w_overheat": 0.5,
+    "w_shock": 0.25,
+    "w_digestion": 0.5,
+    "w_normal": 1.0
+   },
+   "train_objective": 0.6981517601019364,
+   "train_sharpe": 0.6981517601019364,
+   "test_months": 12,
+   "test_return": 0.022942643387172668
+  },
+  {
+   "test_year": 2026,
+   "train_months": 396,
+   "train_end": "2025-12-31",
+   "params": {
+    "vix_threshold": 18.0,
+    "overheat_threshold": 1.0,
+    "earn_threshold": -1.0,
+    "w_overheat": 0.75,
+    "w_shock": 0.25,
+    "w_digestion": 0.5,
+    "w_normal": 1.0
+   },
+   "train_objective": 0.6876352743093928,
+   "train_sharpe": 0.6876352743093928,
+   "test_months": 10,
+   "test_return": 0.02643040121372442
+  }
+ ],
+ "config": {
+  "features": {
+   "val_ma_days": 252,
+   "val_z_window": 120,
+   "val_z_min": 60,
+   "capex_z_window": 120,
+   "capex_z_min_firm": 36,
+   "capex_z_min_proxy": 60,
+   "earn_growth_months": 3,
+   "earn_std_window": 60,
+   "earn_std_min_firm": 24,
+   "earn_std_min_proxy": 36,
+   "vix_stat": "mean",
+   "macro_lag_days": 90,
+   "sec_stale_days": 200,
+   "sec_min_names": 3
+  },
+  "backtest": {
+   "cost_bps": 15.0,
+   "train_start": "1993-01-31",
+   "oos_start_year": 2000,
+   "wf_step_months": 12,
+   "mdd_budget": 0.3,
+   "mdd_penalty": 2.0,
+   "min_train_months": 84
+  },
+  "grid": {
+   "vix_threshold": [
+    18.0,
+    20.0,
+    22.0,
+    25.0,
+    28.0,
+    32.0
+   ],
+   "overheat_threshold": [
+    0.75,
+    1.0,
+    1.25,
+    1.5,
+    2.0
+   ],
+   "earn_threshold": [
+    -2.0,
+    -1.5,
+    -1.0,
+    -0.5
+   ],
+   "w_overheat": [
+    0.5,
+    0.75
+   ],
+   "w_shock": [
+    0.0,
+    0.25,
+    0.5
+   ],
+   "w_digestion": [
+    0.5,
+    0.75
+   ],
+   "n_combinations": 1440
+  },
+  "fetch": {
+   "timeout_s": 60.0,
+   "retries": 4,
+   "sec_pause_s": 0.25
+  }
+ }
+}

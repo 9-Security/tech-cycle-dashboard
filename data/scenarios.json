@@ -1,92 +1,123 @@
 {
-  "generated_at": "20261121T040021Z",
-  "mode": "deterministic_fallback",
-  "status_source": "data/status.json",
-  "as_of": "20261121T035000Z",
-  "DATA_SOURCE": "REAL",
-  "panel_end": "2026-10-31",
-  "regime": {
-    "code": 4,
-    "label": "Normal"
+ "as_of": "20261123T060354Z",
+ "DATA_SOURCE": "REAL",
+ "data_source": "REAL",
+ "engine_version": "2.0.0",
+ "git_sha": null,
+ "n_months": 322,
+ "panel_start": "2000-01-31",
+ "panel_end": "2026-10-31",
+ "regime": {
+  "code": 1,
+  "label": "Overheat"
+ },
+ "signals": {
+  "vix": 16.895909222689543,
+  "vix_last": 19.420000076293945,
+  "overheat_score": 1.6810937921026892,
+  "val_z": -0.5924768018733607,
+  "capex_z": 3.954664386078739,
+  "capex_ratio_firm": 0.3054628418036458,
+  "capex_src": "SEC",
+  "earn_score": 0.6793777456793308,
+  "earn_src": "SEC",
+  "shock_flag": 0
+ },
+ "weights": {
+  "executed_weight": 0.75,
+  "recommended_weight": 0.75,
+  "in_force_month": "2026-11",
+  "note": "Risk weight decided at 2026-10-31 month-end and held through 2026-11 (lag-1).",
+  "target_weight": 0.25
+ },
+ "mode": "rule_based",
+ "interpretation": "Official regime at 2026-10-31 month-end: Overheat (risk weight 0.75 held through 2026-11). Month-to-date (2026-11, data through 2026-11-20) signals point to Shock; if the month ended today next month's weight would be 0.25. Parameters were chosen by walk-forward using data through Dec 2025 only. These are rule-based trigger distances, not return forecasts.",
+ "triggers": [
+  {
+   "id": "shock",
+   "signal": "VIX (monthly mean)",
+   "value": 22.969333140055337,
+   "threshold": 18.0,
+   "direction": "above",
+   "distance": -4.969333140055337,
+   "active": true,
+   "weight": 0.25
   },
-  "signals": {
-    "vix": 19.42,
-    "overheat_score": 1.1764136182152736,
-    "eps_rev_3m": 0.0706379483918826,
-    "shock_flag": 0
+  {
+   "id": "overheat",
+   "signal": "Overheat score",
+   "value": 0.9100622445783013,
+   "threshold": 1.0,
+   "direction": "above",
+   "distance": 0.08993775542169868,
+   "active": false,
+   "weight": 0.75
   },
-  "weights": {
-    "executed_weight": 0.5897,
-    "note": "recommended_weight is lag-1 executed risk weight (no same-month look-ahead).",
-    "recommended_weight": 0.5897,
-    "target_weight": 1.0
+  {
+   "id": "digestion",
+   "signal": "Earnings momentum score",
+   "value": 0.27154020877324897,
+   "threshold": -1.0,
+   "direction": "below",
+   "distance": 1.271540208773249,
+   "active": false,
+   "weight": 0.5
+  }
+ ],
+ "scenarios": [
+  {
+   "id": "base",
+   "horizon": "1-3 months",
+   "thesis": "Signals stay on their current side of every threshold; regime remains Shock.",
+   "flip_conditions": [
+    "VIX 22.97 vs Shock threshold 18.00",
+    "Overheat 0.91 vs threshold 1.00",
+    "Earnings score 0.27 vs Digestion threshold -1.00"
+   ],
+   "suggested_defensive_posture": {
+    "risk_weight": 0.25,
+    "rationale": "Engine weight implied by the latest (provisional if in-progress) signals."
+   }
   },
-  "metrics": {
-    "ann_turnover": 1.62,
-    "ann_vol_pct": 9.09,
-    "bh_final_nav": 24.90644500734125,
-    "cagr_pct": 5.76,
-    "final_nav": 5.033121229492458,
-    "max_dd_pct": -23.8,
-    "sharpe": 0.66,
-    "total_cost_pct": 6.99
+  {
+   "id": "overheat",
+   "horizon": "1-3 months",
+   "thesis": "Valuation extension + Capex intensity lift the overheat score by 0.09 to cross 1.00 while VIX stays below 18.00.",
+   "flip_conditions": [
+    "Overheat score > threshold",
+    "Shock not active (Shock has priority)"
+   ],
+   "suggested_defensive_posture": {
+    "risk_weight": 0.75,
+    "rationale": "Overheat defense weight, applied the month after the signal."
+   }
   },
-  "posture_now": {
-    "lag1_recommended_weight": 0.5897,
-    "target_weight_month_end_signal": 1.0,
-    "engine_card": {
-      "overheat_threshold": 1.3476,
-      "vix_shock_threshold": 20.027,
-      "eps_rev_3m_threshold": -0.04922,
-      "weight_overheat": 0.5897,
-      "weight_shock": 0.0639,
-      "weight_recovery": 0.4848,
-      "weight_normal": 1.0
-    },
-    "note": "recommended_weight is lag-1 executed risk weight (no same-month look-ahead)."
+  {
+   "id": "shock",
+   "horizon": "1-3 months",
+   "thesis": "Shock trigger already active (monthly-average VIX 22.97 > 18.00); Shock overrides every other regime.",
+   "flip_conditions": [
+    "Monthly mean VIX > threshold"
+   ],
+   "suggested_defensive_posture": {
+    "risk_weight": 0.25,
+    "rationale": "Shock defense weight (max de-risking)."
+   }
   },
-  "interpretation": "As of 20261121T035000Z (panel_end=2026-10-31, source=REAL), live regime is Normal (code=4). VIX=19.42, overheat_score=1.1764136182152736. Lag-1 recommended risk weight=0.5897; latest target_weight=1.0. Scenarios below are risk narratives consistent with the tuned lag-1 regime engine \u2014 not forecasts of returns.",
-  "scenarios": [
-    {
-      "id": "base",
-      "horizon": "3-6 months",
-      "thesis": "Continue under Normal with panel through 2026-10-31. Mean-reverting Capex/valuation path; no new shock flag.",
-      "flip_conditions": [
-        "VIX sustained above ~20.027 \u2192 Shock",
-        "Overheat score above ~1.3476 \u2192 Overheat",
-        "EPS rev 3m below ~-0.04922 \u2192 Digestion"
-      ],
-      "suggested_defensive_posture": {
-        "risk_weight": 0.5897,
-        "rationale": "Hold the lag-1 recommended weight already in force; month-end target signal is 1.0."
-      }
-    },
-    {
-      "id": "overheat",
-      "horizon": "3-6 months",
-      "thesis": "Valuation + Capex intensity push overheat_score through the tuned threshold (1.3476).",
-      "flip_conditions": [
-        "Overheat score crosses threshold while Shock flag is off"
-      ],
-      "suggested_defensive_posture": {
-        "risk_weight": 0.5897,
-        "rationale": "Engine Overheat defense weight; applied lag-1 after the month that first prints Overheat."
-      }
-    },
-    {
-      "id": "shock",
-      "horizon": "3-6 months",
-      "thesis": "External stress / VIX event path dominates regime priority (Shock \u2192 \u2026). Tuned VIX shock threshold \u2248 20.027.",
-      "flip_conditions": [
-        "VIX / shock_flag trips Shock (priority over Overheat)"
-      ],
-      "suggested_defensive_posture": {
-        "risk_weight": 0.0639,
-        "rationale": "Engine Shock defense weight; max cash tilt under lag-1."
-      }
-    }
-  ],
-  "disclaimer": "Scenario analysis for risk discussion only. Not investment advice. Not an auto-trading signal.",
-  "markdown": "## As of 20261121T035000Z\n\nAs of 20261121T035000Z (panel_end=2026-10-31, source=REAL), live regime is Normal (code=4). VIX=19.42, overheat_score=1.1989550765004036. Lag-1 recommended risk weight=0.5897; latest target_weight=1.0. Scenarios below are risk narratives consistent with the tuned lag-1 regime engine \u2014 not forecasts of returns.\n\n### Current regime interpretation\n\n**Normal** with lag-1 weight **0.5897** vs month-end target **1.0**. Tuned backtest reference Sharpe=0.62, MaxDD=-23.8%.\n\n### 3\u20136 month scenarios\n\n#### Base\nContinue under Normal with panel through 2026-10-31. Mean-reverting Capex/valuation path; no new shock flag.\n- Suggested defensive posture (engine): **0.5897**\n- Hold the lag-1 recommended weight already in force; month-end target signal is 1.0.\n\n#### Overheat\nValuation + Capex intensity push overheat_score through the tuned threshold (1.3476).\n- Suggested defensive posture (engine): **0.5897**\n- Engine Overheat defense weight; applied lag-1 after the month that first prints Overheat.\n\n#### Shock\nExternal stress / VIX event path dominates regime priority (Shock \u2192 \u2026). Tuned VIX shock threshold \u2248 20.027.\n- Suggested defensive posture (engine): **0.0639**\n- Engine Shock defense weight; max cash tilt under lag-1.\n\n### Disclaimer\n\nScenario analysis for risk discussion only. Not investment advice. Not an auto-trading signal.\n",
-  "snapshot_label": "Baked snapshot (sample) \u2014 not live-refreshed"
+  {
+   "id": "digestion",
+   "horizon": "1-3 months",
+   "thesis": "Aggregate TTM earnings momentum drops 1.27 std units to below -1.00 (Capex digestion / earnings downgrade cycle).",
+   "flip_conditions": [
+    "Earnings score < threshold",
+    "Neither Shock nor Overheat active"
+   ],
+   "suggested_defensive_posture": {
+    "risk_weight": 0.5,
+    "rationale": "Digestion defense weight."
+   }
+  }
+ ],
+ "disclaimer": "Scenario analysis for risk discussion only. Not investment advice. Not an auto-trading signal.",
+ "snapshot_label": "Live - rule-based brief"
 }

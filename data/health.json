@@ -1,7 +1,189 @@
 {
-  "ok": true,
-  "mode": "static_snapshot",
-  "as_of": "20261121T035000Z",
-  "backtest": "data/series.json",
-  "label": "Baked snapshot / sample data"
+ "ok": true,
+ "mode": "live",
+ "as_of": "20261123T060354Z",
+ "run_at": "2026-11-23T06:03:54Z",
+ "engine_version": "2.0.0",
+ "git_sha": null,
+ "panel_end": "2026-10-31",
+ "data_through": "2026-11-20",
+ "runtime_s": 7.0,
+ "checks": [
+  {
+   "name": "market_freshness",
+   "status": "PASS",
+   "detail": "last market date 2026-11-20 (3d old)"
+  },
+  {
+   "name": "vix_freshness",
+   "status": "PASS",
+   "detail": "last VIX date 2026-11-20"
+  },
+  {
+   "name": "no_missing_signals",
+   "status": "PASS",
+   "detail": "NaN counts {'risk': 0, 'safe': 0, 'vix': 0, 'overheat': 0, 'earn': 0}"
+  },
+  {
+   "name": "return_range",
+   "status": "PASS",
+   "detail": "max |monthly return| 0.249"
+  },
+  {
+   "name": "vix_range",
+   "status": "PASS",
+   "detail": "VIX monthly range 10.1-62.6"
+  },
+  {
+   "name": "panel_length",
+   "status": "PASS",
+   "detail": "406 backtest months"
+  },
+  {
+   "name": "sec_coverage",
+   "status": "PASS",
+   "detail": "10/10 names with valid TTM Capex at 2026-10-31"
+  },
+  {
+   "name": "sec_freshness",
+   "status": "PASS",
+   "detail": "latest SEC Capex filing 2026-11-04 (19d old)"
+  },
+  {
+   "name": "capex_source_current",
+   "status": "PASS",
+   "detail": "latest capex signal source = SEC"
+  }
+ ],
+ "sources": {
+  "XLK": "2026-11-20",
+  "^NDX": "2026-11-20",
+  "VIX": "2026-11-20",
+  "FRED tbill_3m": "2026-11-19",
+  "FRED it_invest": "2026-07-01",
+  "FRED gdp": "2026-07-01",
+  "FRED corp_profits": "2026-04-01",
+  "FRED vix_fred": "2026-11-19",
+  "SEC AAPL": "2026-11-03",
+  "SEC MSFT": "2026-10-28",
+  "SEC AMZN": "2026-10-30",
+  "SEC GOOGL": "2026-10-29",
+  "SEC META": "2026-10-22",
+  "SEC NVDA": "2026-08-26",
+  "SEC ORCL": "2026-09-11",
+  "SEC AMD": "2026-11-04",
+  "SEC INTC": "2026-10-30",
+  "SEC AVGO": "2026-09-10"
+ },
+ "raw_manifest": {
+  "yahoo_IDX_NDX.json": {
+   "url": "https://query1.finance.yahoo.com/v8/finance/chart/%5ENDX",
+   "sha256": "2f26e816f13b64be7b3cafded4b592c4fe1b1b03511f5055d59115355c693d9a",
+   "bytes": 1102074,
+   "fetched_at": "2026-11-23T05:56:05Z"
+  },
+  "yahoo_XLK.json": {
+   "url": "https://query1.finance.yahoo.com/v8/finance/chart/XLK",
+   "sha256": "4dd00dbb984dce9dd9b21a7c781acc6df4a928a8ae5085ca3b79f97254c69cb5",
+   "bytes": 750979,
+   "fetched_at": "2026-11-23T05:56:05Z"
+  },
+  "fred_DTB3.csv": {
+   "url": "https://fred.stlouisfed.org/graph/fredgraph.csv",
+   "sha256": "f161d9aa7335792298ba356743ce588e9b3015a1f5851674e8eeac5478b6e3ed",
+   "bytes": 301757,
+   "fetched_at": "2026-11-23T05:56:06Z"
+  },
+  "fred_A679RC1Q027SBEA.csv": {
+   "url": "https://fred.stlouisfed.org/graph/fredgraph.csv",
+   "sha256": "96755a515fe6f3b308a2c1b7bed5bf3e30e29d4bc330ceb0989e0bfbf695fd18",
+   "bytes": 5891,
+   "fetched_at": "2026-11-23T05:56:06Z"
+  },
+  "fred_GDP.csv": {
+   "url": "https://fred.stlouisfed.org/graph/fredgraph.csv",
+   "sha256": "209e45690e4a85a6e99578c0a2ad6f1860875f61824dd2f67f9cba25386abd9e",
+   "bytes": 6419,
+   "fetched_at": "2026-11-23T05:56:06Z"
+  },
+  "fred_CP.csv": {
+   "url": "https://fred.stlouisfed.org/graph/fredgraph.csv",
+   "sha256": "9635ee3f1640203bd02994c31baddc1a75fd716f6e3b1a61212976008b0c79fd",
+   "bytes": 6041,
+   "fetched_at": "2026-11-23T05:56:06Z"
+  },
+  "fred_VIXCLS.csv": {
+   "url": "https://fred.stlouisfed.org/graph/fredgraph.csv",
+   "sha256": "5fdb14015c8fee857f1aae7ea54d799fe8e2eebc1b4dcab047cc7ac70e3a78a0",
+   "bytes": 162037,
+   "fetched_at": "2026-11-23T05:56:07Z"
+  },
+  "yahoo_IDX_VIX.json": {
+   "url": "https://query1.finance.yahoo.com/v8/finance/chart/%5EVIX",
+   "sha256": "22d5bdba81d4d062d62012fd5cefe8296fa1f3596b8ab96f8e20dcfac8cb78d5",
+   "bytes": 961003,
+   "fetched_at": "2026-11-23T05:56:07Z"
+  },
+  "sec_AAPL.json": {
+   "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000320193.json",
+   "sha256": "f085735b4d08fb116ade18d24247ffabe11df8eb52eae6556b165831f15ef1ad",
+   "bytes": 3859564,
+   "fetched_at": "2026-11-23T05:56:07Z"
+  },
+  "sec_MSFT.json": {
+   "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000789019.json",
+   "sha256": "8c1903c041f5c27e86ed15f37debb1f41882b7904bba129ef9edc76478b1e8ea",
+   "bytes": 4938072,
+   "fetched_at": "2026-11-23T05:56:08Z"
+  },
+  "sec_AMZN.json": {
+   "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001018724.json",
+   "sha256": "acddb7c0a6973a1fd08372de3b292298a34eae7f42a7eedc4bdebd3ac659c8fd",
+   "bytes": 4554378,
+   "fetched_at": "2026-11-23T05:56:09Z"
+  },
+  "sec_GOOGL.json": {
+   "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001652044.json",
+   "sha256": "f87bc183f74b45ecf9a0933e0e0a1b6b97ead51a9d29367a7dae436574e1c1d0",
+   "bytes": 3250837,
+   "fetched_at": "2026-11-23T05:56:09Z"
+  },
+  "sec_META.json": {
+   "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001326801.json",
+   "sha256": "f8e539cea9d363752df2f9bb33078c19ae897ff7f34d49fe4d9a732d032b94f7",
+   "bytes": 2810958,
+   "fetched_at": "2026-11-23T05:56:10Z"
+  },
+  "sec_NVDA.json": {
+   "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001045810.json",
+   "sha256": "19ef503a5770f5660964b3c3aea6937579d9b359da344afe6a9adf59c63d26ff",
+   "bytes": 4092966,
+   "fetched_at": "2026-11-23T05:56:11Z"
+  },
+  "sec_ORCL.json": {
+   "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001341439.json",
+   "sha256": "fe93b258bc0ba8f3076ddebb5d8bb91c46deaa1f7b06d2ff2e3eaed85fee8a63",
+   "bytes": 3964639,
+   "fetched_at": "2026-11-23T05:56:12Z"
+  },
+  "sec_AMD.json": {
+   "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000002488.json",
+   "sha256": "4c29484ff062a77b0dde3a0d0b3439f807ccd2d44f9b568a52b5eabbc2b2464c",
+   "bytes": 3732993,
+   "fetched_at": "2026-11-23T05:56:12Z"
+  },
+  "sec_INTC.json": {
+   "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000050863.json",
+   "sha256": "9c568557a91cfbc234c999183d6434f8bbf7b8ebf2f29577f28d761a9becb59d",
+   "bytes": 4363467,
+   "fetched_at": "2026-11-23T05:56:13Z"
+  },
+  "sec_AVGO.json": {
+   "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001730168.json",
+   "sha256": "3bdb6644c12addf1e63c4dc861008d7804fbf3d3f5aa6eb9b97f72c0e89a7adf",
+   "bytes": 2351559,
+   "fetched_at": "2026-11-23T05:56:14Z"
+  }
+ },
+ "label": "Live - GitHub Actions daily refresh"
 }

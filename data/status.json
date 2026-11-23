@@ -1,38 +1,81 @@
 {
-  "DATA_SOURCE": "REAL",
-  "as_of": "20261121T035000Z",
-  "data_source": "REAL",
-  "fetched": false,
-  "metrics": {
-    "ann_turnover": 1.62,
-    "ann_vol_pct": 9.09,
-    "bh_final_nav": 24.90644500734125,
-    "cagr_pct": 5.76,
-    "final_nav": 5.033121229492458,
-    "max_dd_pct": -23.8,
-    "sharpe": 0.66,
-    "total_cost_pct": 6.99
-  },
-  "n_months": 346,
-  "panel_end": "2026-10-31",
-  "panel_start": "1998-01-31",
+ "as_of": "20261123T060354Z",
+ "DATA_SOURCE": "REAL",
+ "data_source": "REAL",
+ "engine_version": "2.0.0",
+ "git_sha": null,
+ "n_months": 322,
+ "panel_start": "2000-01-31",
+ "panel_end": "2026-10-31",
+ "regime": {
+  "code": 1,
+  "label": "Overheat"
+ },
+ "signals": {
+  "vix": 16.895909222689543,
+  "vix_last": 19.420000076293945,
+  "overheat_score": 1.6810937921026892,
+  "val_z": -0.5924768018733607,
+  "capex_z": 3.954664386078739,
+  "capex_ratio_firm": 0.3054628418036458,
+  "capex_src": "SEC",
+  "earn_score": 0.6793777456793308,
+  "earn_src": "SEC",
+  "shock_flag": 0
+ },
+ "weights": {
+  "executed_weight": 0.75,
+  "recommended_weight": 0.75,
+  "in_force_month": "2026-11",
+  "note": "Risk weight decided at 2026-10-31 month-end and held through 2026-11 (lag-1).",
+  "target_weight": 0.25
+ },
+ "params": {
+  "vix_threshold": 18.0,
+  "overheat_threshold": 1.0,
+  "earn_threshold": -1.0,
+  "w_overheat": 0.75,
+  "w_shock": 0.25,
+  "w_digestion": 0.5,
+  "w_normal": 1.0,
+  "fit_for_year": 2026
+ },
+ "provisional": {
+  "month": "2026-11",
+  "data_through": "2026-11-20",
   "regime": {
-    "code": 4,
-    "label": "Normal"
+   "code": 2,
+   "label": "Shock"
   },
   "signals": {
-    "capex_ratio": 0.18247936436347975,
-    "eps_rev_3m": 0.0706379483918826,
-    "overheat_score": 1.1764136182152736,
-    "shock_flag": 0,
-    "val_pct": 35.0,
-    "vix": 19.42
+   "vix": 22.969333140055337,
+   "vix_last": 35.88999938964844,
+   "overheat_score": 0.9100622445783013,
+   "val_z": -1.8394979382056884,
+   "capex_z": 3.659622427362291,
+   "capex_ratio_firm": 0.3035097071214551,
+   "capex_src": "SEC",
+   "earn_score": 0.27154020877324897,
+   "earn_src": "SEC",
+   "shock_flag": 1
   },
-  "weights": {
-    "executed_weight": 0.5897,
-    "note": "recommended_weight is lag-1 executed risk weight (no same-month look-ahead).",
-    "recommended_weight": 0.5897,
-    "target_weight": 1.0
-  },
-  "snapshot_label": "Baked snapshot (sample) \u2014 not live-refreshed"
+  "next_month_weight_if_month_ended_today": 0.25,
+  "note": "Month-to-date signals. Not final until month-end; not used in the backtest."
+ },
+ "metrics": {
+  "sharpe": 0.11375517971174358,
+  "sortino": 0.08887112170486343,
+  "cagr": 0.02534527250760421,
+  "ann_vol": 0.14385584178431002,
+  "max_dd": -0.7190493846381121,
+  "calmar": 0.035248305678420334,
+  "final_nav": 1.9574104950668945,
+  "period_return": 0.9574104950668945,
+  "ann_turnover": 1.3695652173913044,
+  "avg_weight": 0.6218944099378882,
+  "total_cost": 0.05512500000000001,
+  "months": 322
+ },
+ "metrics_basis": "nested walk-forward out-of-sample",
+ "snapshot_label": "Live - refreshed daily"
 }
