@@ -11,10 +11,8 @@ on:
       - "docs/**"
       - "**.md"
 
-permissions:
-  contents: write
-  pages: write
-  id-token: write
+# Least privilege: each job declares only what it needs.
+permissions: {}
 
 concurrency:
   group: refresh-and-pages
@@ -26,6 +24,8 @@ jobs:
     if: github.event_name != 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      contents: write  # commit refreshed data/
     env:
       # Repository variable: "<org or app name> <contact email>" (SEC fair-access policy).
       SEC_USER_AGENT: ${{ vars.SEC_USER_AGENT }}
@@ -62,27 +62,43 @@ jobs:
           done
           exit 1
 
-  deploy:
+  build:
     needs: refresh
-    # Deploy after a successful refresh, or on push (refresh skipped).
-    # A failed refresh skips deploy, so the site keeps the last good data.
+    # Build after a successful refresh, or on push (refresh skipped).
+    # A failed refresh skips build and deploy, so the site keeps the last good data.
     if: always() && (needs.refresh.result == 'success' || needs.refresh.result == 'skipped')
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    timeout-minutes: 10
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: main
+          ref: main  # includes the data commit pushed by the refresh job
       - name: Stage static site
         run: |
           mkdir -p _site
           cp -r index.html validation.html signals.html risk.html scenarios.html css js static data _site/
           touch _site/.nojekyll
-      - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
+
+  deploy:
+    # Separate job: the artifact is finalized before deploy starts, and
+    # re-running a failed deploy does not upload a duplicate artifact.
+    needs: build
+    if: always() && needs.build.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+      actions: read  # deploy-pages reads the run's artifact metadata
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/configure-pages@v5
       - id: deployment
         uses: actions/deploy-pages@v4
