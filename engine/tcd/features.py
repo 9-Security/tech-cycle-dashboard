@@ -9,6 +9,9 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
+from pandas.tseries.holiday import (AbstractHolidayCalendar, GoodFriday, Holiday, USLaborDay,
+                                    USMartinLutherKingJr, USMemorialDay, USPresidentsDay,
+                                    USThanksgivingDay, nearest_workday, sunday_to_monday)
 
 from . import fundamentals as fx
 from .config import FeatureConfig
@@ -45,9 +48,33 @@ def month_index(raw: RawData) -> tuple[pd.DatetimeIndex, pd.Timestamp, bool]:
     start = raw.ndx.index.min() + pd.offsets.MonthEnd(0)
     end = last_obs + pd.offsets.MonthEnd(0)
     months = pd.date_range(start, end, freq="ME")
-    last_bday = pd.offsets.BMonthEnd().rollforward(last_obs)
+    last_bday = last_trading_day_of_month(last_obs)
     partial = last_obs.normalize() < last_bday.normalize()
     return months, last_obs, bool(partial)
+
+
+class NYSECalendar(AbstractHolidayCalendar):
+    """NYSE full-day closures (rules since 2022; Juneteenth only from 2022).
+    Used only to decide whether the latest month is complete."""
+    rules = [
+        Holiday("New Year", month=1, day=1, observance=sunday_to_monday),
+        USMartinLutherKingJr, USPresidentsDay, GoodFriday, USMemorialDay,
+        Holiday("Juneteenth", month=6, day=19, start_date="2022-01-01", observance=nearest_workday),
+        Holiday("Independence Day", month=7, day=4, observance=nearest_workday),
+        USLaborDay, USThanksgivingDay,
+        Holiday("Christmas", month=12, day=25, observance=nearest_workday),
+    ]
+
+
+def last_trading_day_of_month(d: pd.Timestamp) -> pd.Timestamp:
+    """Last NYSE trading day of d's month (BMonthEnd ignored exchange holidays,
+    so a month ending on e.g. Good Friday or Memorial Day was flagged partial)."""
+    end = d + pd.offsets.MonthEnd(0)
+    hol = NYSECalendar().holidays(end - pd.Timedelta(days=10), end)
+    day = end
+    while day.weekday() >= 5 or day in hol:
+        day -= pd.Timedelta(days=1)
+    return day
 
 
 def _monthly_last(daily: pd.Series, months: pd.DatetimeIndex) -> pd.Series:

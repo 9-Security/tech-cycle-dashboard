@@ -38,9 +38,9 @@
     });
     const ev = st.evaluation, liveBt = ev.var95.find((x) => x.model === st.live_model);
     setText("varNote", t("risk.st.varNote", { r: pct(liveBt.rate, 2) }));
-    table("stVarTable", cols("risk.st.acc.cols"), ev.variance.map((v) => [t("hz", { h: v.horizon }), esc(modelName(v.model, v.label)) + live(v.model, st.live_model),
+    table("stVarTable", cols("risk.st.acc.cols"), ev.variance.map((v) => [t("hz", { h: esc(String(v.horizon)) }), esc(modelName(v.model, v.label)) + live(v.model, st.live_model),
       fmt(v.qlike, 4), fmt(v.corr_vol, 3), v.n]));
-    table("stDmTable", cols("risk.st.dm.cols"), ev.dm.map((d) => [t("hz", { h: d.horizon }), esc(modelName(d.baseline) + " → " + modelName(d.challenger)),
+    table("stDmTable", cols("risk.st.dm.cols"), ev.dm.map((d) => [t("hz", { h: esc(String(d.horizon)) }), esc(modelName(d.baseline) + " → " + modelName(d.challenger)),
       signed(d.qlike_improvement, 4), signed(d.dm_t, 2),
       d.dm_t >= 2 ? '<span class="dq PASS">' + esc(t("tag.better")) + "</span>" : d.dm_t <= -2 ? '<span class="dq FAIL">' + esc(t("tag.worse")) + "</span>"
         : '<span class="dq WARN">' + esc(t("tag.noSig")) + "</span>"]));

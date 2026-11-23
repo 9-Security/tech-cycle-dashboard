@@ -95,7 +95,10 @@ def daily_frame(raw: RawData, cfg: ShortRiskConfig) -> pd.DataFrame:
 
 # ------------------------------------------------------------- statistics
 def qlike(y: np.ndarray, f: np.ndarray) -> np.ndarray:
-    """QLIKE loss y/f - log(y/f) - 1; days with y == 0 use the limit-safe form log f + y/f."""
+    """QLIKE loss in the form log f + y/f (defined for y == 0). It differs from
+    y/f - log(y/f) - 1 only by a term that does not depend on f, so model
+    rankings and Diebold-Mariano tests are the same; levels are not comparable
+    with papers that report the other form."""
     return np.log(f) + y / f
 
 
@@ -214,7 +217,11 @@ def walk_forward(df: pd.DataFrame, cfg: ShortRiskConfig) -> tuple[pd.DataFrame, 
             for h in cfg.horizons:
                 y = df[f"y{h}"].to_numpy(float)
                 # target window t+1..t+h must end by train_end
-                known = (idx + pd.offsets.BDay(h)) <= train_end
+                # Target window t+1..t+h must end by train_end, using the actual
+                # trading-day index (BDay ignored exchange holidays and let a
+                # window around Christmas reach into the test year).
+                end_pos = np.minimum(np.arange(len(idx)) + h, len(idx) - 1)
+                known = (idx[end_pos] <= train_end) & (np.arange(len(idx)) + h < len(idx))
                 tr = ok & known & ~np.isnan(y)
                 if tr.sum() < cfg.min_train_days:
                     continue
@@ -253,11 +260,14 @@ def evaluate(df: pd.DataFrame, fc: pd.DataFrame, cfg: ShortRiskConfig) -> dict:
             yy = y[common]
             losses[m] = qlike(yy, f)
             mse = float(np.mean((yy - f) ** 2))
-            r2_log = 1 - np.sum((np.log(yy + 1e-12) - np.log(f)) ** 2) / np.sum((np.log(yy + 1e-12) - np.log(yy + 1e-12).mean()) ** 2)
+            # Mincer-Zarnowitz R^2 of the realized proxy on the forecast (levels).
+            # The former "r2_log" compared log forecasts with the log of single
+            # squared returns (log-chi2 bias, zero days at log 1e-12): not informative.
+            mz_r2 = float(np.corrcoef(f, yy)[0, 1] ** 2)
             res["variance"].append({"horizon": h, "model": m, "label": MODEL_LABELS[m], "n": int(common.sum()),
                                     "qlike": float(losses[m].mean()), "mse_x1e8": mse * 1e8,
                                     "corr_vol": float(np.corrcoef(np.sqrt(f), np.sqrt(yy))[0, 1]),
-                                    "r2_log": float(r2_log)})
+                                    "mz_r2": mz_r2})
         for a, b in (("ewma", "har"), ("har", "har_vix"), ("ewma", "har_vix"), ("har_vix", "har_vix_epu")):
             res["dm"].append({"horizon": h, "baseline": a, "challenger": b,
                               "qlike_improvement": float(losses[a].mean() - losses[b].mean()),

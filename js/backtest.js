@@ -68,7 +68,8 @@
     const legend = document.getElementById("regimeLegend");
     Object.keys(data.regime_labels).forEach((k) => {
       const el = document.createElement("span");
-      el.innerHTML = '<i class="swatch" style="background:' + data.regime_colors[k] + '"></i>' + k + " " + esc(regimeLabel(k, data.regime_labels[k]));
+      const col = /^#[0-9a-fA-F]{3,8}$/.test(String(data.regime_colors[k])) ? data.regime_colors[k] : "#999999";
+      el.innerHTML = '<i class="swatch" style="background:' + col + '"></i>' + esc(k) + " " + esc(regimeLabel(k, data.regime_labels[k]));
       legend.appendChild(el);
     });
     const strip = document.getElementById("regimeStrip");

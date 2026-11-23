@@ -14,7 +14,7 @@
       c: fmt(b.christoffersen_p, 2), dm: (b.dm_t_vs_ewma >= 0 ? "+" : "") + fmt(b.dm_t_vs_ewma, 1) }) : "";
     return '<span class="dq ' + (ok ? "PASS" : "WARN") + '" title="' + esc(tip) + '">' + esc(t("st.vr." + b.reason)) + "</span>";
   }
-  const dot = (lv) => '<span class="mini-dot ' + lv + '" title="' + esc(t("light.short." + lv)) + '"></span>' + esc(t("light.short." + lv));
+  const dot = (lv) => '<span class="mini-dot ' + (["green", "yellow", "red"].includes(lv) ? lv : "") + '" title="' + esc(t("light.short." + lv)) + '"></span>' + esc(t("light.short." + lv));
 
   let DATA = null, selected = null, charts = [];
   let REVIEW = null, OFFICIAL = null;

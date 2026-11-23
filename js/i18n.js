@@ -232,6 +232,8 @@
   add("promo.state.not_met", "not met", "未達標");
   add("promo.state.retire", "retire", "淘汰");
   add("promo.state.invalid", "invalid", "無效");
+  add("promo.state.undetermined", "undetermined", "無法判定");
+  add("promo.note.undetermined", "Minimum period reached, but at least one criterion cannot be evaluated yet (marked n/a).", "已達最短期間，但至少一項標準目前無法評估（標示為 n/a）。");
   add("promo.note.collecting", "Collecting post-design evidence: {n}/{min} months. No decision before {earliest}.", "累積設計日後的證據中：{n}/{min} 個月。{earliest} 之前不做決定。");
   add("promo.note.eligible", "All criteria met. Promotion is eligible; the owner decides. The engine does not switch automatically.", "所有標準皆達成，可以切換；由擁有者決定，引擎不會自動切換。");
   add("promo.note.not_met", "Minimum period reached but criteria not met; keep collecting until {retire}.", "已達最短期間但標準未達成；繼續收集至 {retire}。");

@@ -43,8 +43,8 @@
       : t("val.verdict.bad", { s: fmt(oos.sharpe), bh: fmt(bh.sharpe), is: fmt(isb.full_sample.sharpe) });
     const bt = (cfg && cfg.backtest) || {};
     setHTML("summary", t("val.summary", {
-      model: esc(t("val.model.label." + (r.model ? r.model.key : "regime_v2"))), a: esc(s.oos_start), b: esc(s.oos_end), n: s.oos_months,
-      grid: s.grid_size, pen: fmt(bt.mdd_penalty, 1), budget: pct(bt.mdd_budget, 0), train: esc(s.train_start), verdict: verdict }));
+      model: esc(t("val.model.label." + (r.model ? r.model.key : "regime_v2"))), a: esc(s.oos_start), b: esc(s.oos_end), n: esc(String(s.oos_months)),
+      grid: esc(String(s.grid_size)), pen: fmt(bt.mdd_penalty, 1), budget: pct(bt.mdd_budget, 0), train: esc(s.train_start), verdict: verdict }));
 
     table("cmpTable", [t("val.cmp.col0")].concat(cols("val.cols.metrics")), [
       metricRow(t("val.cmp.oos"), oos), metricRow(t("val.cmp.is"), isb.on_oos_window),
@@ -77,7 +77,7 @@
     const p0 = r.folds[0].params;
     const keys = Object.keys(p0).filter((k) => !SKIP_PARAMS.has(k) && !(k === "earn_threshold" && "earn_cut" in p0));
     table("foldTable", [t("val.folds.c0"), t("val.folds.c1")].concat(keys.map(pname), [t("val.folds.trainSharpe"), t("val.folds.testReturn")]),
-      r.folds.map((f) => [f.test_year, esc(f.train_end)].concat(keys.map((k) => fmtParam(f.params[k])),
+      r.folds.map((f) => [esc(String(f.test_year)), esc(f.train_end)].concat(keys.map((k) => fmtParam(f.params[k])),
         [fmt(f.train_sharpe), f.test_return == null ? esc(t("val.folds.live")) : pct(f.test_return)])));
   }
 
@@ -86,7 +86,7 @@
     document.getElementById("xmPanel").hidden = false;
     const vd = x.verdict, p = x.pooled, cr = x.criteria;
     const sgn = (z) => (z >= 0 ? "+" : "") + fmt(z, 3);
-    setHTML("xmVerdict", t(vd.overall_pass ? "xm.verdict.pass" : "xm.verdict.fail", { n: vd.n_sharpe, m: vd.n_markets,
+    setHTML("xmVerdict", t(vd.overall_pass ? "xm.verdict.pass" : "xm.verdict.fail", { n: esc(String(vd.n_sharpe)), m: esc(String(vd.n_markets)),
       d: sgn(p.mean_sharpe_diff), lo: sgn(p.ci[0]), hi: sgn(p.ci[1]), reg: esc(cr.registered) }));
     const tag = (ok) => '<span class="dq ' + (ok ? "PASS" : "FAIL") + '">' + esc(t(ok ? "tag.pass" : "tag.fail")) + "</span>";
     table("xmCrit", cols("xm.crit.cols"), [
@@ -127,6 +127,7 @@
           not_met: t("promo.note.not_met", { retire: pr.retire_after }),
           retire: t("promo.note.retire", { r: rule.retire_months || 36 }),
           invalid: t("promo.note.invalid"),
+          undetermined: t("promo.note.undetermined"),
         };
         setHTML("promoState", t("val.promo.state", { state: esc(t("promo.state." + pr.state)), note: esc(notes[pr.state] || pr.note),
           first: esc(pr.first_month), earliest: esc(pr.earliest_decision_after), retire: esc(pr.retire_after) }));
