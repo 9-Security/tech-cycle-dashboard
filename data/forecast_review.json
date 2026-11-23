@@ -1,5 +1,5 @@
 {
- "as_of": "20261123T123930Z",
+ "as_of": "20261123T133101Z",
  "settings": {
   "var_level": 0.05,
   "min_days_stock": 250,
@@ -293,9 +293,11 @@
    "backtest_breach_rate": 0.058333333333333334
   }
  },
- "model_ids": [
-  "333e22e1aab1"
- ],
+ "current_model": "9c9661d3517e",
+ "model_id_aliases": {
+  "333e22e1aab1": "9c9661d3517e"
+ },
+ "other_models": {},
  "last_run": {
   "markets": [
    "US",

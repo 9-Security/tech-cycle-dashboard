@@ -1,5 +1,5 @@
 {
- "as_of": "20261123T123930Z",
+ "as_of": "20261123T133101Z",
  "settings": {
   "tolerance": 0.005,
   "months": 2,
@@ -578,8 +578,8 @@
   }
  },
  "updated": {
-  "US": "20261123T123930Z",
-  "TW": "20261123T123930Z"
+  "US": "20261123T133101Z",
+  "TW": "20261123T133101Z"
  },
  "source": {
   "TWSE": "https://www.twse.com.tw/rwd/zh/afterTrading/STOCK_DAY",
