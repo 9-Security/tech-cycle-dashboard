@@ -1,3 +1,4 @@
+import pytest
 import numpy as np
 import pandas as pd
 
@@ -55,3 +56,24 @@ def test_walk_forward_ignores_future_returns(raw):
     fc2, _ = walk_forward(df2, cfg)
     cols = ["har_vix_1", "q_har_vix"]
     pd.testing.assert_frame_equal(fc1.loc[:"2008-12-31", cols], fc2.loc[:"2008-12-31", cols])
+
+
+def test_oos_quantile_uses_only_known_oos_residuals():
+    import numpy as np
+    import pandas as pd
+    from tcd.short_risk import ShortRiskConfig, oos_quantile
+    cfg = ShortRiskConfig(min_oos_resid=50)
+    n = 400
+    rng = np.random.default_rng(1)
+    r = rng.normal(0, 0.02, n)
+    out = pd.DataFrame({"har_1": np.full(n, 0.01 ** 2)})  # forecast vol half the true vol
+    out.loc[:99, "har_1"] = np.nan                         # no OOS forecast yet (burn-in)
+    known = np.zeros(n, bool)
+    known[:300] = True
+    q = oos_quantile(out, "har", r, known, cfg)
+    want = np.quantile(r[100:300] / 0.01, 0.05)
+    assert q == pytest.approx(want)
+    assert q < -3.0  # under-forecast variance -> wider quantile, which is the point of the fix
+    known[:] = False
+    known[:120] = True
+    assert np.isnan(oos_quantile(out, "har", r, known, cfg))  # only 20 OOS residuals known

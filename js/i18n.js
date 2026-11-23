@@ -532,6 +532,8 @@
   add("risk.st.acc.cols", "Horizon|Model|QLIKE|Vol correlation|Days", "期間|模型|QLIKE|波動相關係數|天數");
   add("risk.st.dm.cols", "Horizon|Comparison|QLIKE improvement|Diebold-Mariano t|Reading", "期間|比較|QLIKE 改善|Diebold-Mariano t 值|判讀");
   add("risk.st.bt.h2", "95% VaR backtest (target breach rate 5%)", "95% VaR 回測（目標突破率 5%）");
+  add("risk.st.qNote", "VaR quantile: since 2026-11-23 taken from the model's earlier <strong>out-of-sample</strong> errors (expanding window). The original rule used in-sample errors, which look better than reality and made the VaR too low: on the same days the live model breached {ra} (Kupiec p {pa}) with the old rule and {rb} (p {pb}) with the new one.",
+    "VaR 分位數：自 2026-11-23 起改用模型過去的<strong>樣本外</strong>預測誤差（擴張視窗）。原本用樣本內誤差，會比真實情況好看，導致 VaR 偏低：同一段期間，現行模型用舊規則的突破率為 {ra}（Kupiec p {pa}），新規則為 {rb}（p {pb}）。");
   add("risk.st.bt.cols", "Model|Breaches|Rate|Kupiec p (coverage)|Christoffersen p (independence)|Avg VaR", "模型|突破次數|突破率|Kupiec p（覆蓋率）|Christoffersen p（獨立性）|平均 VaR");
   add("risk.st.epu", "<strong>News-based EPU test:</strong> {v}. Robustness ({spec} specification): {rv}. p &lt; 0.05 in the backtest table means the test rejects correct VaR coverage or independence.",
     "<strong>新聞指標 EPU 檢驗：</strong>{v}。穩健性（{spec} 規格）：{rv}。回測表中 p &lt; 0.05 代表檢定否定了 VaR 的覆蓋率或獨立性。");
