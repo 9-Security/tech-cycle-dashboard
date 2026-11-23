@@ -172,7 +172,8 @@ def current_risk(df: pd.DataFrame, cfg: StockConfig) -> dict:
     pctl = float((hist <= vol_ann).mean())
     return {"vol_1d_ann": vol_ann, "daily_move": sqrt(fv), "var95": float(1 - np.exp(q * sqrt(fv))),
             "vol_percentile": pctl, "vol_median": float(hist.median()), "vol_ratio": vol_ann / float(hist.median()),
-            "level": level_for(pctl), "hist_start": str(hist.index[0].date())}
+            "level": level_for(pctl), "hist_start": str(hist.index[0].date()),
+            "har_var": fv, "ewma_var": float(df["ewma"].iloc[-1])}  # next-day variance forecasts (ledger)
 
 
 def market_stats(close: pd.Series, bench: pd.Series | None) -> dict:
@@ -314,6 +315,10 @@ def merge_stocks(existing: dict | None, new: dict, markets: tuple[str, ...], wat
         elif sym in old_rows:
             rows.append(old_rows[sym])
     updated = dict((existing or {}).get("updated", {}))
+    for m in {x["market"] for x in watchlist["stocks"]} - set(markets):
+        # Files written before per-market stamps: the other market was last updated at the old as_of.
+        if m not in updated and (existing or {}).get("as_of") and any(r["market"] == m for r in rows):
+            updated[m] = existing["as_of"]
     for m in markets:
         if any(r["market"] == m and not r.get("stale") for r in rows):
             updated[m] = stamp

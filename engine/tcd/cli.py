@@ -27,7 +27,8 @@ from . import promotion
 from .cross_market import fetch_markets, run_cross_market
 from .light import build_light
 from .export import clean
-from .stocks import fetch_prices as fetch_stock_prices, load_watchlist, merge_stocks, run_stocks
+from . import ledger
+from .stocks import StockConfig, fetch_prices as fetch_stock_prices, load_watchlist, merge_stocks, run_stocks
 from .risk_model import run_risk
 from .short_risk import run_short_risk
 from .signal_study import run_study
@@ -185,7 +186,7 @@ def refresh(args: argparse.Namespace) -> int:
         log.warning("cross-market test skipped: %s", exc)
 
     # Per-stock risk monitoring (report only; never blocks the refresh).
-    stocks = None
+    stocks = stocks_fresh = stocks_prices = None
     try:
         wl = load_watchlist()
         syms = [x["symbol"] for x in wl["stocks"]] + [b for b in wl["benchmarks"].values() if b != "^NDX"]
@@ -196,6 +197,7 @@ def refresh(args: argparse.Namespace) -> int:
         stocks = merge_stocks(_read_json(Path(args.out) / "stocks.json"), fresh, ("US", "TW"), wl, as_of)
         log.info("stocks: %d analysed, %d verified VaR, skipped %s", len(stocks["stocks"]),
                  sum(r["backtest"]["verified"] for r in stocks["stocks"]), stocks["skipped"])
+        stocks_fresh, stocks_prices = fresh["stocks"], sprices
     except Exception as exc:  # noqa: BLE001 - report-only block
         log.warning("stock monitoring skipped: %s", exc)
 
@@ -229,6 +231,12 @@ def refresh(args: argparse.Namespace) -> int:
     written = write_all(Path(args.out), series=series, status=status, scenarios=scenarios,
                         validation=validation, health=health, panel=panel, history_row=history_row,
                         signals=signals, risk=risk, cross_market=cross, stocks=stocks)
+    if stocks_fresh is not None:
+        try:  # live forecast ledger + reconciliation (report only)
+            ledger.update(Path(args.out), stocks_fresh, stocks_prices, ("US", "TW"), as_of,
+                          datetime.now(timezone.utc), __version__, StockConfig(), all_rows=stocks["stocks"])
+        except Exception as exc:  # noqa: BLE001
+            log.error("forecast ledger not updated: %s", exc)
     log.info("wrote %d files to %s in %.1fs", len(written), args.out, time.time() - t0)
     log.info("v2 regime %s | weight %.2f | OOS Sharpe %.2f | BH Sharpe %.2f",
              status["regime"]["label"], status["weights"]["executed_weight"],
@@ -273,6 +281,11 @@ def stocks_refresh(args: argparse.Namespace) -> int:
                                      "raw_manifest": {**(existing or {}).get("raw_manifest", {}), **manifest}},
                           markets, wl, as_of)
     _write_json_atomic(out, merged)
+    try:
+        ledger.update(Path(args.out), fresh["stocks"], prices, markets, as_of, now, __version__, StockConfig(),
+                      all_rows=merged["stocks"])
+    except Exception as exc:  # noqa: BLE001
+        log.error("forecast ledger not updated: %s", exc)
     log.info("stocks %s: %d analysed, %d verified, skipped %s", args.market, len(fresh["stocks"]),
              sum(r["backtest"]["verified"] for r in fresh["stocks"]), fresh["skipped"])
     return 0

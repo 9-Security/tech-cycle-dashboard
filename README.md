@@ -33,12 +33,14 @@ engine/                 Python engine (numpy, pandas, requests)
   tcd/short_risk.py     daily HAR volatility + 95% VaR (EWMA baseline, VIX, EPU news test)
   tcd/cross_market.py   pre-registered out-of-domain test of v3 on 9 other markets
   tcd/light.py          daily risk light (codes + numbers; text rendered per language)
+  tcd/ledger.py         live stock forecast ledger (append-only) + reconciliation
   tcd/stocks.py         per-stock risk monitoring + US fundamentals (watchlist.json)
   tcd/quality.py        fail-closed data-quality gates
   tcd/status.py         live posture + scenarios
   tcd/export.py         dashboard JSON / CSV (atomic swap)
   tests/                look-ahead / lag-1 / XBRL tests (synthetic data, offline)
 data/                   generated artifacts (committed by the daily job)
+  forecasts/            append-only stock forecast ledger + scored outcomes
 .github/workflows/      refresh.yml (daily refresh + Pages; extra Taiwan-stocks run 07:07 UTC), ci.yml (tests)
 docs/methodology.md     method, results, limitations
 ```
