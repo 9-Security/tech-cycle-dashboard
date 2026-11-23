@@ -60,3 +60,12 @@ def test_var_verdict_gate():
     cfg = M.MarketReviewConfig()
     assert M._summ_var(s.iloc[:200], cfg)["verdict"] == "insufficient"
     assert M._summ_var(s, cfg)["verdict"] == "consistent"
+
+
+def test_challenger_row_logged_with_its_own_model_id():
+    after = datetime(2024, 1, 2, 22, 15, tzinfo=timezone.utc)
+    ch = {"current": {"var95_1d_simple_ret": 0.035}}
+    rows = M.forecast_rows(SHORT, VOL, "red", "t", after, "x", ch)
+    by = {r["target"]: r for r in rows}
+    assert float(by["var_1d_challenger"]["var95"]) == 0.035
+    assert by["var_1d_challenger"]["model_id"] != by["var_1d"]["model_id"]

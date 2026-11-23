@@ -529,6 +529,12 @@
     "每天更新時，在結果出來之前，把大盤的 1 日 95% VaR、5 日波動，以及（每個完整月底的）下月波動預測，寫進只能新增的帳本（data/forecasts/market_ledger.csv）；同一天只保留第一次寫入。結果出來後以風險資產（XLK）對帳。和上方的回測不同，這份紀錄無法事後改寫。");
   add("risk.live.cols", "Forecast|Logged|Scored|Breaches / band|Realized ÷ forecast (target 1.0)|Verdict", "預測|已記錄|已對帳|突破次數／區間|實際 ÷ 預測（目標 1.0）|判定");
   add("risk.live.var1d", "1-day 95% VaR", "1 日 95% VaR");
+  add("risk.live.varch", "1-day 95% VaR — registered challenger (500-day quantile)", "1 日 95% VaR — 事前登記的對照模型（500 日分位數）");
+  add("risk.live.chnote", "Challenger vs live VaR on {n} common days: <strong>{dec}</strong>. Registered rule: after 250 common days, a switch is recommended only if the live VaR fails its tests and the challenger passes both; the site keeps showing the live VaR until the owner decides.",
+    "對照模型與現行 VaR 共同對帳 {n} 天：<strong>{dec}</strong>。事前登記的規則：共同累積 250 天後，只有在現行 VaR 未通過檢定、對照模型兩項都通過時，才建議替換；在負責人決定之前，網站一律顯示現行 VaR。");
+  add("risk.live.dec.insufficient", "not enough data yet", "樣本不足，尚不判定");
+  add("risk.live.dec.keep_incumbent", "keep the live VaR", "維持現行 VaR");
+  add("risk.live.dec.recommend_switch", "switch recommended (owner decides)", "建議替換（由負責人決定）");
   add("risk.live.vol5d", "5-day volatility", "5 日波動");
   add("risk.live.vol1m", "Next-month volatility", "下月波動");
   add("risk.live.last", "last {n}:", "最近 {n} 天：");

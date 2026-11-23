@@ -57,13 +57,16 @@
 
   function renderMarketLive(rv) {
     if (!rv) { setText("mlive-note", t("risk.live.none")); return; }
-    const T = rv.targets || {}, a = T.var_1d || {}, b = T.vol_5d || {}, c = T.vol_1m || {};
+    const T = rv.targets || {}, a = T.var_1d || {}, b = T.vol_5d || {}, c = T.vol_1m || {}, ch = T.var_1d_challenger || {};
     const v = (x) => esc(t("st.live.v." + (x || "insufficient")));
     const since = (x) => (x.logged_since ? " (" + esc(t("st.live.since", { d: x.logged_since })) + ")" : "");
     const rows = [
       [esc(t("risk.live.var1d")), String(a.logged || 0) + since(a), String(a.n || 0),
         a.breach_rate == null ? "—" : String(a.breaches) + " · " + pct(a.breach_rate, 1) + (a.rolling ? " (" + t("risk.live.last", { n: a.rolling.n }) + " " + pct(a.rolling.breach_rate, 1) + ")" : ""),
         a.var_ratio == null ? "—" : fmt(a.var_ratio, 2), "<strong>" + v(a.verdict) + "</strong>"],
+      [esc(t("risk.live.varch")), String(ch.logged || 0) + since(ch), String(ch.n || 0),
+        ch.breach_rate == null ? "—" : String(ch.breaches) + " · " + pct(ch.breach_rate, 1),
+        ch.var_ratio == null ? "—" : fmt(ch.var_ratio, 2), "<strong>" + v(ch.verdict) + "</strong>"],
       [esc(t("risk.live.vol5d")), String(b.logged || 0) + since(b), String(b.n || 0), "—",
         b.var_ratio == null ? "—" : fmt(b.var_ratio, 2), esc(t("risk.live.descriptive"))],
       [esc(t("risk.live.vol1m")), String(c.logged || 0) + since(c), String(c.n || 0),
@@ -72,7 +75,9 @@
     ];
     table("mliveTable", cols("risk.live.cols"), rows);
     const st = rv.settings || {};
-    setHTML("mlive-note", t("risk.live.note", { d: st.min_days_var, m: st.min_months_vol, r: st.rolling_days }));
+    const cc = rv.challenger_comparison || {};
+    setHTML("mlive-note", t("risk.live.note", { d: st.min_days_var, m: st.min_months_vol, r: st.rolling_days }) + " " +
+      t("risk.live.chnote", { n: esc(String(cc.common_days || 0)), dec: esc(t("risk.live.dec." + (cc.decision || "insufficient"))) }));
   }
 
   async function boot() {
