@@ -7,82 +7,83 @@
   <link rel="stylesheet" href="css/app.css" />
   <script src="static/chart.umd.min.js"></script>
 </head>
-<body>
+<body data-i18n-title="risk.title">
   <header class="topbar">
-    <h1>Tech Cycle — Risk</h1>
+    <h1 data-i18n="risk.title">Tech Cycle — Risk</h1>
     <nav class="nav-links" aria-label="Primary">
-      <a href="index.html">Backtest</a>
-      <a href="validation.html">Validation</a>
-      <a href="signals.html">Signals</a>
-      <a class="active" href="risk.html">Risk</a>
-      <a href="scenarios.html">Scenarios</a>
+      <a href="index.html" data-i18n="nav.backtest">Backtest</a>
+      <a href="validation.html" data-i18n="nav.validation">Validation</a>
+      <a href="signals.html" data-i18n="nav.signals">Signals</a>
+      <a class="active" href="risk.html" data-i18n="nav.risk">Risk</a>
+      <a href="scenarios.html" data-i18n="nav.scenarios">Scenarios</a>
     </nav>
   </header>
-  <div class="subbar" id="asof-line">Loading…</div>
-  <div class="banner" id="banner">Loading data status…</div>
+  <div class="subbar" id="asof-line" data-i18n="common.loading">Loading…</div>
+  <div class="banner" id="banner" data-i18n="common.loadingStatus">Loading data status…</div>
 
   <main>
-    <section class="interp" id="summary">Loading…</section>
+    <section class="interp" id="summary" data-i18n="common.loading">Loading…</section>
 
-    <section class="panel">
-      <h2>Short-term risk — next trading day / next 5 days (daily HAR model)</h2>
+    <section class="panel" id="stPanel">
+      <h2 data-i18n="risk.st.h2"></h2>
       <div class="metrics">
-        <div class="card"><div class="label">1-day 95% VaR</div><div class="value" id="s-var">—</div><div class="sub" id="s-var-sub">—</div></div>
-        <div class="card"><div class="label">Next-day volatility (annualized)</div><div class="value" id="s-vol1">—</div><div class="sub" id="s-vol1-sub">—</div></div>
-        <div class="card"><div class="label">Next 5 days volatility</div><div class="value" id="s-vol5">—</div><div class="sub" id="s-vol5-sub">—</div></div>
+        <div class="card"><div class="label" data-i18n="risk.st.var">1-day 95% VaR</div><div class="value" id="s-var">—</div><div class="sub" id="s-var-sub">—</div></div>
+        <div class="card"><div class="label" data-i18n="risk.st.vol1">Next-day volatility</div><div class="value" id="s-vol1">—</div><div class="sub" id="s-vol1-sub">—</div></div>
+        <div class="card"><div class="label" data-i18n="risk.st.vol5">Next 5 days volatility</div><div class="value" id="s-vol5">—</div><div class="sub" id="s-vol5-sub">—</div></div>
       </div>
       <div class="chart-wrap"><canvas id="varChart"></canvas></div>
       <p class="note" id="varNote"></p>
-      <h2>Out-of-sample forecast accuracy (QLIKE, lower is better)</h2>
+      <h2 data-i18n="risk.st.acc.h2"></h2>
       <div class="table-wrap"><table id="stVarTable"></table></div>
       <div class="table-wrap"><table id="stDmTable"></table></div>
-      <h2>95% VaR backtest (target breach rate 5%)</h2>
+      <h2 data-i18n="risk.st.bt.h2"></h2>
       <div class="table-wrap"><table id="stBtTable"></table></div>
       <p class="note" id="epuNote"></p>
     </section>
 
     <section class="metrics">
-      <div class="card"><div class="label">Next-month volatility forecast</div><div class="value" id="r-vol">—</div><div class="sub" id="r-vol-sub">—</div></div>
-      <div class="card"><div class="label" id="r-dd-label">P(drawdown &gt; 20% in 12m)</div><div class="value" id="r-dd">—</div><div class="sub" id="r-dd-sub">—</div></div>
-      <div class="card"><div class="label">Model estimate (reference only)</div><div class="value" id="r-model">—</div><div class="sub" id="r-model-sub">—</div></div>
+      <div class="card"><div class="label" data-i18n="risk.lt.vol">Next-month volatility forecast</div><div class="value" id="r-vol">—</div><div class="sub" id="r-vol-sub">—</div></div>
+      <div class="card"><div class="label" data-i18n-html="risk.lt.dd"></div><div class="value" id="r-dd">—</div><div class="sub" id="r-dd-sub">—</div></div>
+      <div class="card"><div class="label" data-i18n="risk.lt.model">Model estimate (reference only)</div><div class="value" id="r-model">—</div><div class="sub" id="r-model-sub">—</div></div>
     </section>
 
     <section class="panel">
-      <h2>Volatility forecast — out-of-sample (predictable)</h2>
+      <h2 data-i18n="risk.vf.h2"></h2>
       <div class="chart-wrap"><canvas id="volChart"></canvas></div>
       <p class="note" id="volNote"></p>
     </section>
 
     <section class="panel">
-      <h2>Drawdown-event model — out-of-sample skill vs the base rate</h2>
+      <h2 data-i18n="risk.sk.h2"></h2>
       <div class="table-wrap"><table id="skillTable"></table></div>
-      <p class="note">Brier skill score (BSS) = 1 − Brier(model) / Brier(base rate). Above 0 means better than always forecasting the historical frequency. 90% CI from a 12-month moving-block bootstrap. "Episodes" counts separate runs of event months: overlapping 12-month windows make many event months from one crash.</p>
+      <p class="note" data-i18n="risk.sk.note"></p>
     </section>
 
     <section class="panel">
-      <h2>By era (12-month, −20% target)</h2>
+      <h2 data-i18n="risk.era.h2"></h2>
       <div class="table-wrap"><table id="eraTable"></table></div>
     </section>
 
     <section class="panel">
-      <h2>Out-of-sample probability vs what happened</h2>
-      <label class="picker">Target <select id="tgtPick"></select></label>
+      <h2 data-i18n="risk.pr.h2"></h2>
+      <label class="picker"><span data-i18n="risk.pr.pick">Target</span> <select id="tgtPick"></select></label>
       <div class="chart-wrap"><canvas id="probChart"></canvas></div>
     </section>
 
     <section class="panel">
-      <h2>Reliability (calibration) — predicted vs observed frequency</h2>
+      <h2 data-i18n="risk.rel.h2"></h2>
       <div class="chart-wrap short"><canvas id="relChart"></canvas></div>
       <div class="table-wrap"><table id="relTable"></table></div>
     </section>
 
     <section class="panel">
-      <h2>Current model drivers (log-odds contribution vs average)</h2>
+      <h2 data-i18n="risk.drv.h2"></h2>
       <div class="table-wrap"><table id="drvTable"></table></div>
     </section>
   </main>
 
-  <footer id="footer">Loading…</footer>
+  <footer id="footer" data-i18n="common.loading">Loading…</footer>
+  <script src="js/i18n.js"></script>
   <script src="js/common.js"></script>
   <script src="js/risk.js"></script>
 </body>
