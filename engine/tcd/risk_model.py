@@ -184,7 +184,10 @@ def evaluate(preds: pd.DataFrame, cfg: RiskConfig) -> dict:
     p, pc, yv = d["p_model"].to_numpy(float), d["p_clim"].to_numpy(float), d["y"].to_numpy(float)
     b, bc = brier(p, yv), brier(pc, yv)
     # The target has few independent episodes, so the interval depends on the
-    # block length. Report the widest interval over 12/24/36/60-month blocks.
+    # block length. bss_ci90 = the RANGE spanned by the 90% intervals of the
+    # 12/24/36/60-month block bootstraps (a conservative robustness range, not
+    # itself a 90% interval); the verdict claims "worse than the base rate" only
+    # if every block length agrees.
     by_block = {b: block_bootstrap_bss(p, pc, yv, block=b, reps=cfg.boot_reps, seed=cfg.seed) for b in (12, 24, 36, 60)}
     lo, hi = min(v[0] for v in by_block.values()), max(v[1] for v in by_block.values())
     return {
@@ -192,6 +195,7 @@ def evaluate(preds: pd.DataFrame, cfg: RiskConfig) -> dict:
         "window": f"{d.index[0].date()} -> {d.index[-1].date()}",
         "brier": b, "brier_climatology": bc, "bss": 1 - b / bc if bc > 0 else None, "bss_ci90": [lo, hi],
         "bss_ci90_by_block": {str(k): list(v) for k, v in by_block.items()},
+        "bss_ci90_basis": "range of the 90% intervals over 12/24/36/60-month blocks (robustness range, not a 90% CI)",
         "log_loss": log_loss(p, yv), "log_loss_climatology": log_loss(pc, yv),
         "auc": auc(p, yv),
         "reliability": reliability(p, yv, cfg.bins),

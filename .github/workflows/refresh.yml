@@ -106,13 +106,16 @@ jobs:
           else
             git commit -m "data: daily refresh $(date -u +%Y-%m-%d)"
           fi
-          REMOTE="https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"
+          # Token passed as an HTTP header per command (not in the URL: a URL
+          # argument would be recorded in .git/logs by git pull).
+          AUTH="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+          URL="https://github.com/${REPO}.git"
           for i in 1 2 3; do
-            if git pull --rebase "$REMOTE" main; then
+            if git -c http.extraheader="$AUTH" pull --rebase "$URL" main; then
               # Re-validate after the rebase: the merged files must still be valid
               # and the ledger still append-only against the new base.
               (cd engine && python tools/validate_data.py --data ../data --base-ref HEAD~1) || exit 1
-              git push "$REMOTE" HEAD:main && exit 0
+              git -c http.extraheader="$AUTH" push "$URL" HEAD:main && exit 0
             else
               git rebase --abort || true
             fi
@@ -174,16 +177,23 @@ jobs:
   notify:
     # Report the run's state as GitHub issues (the owner is notified of new
     # issues and comments by default): failure -> open / comment, success ->
-    # close. Report-only components that failed (health.json / stocks.json)
-    # get their own "degraded" issue. Labels are per scope, so a Taiwan-only
-    # success never closes a failure of the full refresh.
+    # close. Report-only components that failed get their own "degraded"
+    # issue. Labels are per scope (full / tw); the scope is derived from the
+    # trigger here, so it is right even when the refresh job died before its
+    # own scope step. A success closes an issue only if the issue has had no
+    # activity since this run started (an older run finishing late cannot
+    # close a newer failure). Notify jobs run one at a time.
     needs: [refresh, build, deploy]
     if: always() && github.event_name != 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    concurrency:
+      group: notify
+      cancel-in-progress: false
     permissions:
       issues: write
       contents: read
+      actions: read  # this run's start time
     steps:
       - uses: actions/checkout@v4
         with:
@@ -193,42 +203,58 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
           R_REFRESH: ${{ needs.refresh.result }}
           R_BUILD: ${{ needs.build.result }}
           R_DEPLOY: ${{ needs.deploy.result }}
-          SCOPE: ${{ needs.refresh.outputs.scope || 'full' }}
+          EVENT_SCHEDULE: ${{ github.event.schedule }}
+          INPUT_SCOPE: ${{ inputs.scope }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
+          if [ "$EVENT_SCHEDULE" = "7 7 * * 1-5" ] || [ "$INPUT_SCOPE" = "tw" ]; then SCOPE=tw; else SCOPE=full; fi
+          RUN_STARTED=$(gh api "repos/${REPO}/actions/runs/${RUN_ID}" --jq '.run_started_at')
+          export RUN_STARTED
           today=$(date -u +%Y-%m-%d)
           failed=""
           for j in "refresh:$R_REFRESH" "build:$R_BUILD" "deploy:$R_DEPLOY"; do
-            case "${j#*:}" in failure|cancelled) failed="$failed ${j%%:*}" ;; esac
+            case "${j#*:}" in failure|cancelled) failed="$failed ${j%%:*} (${j#*:})" ;; esac
           done
           if [ -n "$failed" ]; then
             bash .github/scripts/notify.sh "refresh-failure-$SCOPE" fail "Data refresh ($SCOPE) failed" \
-              "Run $RUN_URL ($today) failed in:$failed. Nothing was published; the site keeps the last good data and its banner turns stale after 4 days. This issue closes itself after the next successful $SCOPE refresh."
+              "Run $RUN_URL ($today) did not complete:$failed. A cancelled job can mean a newer queued run replaced it; check the run. If refresh failed nothing was committed; if only build/deploy failed, the data commit is on main but the site was not redeployed by this run. Closes itself after the next successful $SCOPE run."
             exit 0
           fi
-          bash .github/scripts/notify.sh "refresh-failure-$SCOPE" ok "" "Recovered: run $RUN_URL ($today) succeeded."
-          # Report-only components that failed in this run (names only).
+          # Report-only components that failed in THIS run (names only). Status
+          # files older than this run (e.g. a Taiwan holiday run that wrote
+          # nothing) are not evaluated.
           comps=$(SCOPE="$SCOPE" python3 - <<'PY'
           import json, os
+          from datetime import datetime, timezone
           scope = os.environ["SCOPE"]
-          names = []
+          started = datetime.fromisoformat(os.environ["RUN_STARTED"].replace("Z", "+00:00"))
+          def fresh(stamp):
+              try:
+                  return datetime.strptime(stamp, "%Y%m%dT%H%M%SZ").replace(tzinfo=timezone.utc) >= started
+              except (TypeError, ValueError):
+                  return False
           try:
               if scope == "full":
-                  names += [i["component"] for i in json.load(open("data/health.json")).get("report_issues", [])]
+                  h = json.load(open("data/health.json"))
+                  names = [str(i.get("component", "unknown")) for i in (h.get("report_issues") or [])] if fresh(h.get("as_of")) else ["-"]
               else:
-                  run = json.load(open("data/stocks.json")).get("run_issues", {}).get("TW", {})
-                  names += [i["component"] for i in run.get("issues", [])]
-          except (OSError, ValueError):
-              names.append("status-file-unreadable")
+                  run = ((json.load(open("data/stocks.json")).get("run_issues") or {}).get("TW") or {})
+                  names = [str(i.get("component", "unknown")) for i in (run.get("issues") or [])] if fresh(run.get("as_of")) else ["-"]
+          except Exception:  # noqa: BLE001 - never let notify crash on a status file
+              names = ["status-file-unreadable"]
           print(" ".join(sorted(set(names))))
           PY
           )
-          if [ -n "$comps" ]; then
+          bash .github/scripts/notify.sh "refresh-failure-$SCOPE" ok "" "Recovered: run $RUN_URL ($today) succeeded."
+          if [ "$comps" = "-" ]; then
+            echo "status file not written by this run (e.g. no new bar): degraded state unchanged"
+          elif [ -n "$comps" ]; then
             bash .github/scripts/notify.sh "refresh-degraded-$SCOPE" fail "Data refresh ($SCOPE): report-only components failed" \
-              "Run $RUN_URL ($today) published, but these report-only components were not updated: $comps. Their previous results stay on the site, marked in the banner. Closes itself when a $SCOPE refresh has no such failures."
+              "Run $RUN_URL ($today) published, but these report-only components were not updated: $comps. Their previous results stay on the site, marked in the banner. Closes itself when a $SCOPE run has no such failures."
           else
             bash .github/scripts/notify.sh "refresh-degraded-$SCOPE" ok "" "Recovered: run $RUN_URL ($today) had no report-only failures."
           fi

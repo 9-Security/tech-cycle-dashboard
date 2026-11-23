@@ -82,7 +82,7 @@ def test_summary_gates_and_detects_miscalibration():
                              "var_ratio": r * r / sd ** 2, "model_id": "m"})
     df = pd.DataFrame(rows)
     cfg = L.ReviewConfig()
-    for model, want in (("good", "consistent"), ("bad", "too_many")):
+    for model, want in (("good", "not_rejected"), ("bad", "too_many")):
         oc = df[df["model"] == model].drop(columns="model")
         led = oc[["origin_date", "symbol", "market", "model_id"]]
         rv = L.summarize(oc, led, [], cfg, "t")
@@ -96,8 +96,8 @@ def test_summary_gates_and_detects_miscalibration():
 def test_update_end_to_end(tmp_path):
     from tcd.stocks import StockConfig
     rows = [_row(d="2024-01-02")]
-    now = datetime(2024, 1, 3, tzinfo=timezone.utc)
-    rv = L.update(tmp_path, rows, {"A": _px([100, 101])}, ("US",), "t", now, "x", StockConfig())
+    now = datetime(2024, 1, 4, tzinfo=timezone.utc)   # after the 01-03 target bar closed
+    rv = L.update(tmp_path, rows, {"A": _px([100, 101]), "^NDX": _px([10, 11])}, ("US",), "t", now, "x", StockConfig())
     assert rv["last_run"]["forecasts_added"] == 1
     assert (tmp_path / "forecasts" / "stocks_outcomes.csv").exists() and (tmp_path / "forecast_review.json").exists()
     assert rv["markets"]["US"]["n"] == 1 and rv["markets"]["US"]["verdict"] == "insufficient"
@@ -120,7 +120,7 @@ def test_non_trading_bars_are_skipped(tmp_path):
 # ---------------------------------------------------------- review round 3
 def test_origin_must_be_a_benchmark_trading_day_and_model_date_must_match():
     now = datetime(2026, 10, 24, 12, tzinfo=timezone.utc)
-    od = {"TW": {"2026-10-22"}, "US": None}
+    od = {"TW": {"2026-10-22"}, "US": {"2026-10-22"}}
     holiday = _row("T", "TW", d="2026-10-23")              # Yahoo bar on a closure, ^TWII ends 10-22
     halted = {**_row("H", "US", d="2026-10-22"), "model_last_date": "2026-10-12"}
     ok = {**_row("U", "US", d="2026-10-22"), "model_last_date": "2026-10-22"}
@@ -146,7 +146,7 @@ def test_final_outcomes_survive_a_failed_fetch_and_model_id_stays_text(tmp_path)
                          "var95": "0.03", "har_var": "1e-4", "ewma_var": "1e-4", "vol_1d_ann": "0.2",
                          "level": "green", "engine_version": "x", "model_id": mid}])
     now = datetime(2024, 1, 10, tzinfo=timezone.utc)
-    L.update(tmp_path, [], {"A": _px([100, 96])}, ("US",), "t1", now, "x", StockConfig())
+    L.update(tmp_path, [], {"A": _px([100, 96]), "^NDX": _px([10, 11])}, ("US",), "t1", now, "x", StockConfig())
     L.update(tmp_path, [], {}, ("TW",), "t2", now, "x", StockConfig())      # other market: rewrite path
     L.update(tmp_path, [], {}, ("US",), "t3", now, "x", StockConfig())      # A's prices missing now
     oc = L.read_outcomes(tmp_path / "forecasts" / "stocks_outcomes.csv")
@@ -191,5 +191,30 @@ def test_model_id_guard():
     with a documented model change (methodology section 14); update the expected
     id here, and never add an alias unless the forecasting code is byte-identical."""
     from tcd.stocks import StockConfig
-    assert L.model_id(StockConfig()) == "9c9661d3517e"
-    assert set(L.MODEL_ID_ALIASES.values()) <= {"9c9661d3517e"}
+    assert L.model_id(StockConfig()) == "effe1fd9a348"
+    assert L.MODEL_ID_ALIASES == {}
+
+
+
+def test_partial_target_bar_is_not_scored_and_stays_pending():
+    led = pd.DataFrame([{"origin_date": "2024-01-02", "symbol": "A", "market": "US", "var95": 0.03,
+                         "har_var": 1e-4, "ewma_var": 1e-4, "level": "green", "model_id": "m"}])
+    px = _px([100, 90])  # 2024-01-03 bar, seen during the session
+    during = datetime(2024, 1, 3, 18, 0, tzinfo=timezone.utc)   # 13:00 New York
+    after = datetime(2024, 1, 3, 22, 15, tzinfo=timezone.utc)
+    od = {"US": {"2024-01-02", "2024-01-03"}, "TW": None}
+    assert L.evaluate(led, {"A": px}, ("US",), L.ReviewConfig(), None, od, None, during).iloc[0]["status"] == "pending"
+    assert L.evaluate(led, {"A": px}, ("US",), L.ReviewConfig(), None, od, None, after).iloc[0]["status"] == "scored"
+    od_missing = {"US": None, "TW": None}   # benchmark fetch failed: never score
+    assert L.evaluate(led, {"A": px}, ("US",), L.ReviewConfig(), None, od_missing, None, after).iloc[0]["status"] == "pending"
+
+
+def test_frozen_rows_are_rewritten_byte_identical(tmp_path):
+    p = tmp_path / "o.csv"
+    row = {c: None for c in L.OUTCOME_COLUMNS}
+    row.update(origin_date="2024-01-02", symbol="A", market="US", status="scored", ret=0.006911683841295721)
+    fresh = pd.DataFrame([row], columns=L.OUTCOME_COLUMNS)
+    L.merge_outcomes(p, fresh, ("US",))
+    before = p.read_bytes()
+    L.merge_outcomes(p, pd.DataFrame(columns=L.OUTCOME_COLUMNS), ("US",))
+    assert p.read_bytes() == before

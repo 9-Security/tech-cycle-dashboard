@@ -69,3 +69,47 @@ def test_challenger_row_logged_with_its_own_model_id():
     by = {r["target"]: r for r in rows}
     assert float(by["var_1d_challenger"]["var95"]) == 0.035
     assert by["var_1d_challenger"]["model_id"] != by["var_1d"]["model_id"]
+
+
+def test_partial_bars_and_months_are_never_scored(tmp_path):
+    led = _ledger(tmp_path)
+    days = pd.bdate_range("2024-01-02", periods=7)
+    r = pd.Series([0.0, -0.05, 0.01, 0.01, 0.01, 0.01, 0.0], index=days)
+    panel = pd.DataFrame({"rv21": [0.2, 0.26], "partial": [False, False]},
+                         index=pd.to_datetime(["2023-12-31", "2024-01-31"]))
+    during = datetime(2024, 1, 3, 18, 0, tzinfo=timezone.utc)        # 2024-01-03 still trading
+    oc = M.evaluate(led, r, panel, set(), during).set_index("target")
+    assert oc.loc["var_1d", "status"] == "pending"
+    assert oc.loc["vol_1m", "status"] == "pending"   # January's last trading day not closed yet
+
+
+def test_month_forecast_logged_only_after_the_last_trading_day_closes():
+    vol = {"month_end": {"date": "2024-01-31", "vol": 0.2, "band90": [0.1, 0.3]}}
+    early = datetime(2024, 1, 31, 18, 0, tzinfo=timezone.utc)
+    late = datetime(2024, 2, 1, 1, 0, tzinfo=timezone.utc)
+    assert [r["target"] for r in M.forecast_rows(SHORT, vol, None, "t", early, "x")] == ["var_1d", "vol_5d"]
+    assert "vol_1m" in [r["target"] for r in M.forecast_rows(SHORT, vol, None, "t", late, "x")]
+
+
+def test_missing_var_is_invalid_not_a_non_breach(tmp_path):
+    led = _ledger(tmp_path)
+    led.loc[led["target"] == "var_1d", "var95"] = ""
+    r = pd.Series([0.0, -0.2], index=pd.bdate_range("2024-01-02", periods=2))
+    panel = pd.DataFrame({"rv21": [0.2], "partial": [False]}, index=pd.to_datetime(["2023-12-31"]))
+    oc = M.evaluate(led, r, panel, set()).set_index("target")
+    assert oc.loc["var_1d", "status"] == "invalid"
+
+
+def test_band_verdict_uses_an_exact_binomial_test():
+    cfg = M.MarketReviewConfig()
+    s = pd.DataFrame({"log_error": [0.0] * 24, "in_band": [True] * 24})
+    assert M._summ_1m(s, cfg)["verdict"] == "consistent"            # 24/24: p = 0.16
+    s2 = pd.DataFrame({"log_error": [0.0] * 24, "in_band": [True] * 17 + [False] * 7})
+    assert M._summ_1m(s2, cfg)["verdict"] == "band_miscalibrated"   # 17/24
+
+
+def test_ids_cover_module_constants(monkeypatch):
+    from tcd import short_risk
+    a, c = M.short_model_id("har_vix"), M.challenger_model_id("har_vix")
+    monkeypatch.setattr(short_risk, "LOGGED", {"rv_d"})
+    assert M.short_model_id("har_vix") != a and M.challenger_model_id("har_vix") != c

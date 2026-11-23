@@ -4,7 +4,9 @@ Registered 2026-11-23, before any live outcome of either model existed.
 
 Problem. The live VaR (HAR+VIX variance, filtered historical simulation) takes
 its 5% quantile from an EXPANDING window of earlier out-of-sample standardized
-returns, updated once a year. Over 2000-2026 it covers (4.76% breaches), but
+returns (updated daily live, yearly in the backtest; the registered text said
+"updated once a year" - corrected 2026-11-23 after review, the diagnosis is the
+expanding window). Over 2000-2026 it covers (4.76% breaches), but
 over the last three years it breached 7.15% of days (Kupiec p 0.011): the
 quantile adapts slowly.
 
@@ -88,6 +90,8 @@ def live_decision(ch: dict, inc: dict) -> str:
     """Apply the registered rule to live summaries on common days."""
     if min(ch.get("n", 0), inc.get("n", 0)) < MIN_LIVE_DAYS:
         return "insufficient"
+    if any(s.get(k) is None for s in (ch, inc) for k in ("kupiec_p", "christoffersen_p")):
+        return "insufficient"  # tests not computed (e.g. a review gate above MIN_LIVE_DAYS)
     passes = lambda s: s["kupiec_p"] >= 0.05 and s["christoffersen_p"] >= 0.05
     if not passes(inc) and passes(ch):
         return "recommend_switch"

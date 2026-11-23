@@ -51,3 +51,16 @@ def test_missing_evidence_is_undetermined_not_failed():
     out = evaluate(dates=dates, v3_ret=r * 1.2, bh_ret=r, safe=np.zeros(30), rule=rule, design_date="2026-11-23",
                    full_v3_sharpe=1.0, full_bh_sharpe=0.5, current_fingerprint=rule.spec_fingerprint, max_gap_days=None)
     assert out["state"] == "undetermined", out["state"]
+
+
+def test_undetermined_still_retires_at_the_deadline():
+    import numpy as np
+    import pandas as pd
+    from tcd.config import PromotionRule
+    from tcd.promotion import evaluate
+    rule = PromotionRule()
+    dates = pd.date_range("2026-12-31", periods=40, freq="ME")
+    r = np.full(40, 0.01) + np.linspace(-0.001, 0.001, 40)
+    out = evaluate(dates=dates, v3_ret=r * 1.2, bh_ret=r, safe=np.zeros(40), rule=rule, design_date="2026-11-23",
+                   full_v3_sharpe=1.0, full_bh_sharpe=0.5, current_fingerprint=rule.spec_fingerprint, max_gap_days=None)
+    assert out["state"] == "retire"

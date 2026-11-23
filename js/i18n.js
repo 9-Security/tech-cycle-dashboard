@@ -409,12 +409,14 @@
   add("st.live.since", "since {d}", "自 {d} 起");
   add("st.live.v.insufficient", "Not enough data yet", "樣本不足，尚不判定");
   add("st.live.v.consistent", "Consistent with 5%", "符合 5% 目標");
+  add("st.live.v.not_rejected", "Not too many breaches", "突破次數未顯著過多");
+  add("st.live.v.invalid", "Invalid forecast", "預測值無效");
   add("st.live.v.too_many", "Too many breaches (VaR too low)", "超過次數過多（VaR 低估風險）");
   add("st.live.v.too_few", "Too few breaches (VaR too cautious)", "超過次數過少（VaR 過度保守）");
   add("st.live.v.coverage_rejected", "Breach rate rejected", "超過比例未通過檢定");
   add("st.live.v.breaches_cluster", "Breaches cluster", "超過日過度集中");
-  add("st.live.note", "Rules fixed in advance: a market verdict needs at least {d} scored trading days (the confidence interval accounts for several stocks breaching on the same day); a single stock needs {n} scored days (Kupiec and Christoffersen tests). Variance ratio = realized squared return / forecast variance. Last {r} days are tracked separately. Nothing here changes the model automatically.",
-    "事前固定的規則：市場層級至少要累積 {d} 個已對帳交易日才判定（信賴區間已考慮多檔個股同一天一起超過、彼此不獨立）；單一個股要 {n} 個交易日才判定（Kupiec 與 Christoffersen 檢定）。變異數比＝實際報酬平方／預測變異數。另外追蹤最近 {r} 天。這裡的結果不會自動修改模型。");
+  add("st.live.note", "Rules fixed in advance: a market verdict needs at least {d} scored trading days and tests only whether there are too many breaches (VaR too low), with a standard error computed under the 5% target, summed per day (names breach together) and Newey-West over days; \"too few\" is not tested, because simulation showed no method keeps its false-alarm rate near 5% when names move together. The bracketed interval is descriptive. A single stock needs {n} scored days (Kupiec and Christoffersen tests). Variance ratio = realized squared return / forecast variance. Last {r} days are tracked separately. Nothing here changes the model automatically.",
+    "事前固定的規則：市場層級至少要累積 {d} 個已對帳交易日才判定，而且只檢定「突破是否過多」（VaR 低估風險）。標準誤以 5% 目標為基準計算，先依日期加總（多檔常同日一起突破），再對日期序列做 Newey-West。「突破過少」不做判定，因為模擬顯示：在多檔同步漲跌時，沒有任何方法能把誤判率維持在 5% 左右。括號內的區間僅供描述。單一個股要 {n} 個交易日才判定（Kupiec 與 Christoffersen 檢定）。變異數比＝實際報酬平方／預測變異數。另外追蹤最近 {r} 天。這裡的結果不會自動修改模型。");
   add("st.live.none", "No ledger yet: it starts with the next refresh.", "帳本尚未建立，下一次更新後開始累積。");
   add("st.d.live", "Live record: {n} forecasts scored, {k} VaR breaches ({r}; backtest {b}). Verdict after {min} days: {v}.",
     "上線後紀錄：已對帳 {n} 筆，超過 VaR {k} 次（{r}；回測為 {b}）。累積 {min} 筆後判定：{v}。");
@@ -588,12 +590,12 @@
   add("risk.vf.note", "OLS on log 21-day realized vol and log VIX, refit each January. Out-of-sample R² {r2} vs historical mean, {rp} vs 'next month = this month'; correlation {c} over {w}. Volatility clustering makes risk size predictable — not the direction or timing of a crash.",
     "以 21 日實際波動與 VIX 的對數做迴歸，每年 1 月重新估計。樣本外 R²：相對歷史平均 {r2}，相對「下月＝本月」{rp}；相關係數 {c}，期間 {w}。波動有聚集性，所以「風險大小」可以預測，但崩盤的方向與時間點不行。");
   add("risk.sk.h2", "Drawdown-event model — out-of-sample skill vs the base rate", "大跌事件模型 — 樣本外表現 vs 歷史平均");
-  add("risk.sk.cols", "Target (DD worse than)|Model|Event months|Brier|Brier (base rate)|BSS|90% CI|AUC|Verdict", "目標（回撤超過）|模型|發生月數|Brier|Brier（歷史平均）|BSS|90% 信賴區間|AUC|判讀");
+  add("risk.sk.cols", "Target (DD worse than)|Model|Event months|Brier|Brier (base rate)|BSS|Range over block lengths|AUC|Verdict", "目標（回撤超過）|模型|發生月數|Brier|Brier（歷史平均）|BSS|各區塊長度的區間範圍|AUC|判讀");
   add("risk.sk.full", "Vol + earnings + momentum", "波動＋獲利＋動能");
   add("risk.sk.vol", "Vol only", "只有波動");
   add("risk.sk.target", "{h}m, {c}%", "{h} 個月，{c}%");
-  add("risk.sk.note", "Brier skill score (BSS) = 1 − Brier(model) / Brier(base rate). Above 0 means better than always forecasting the historical frequency. 90% CI from a 12-month moving-block bootstrap. \"Episodes\" counts separate runs of event months: overlapping 12-month windows make many event months from one crash.",
-    "Brier 技能分數（BSS）＝ 1 − Brier（模型）÷ Brier（歷史平均）。大於 0 代表比「永遠預測歷史頻率」更好。90% 信賴區間以 12 個月區塊 bootstrap 估計。「次數」是指獨立的大跌事件：12 個月區間重疊，所以一次崩盤會產生很多個「發生月」。");
+  add("risk.sk.note", "Brier skill score (BSS) = 1 − Brier(model) / Brier(base rate). Above 0 means better than always forecasting the historical frequency. Interval: the range spanned by the 90% intervals of 12/24/36/60-month moving-block bootstraps (a robustness range, not a 90% CI). \"Episodes\" counts separate runs of event months: overlapping 12-month windows make many event months from one crash.",
+    "Brier 技能分數（BSS）＝ 1 − Brier（模型）÷ Brier（歷史平均）。大於 0 代表比「永遠預測歷史頻率」更好。區間：12／24／36／60 個月區塊 bootstrap 各自 90% 區間所涵蓋的範圍（穩健性範圍，不是 90% 信賴區間），以區塊 bootstrap 估計。「次數」是指獨立的大跌事件：12 個月區間重疊，所以一次崩盤會產生很多個「發生月」。");
   add("skill.skillful", "skillful", "有效");
   add("skill.noskill", "no skill", "無效");
   add("skill.nodemo", "no demonstrated skill", "未證明有效");

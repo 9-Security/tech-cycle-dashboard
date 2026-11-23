@@ -37,3 +37,8 @@ def test_nan_json_and_email_fail(tmp_path):
     assert _run(data) == 1
     (data / "a.json").write_text('{"ua": "Org someone@example.com"}')
     assert _run(data) == 1
+
+
+def test_unresolvable_base_ref_fails(tmp_path):
+    data = _repo(tmp_path)
+    assert _run(data, "NOSUCHREF") == 1

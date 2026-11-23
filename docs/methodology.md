@@ -451,7 +451,7 @@ Module `engine/tcd/market_ledger.py`; files `data/forecasts/market_ledger.csv` (
 
 Module `engine/tcd/var_challenger.py`; registered in commit `a6f4a2e` (2026-11-23 13:58 UTC) **before any result of the challenger was computed**.
 
-* **Problem.** The live VaR's quantile comes from an expanding window of earlier out-of-sample standardized returns, updated yearly. It covers over 2000–2026 (4.76%) but breached 7.15% of days over the last three years (Kupiec p 0.011, § 16).
+* **Problem.** The live VaR's quantile comes from an **expanding** window of all earlier out-of-sample standardized returns (live: updated daily; in the backtest: once a year — both give 7.14% over the last three years, so the cause is the expanding window, not the update frequency; corrected 2026-11-23, the first version of this section said "updated yearly"). It covers over 2000–2026 (4.76%) but breached 7.15% of days over the last three years (Kupiec p 0.011, § 16).
 * **Challenger (the only one).** Same HAR+VIX variance; quantile = 5% quantile of the last **500** out-of-sample standardized returns (≈ 2 years), updated daily. 500 was fixed on that principle and will not be tuned; a different window would be a new challenger with a new registration.
 * **Live comparison.** Both are logged in the market ledger (§ 17) as `var_1d` and `var_1d_challenger` with their own `model_id`s and scored on the same days.
 * **Decision rule (fixed at registration).** After ≥ 250 live days scored for both: recommend switching **only if** the incumbent fails (Kupiec or Christoffersen p < 0.05) **and** the challenger passes both; otherwise keep the incumbent. The owner decides; nothing switches automatically. Shown in `forecast_review_market.json → challenger_comparison` and on the risk page.
@@ -463,3 +463,25 @@ Module `engine/tcd/var_challenger.py`; registered in commit `a6f4a2e` (2026-11-2
 | Last 3 years (756 days) | 7.14%, p 0.011 | 6.22%, p 0.14 |
 
 Current 1-day VaR (2026-11-20): incumbent 5.50%, challenger 5.98%. The site keeps showing the incumbent.
+
+## 19. Second code review: ledgers, challenger, notifications (2026-11-23)
+
+Three independent reviewers read the code added after the first review (§ 16: ledger hardening, minor fixes, market ledger, challenger, notifications) without the author's conclusions. The two critical findings were reproduced before fixing. No outcome had been scored in either ledger at the time, so every rule change below predates all live results.
+
+| Finding | Fix |
+|---|---|
+| **Outcomes could be scored against an unfinished (intraday) bar and then frozen** (both ledgers; a manual run during a session would do it; a month-end intraday bar also made a month look complete). No damage: all of today's runs started before the US open and every outcome was still `pending`. | The target bar must be final (`bar_is_final` of the target day; for `vol_1m` the target month's last NYSE trading day), otherwise the outcome stays `pending`; a `vol_1m` forecast is logged only after its month's last trading day has closed. |
+| **Pooled stock-ledger CI under-covered at the 60-date gate** (simulated 66–85% for a nominal 90%; false "too few" 2–5× nominal). Two replacements were simulated against a rule fixed in advance (false-positive rate ≤ 7.5% on each side): neither controlled the "too few" side when names breach together. | The pooled verdict is now **one-sided**: "too many breaches" by a z-test whose SE is computed from deviations from 5% (summed per date, Newey-West over dates, floored at the binomial SE) — simulated false-positive rate ≤ 7.2%. "Too few" is not tested; the interval is descriptive. Single stocks and the market VaR keep Kupiec + Christoffersen. |
+| `model_id`s missed module constants (`LOGGED`, `FEATURES`, `HAR_FEATURES`, `_ols`), the Taiwan data cleaning and, for `vol_1m`, the definition of its inputs (`rv`/`VIX` lines of `build_panel`, `FeatureConfig`); the alias for the first 28 stock rows covered identical code but rows produced before the Taiwan holiday-bar cleaning | Ids now cover these; the challenger id covers the shared variance code and its own quantile only. **The alias was removed**: the 28 stock rows and the 4 market rows of 2026-11-23 are counted as an earlier model, and the live record restarts with the next run. |
+| Benchmark fetch failure let holiday bars become origins/targets | No benchmark → no logging and no scoring (`pending`). |
+| Frozen outcomes re-parsed as floats (last-digit drift) | Outcome files are read as text, so frozen rows are written back byte-identical. |
+| `vol_1m` band verdict flagged a perfect 24/24 | Exact two-sided binomial test of coverage = 90% (p ≥ 0.05). |
+| Missing VaR scored as "no breach"; missing EWMA field aborted logging; challenger errors could stop the refresh; `None` p-values could crash the decision rule | `invalid` status; tolerant field access; challenger wrapped (report-only); `insufficient` when tests are not computed. |
+| BSS "90% CI" over several block lengths is not a 90% interval | Relabelled as a robustness range (`bss_ci90_basis`). |
+| Promotion: `undetermined` could outlive the retirement deadline | Retirement is checked first. |
+| Notifications: scope fell back to `full` when the refresh died early; cancelled jobs reported as plain failures with wrong text; a crash after closing the failure issue; an older run could close a newer failure; a Taiwan holiday run reported stale component state | Scope derived from the trigger inside `notify`; text distinguishes cancelled/failed and what was published; status-file errors handled; `notify` jobs serialised and an issue is closed only if it had no activity after the run started; status files older than the run are not evaluated. |
+| Push token in the URL ended up in the runner's git reflog | Token passed as an HTTP header per command. |
+| `validate_data.py` skipped the ledger check when git failed | An unresolvable base ref is an error. |
+| A few numbers inserted into HTML unescaped | Escaped. |
+
+**Known limitations (documented, not changed):** Christoffersen is applied to logged days, which can have gaps (failed runs, no backfill); incumbent and challenger rows for one day may come from different data vintages if one is added by a re-run; a lagging benchmark drops that day's forecasts (not recovered) and the after-window Taiwan rule can drop a real unchanged-close bar for one run; Yahoo's dividend adjustment may lag the ex-date, so a return scored on an ex-dividend day can include the dividend drop; the e-mail check in `validate_data.py` does not catch encoded addresses; a `<meta>` CSP cannot set `frame-ancestors` (GitHub Pages sets no headers).

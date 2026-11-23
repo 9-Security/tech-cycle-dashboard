@@ -93,14 +93,15 @@ def evaluate(*, dates: pd.DatetimeIndex, v3_ret: np.ndarray, bh_ret: np.ndarray,
     elif all(p is True for p in others):
         state = "eligible"
         note = "All criteria met. Promotion is eligible; the owner decides. The engine does not switch automatically."
-    elif not any(p is False for p in others):
-        # Some criterion cannot be evaluated (e.g. C6 without refresh history):
-        # neither met nor failed. (Until 2026-11-23 this fell through to not_met / retire.)
-        state = "undetermined"
-        note = "Minimum period reached, but at least one criterion cannot be evaluated yet (see criteria marked n/a)."
     elif n >= rule.retire_months:
+        # Retirement applies whenever v3 is not eligible by the deadline, including
+        # when a criterion cannot be evaluated.
         state = "retire"
         note = f"Criteria still not met after {rule.retire_months} months: retire the v3 candidate (or re-design with a new design date)."
+    elif not any(p is False for p in others):
+        # Some criterion cannot be evaluated (e.g. C6 without refresh history).
+        state = "undetermined"
+        note = "Minimum period reached, but at least one criterion cannot be evaluated yet (see criteria marked n/a)."
     else:
         state = "not_met"
         note = f"Minimum period reached but criteria not met; keep collecting until {out['retire_after']}."

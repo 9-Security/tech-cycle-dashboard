@@ -162,8 +162,8 @@
     const ci = (a) => (a ? " [" + pct(a[0], 1) + ", " + pct(a[1], 1) + "]" : "");
     const body = ["US", "TW"].map((mk) => {
       const m = rv.markets[mk] || {};
-      return [esc(t("st.live.mk." + mk)), String(m.logged || 0) + (m.logged_since ? " (" + esc(t("st.live.since", { d: m.logged_since })) + ")" : ""),
-        String(m.n || 0) + " / " + (m.n_dates || 0), String(m.breaches || 0),
+      return [esc(t("st.live.mk." + mk)), esc(String(m.logged || 0)) + (m.logged_since ? " (" + esc(t("st.live.since", { d: m.logged_since })) + ")" : ""),
+        esc(String(m.n || 0)) + " / " + esc(String(m.n_dates || 0)), esc(String(m.breaches || 0)),
         m.breach_rate == null ? "—" : pct(m.breach_rate, 1) + ci(m.breach_ci),
         m.backtest_breach_rate_mean == null ? "—" : pct(m.backtest_breach_rate_mean, 1),
         m.var_ratio == null ? "—" : fmt(m.var_ratio, 2) + (m.var_ratio_ci ? " [" + fmt(m.var_ratio_ci[0], 2) + ", " + fmt(m.var_ratio_ci[1], 2) + "]" : ""),
@@ -173,7 +173,7 @@
     el.innerHTML = "<thead><tr>" + hdr.map((h) => "<th>" + esc(h) + "</th>").join("") + "</tr></thead><tbody>" +
       body.map((r) => "<tr>" + r.map((c) => "<td>" + c + "</td>").join("") + "</tr>").join("") + "</tbody>";
     const st = rv.settings || {};
-    setHTML("live-note", t("st.live.note", { d: st.min_dates_pooled, n: st.min_days_stock, r: st.rolling_dates }));
+    setHTML("live-note", t("st.live.note", { d: esc(String(st.min_dates_pooled)), n: esc(String(st.min_days_stock)), r: esc(String(st.rolling_dates)) }));
   }
 
   async function boot() {
