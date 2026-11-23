@@ -6,6 +6,8 @@ Live research dashboard for a **tech Capex-cycle strategy**: the live v2 regime 
 
 ## Pages
 
+All pages are bilingual (English / 繁體中文). Use the switch in the top bar, or open any page with `?lang=zh-TW` / `?lang=en`; the choice is remembered in the browser. Translations live in `js/i18n.js`; narrative sentences (scenarios, verdicts, promotion status) are rebuilt in the browser from structured fields in `data/*.json`, so both languages come from the same numbers.
+
 | Page | Content |
 |------|---------|
 | [`index.html`](index.html) | Official regime + weight in force, month-to-date provisional regime, OOS metrics, NAV (OOS vs B&H vs in-sample), regime timeline, signals, Capex intensity |

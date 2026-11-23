@@ -7,74 +7,75 @@
   <link rel="stylesheet" href="css/app.css" />
   <script src="static/chart.umd.min.js"></script>
 </head>
-<body>
+<body data-i18n-title="index.title">
   <header class="topbar">
-    <h1>Tech Cycle Backtest</h1>
+    <h1 data-i18n="index.title">Tech Cycle Backtest</h1>
     <nav class="nav-links" aria-label="Primary">
-      <a class="active" href="index.html">Backtest</a>
-      <a href="validation.html">Validation</a>
-      <a href="signals.html">Signals</a>
-      <a href="risk.html">Risk</a>
-      <a href="scenarios.html">Scenarios</a>
+      <a class="active" href="index.html" data-i18n="nav.backtest">Backtest</a>
+      <a href="validation.html" data-i18n="nav.validation">Validation</a>
+      <a href="signals.html" data-i18n="nav.signals">Signals</a>
+      <a href="risk.html" data-i18n="nav.risk">Risk</a>
+      <a href="scenarios.html" data-i18n="nav.scenarios">Scenarios</a>
     </nav>
   </header>
-  <div class="subbar" id="asof-line">Loading…</div>
-  <div class="banner" id="banner">Loading data status…</div>
+  <div class="subbar" id="asof-line" data-i18n="common.loading">Loading…</div>
+  <div class="banner" id="banner" data-i18n="common.loadingStatus">Loading data status…</div>
 
   <main>
     <section class="metrics posture">
-      <div class="card"><div class="label">Official regime</div><div class="value" id="p-regime">—</div><div class="sub" id="p-regime-sub">—</div></div>
-      <div class="card"><div class="label">Risk weight in force</div><div class="value" id="p-weight">—</div><div class="sub" id="p-weight-sub">—</div></div>
-      <div class="card"><div class="label">Month-to-date (provisional)</div><div class="value" id="p-prov">—</div><div class="sub" id="p-prov-sub">—</div></div>
-      <div class="card candidate"><div class="label">v3 candidate weight</div><div class="value" id="p-v3">—</div><div class="sub" id="p-v3-sub">—</div></div>
-      <div class="card"><div class="label">Next-month vol forecast</div><div class="value" id="p-vol">—</div><div class="sub" id="p-vol-sub">—</div></div>
+      <div class="card"><div class="label" data-i18n="index.card.regime">Official regime</div><div class="value" id="p-regime">—</div><div class="sub" id="p-regime-sub">—</div></div>
+      <div class="card"><div class="label" data-i18n="index.card.weight">Risk weight in force</div><div class="value" id="p-weight">—</div><div class="sub" id="p-weight-sub">—</div></div>
+      <div class="card"><div class="label" data-i18n="index.card.prov">Month-to-date (provisional)</div><div class="value" id="p-prov">—</div><div class="sub" id="p-prov-sub">—</div></div>
+      <div class="card candidate"><div class="label" data-i18n="index.card.v3">v3 candidate weight</div><div class="value" id="p-v3">—</div><div class="sub" id="p-v3-sub">—</div></div>
+      <div class="card"><div class="label" data-i18n="index.card.vol">Next-month vol forecast</div><div class="value" id="p-vol">—</div><div class="sub" id="p-vol-sub">—</div></div>
     </section>
 
-    <p class="basis" id="basis">Headline metrics are <strong>out-of-sample</strong>: parameters re-chosen every January using only prior data (nested walk-forward).</p>
+    <p class="basis" id="basis" data-i18n-html="index.basis"></p>
     <section class="metrics" id="metrics">
-      <div class="card"><div class="label">OOS Sharpe</div><div class="value" id="m-sharpe">—</div><div class="sub" id="m-sharpe-sub">—</div></div>
-      <div class="card"><div class="label">OOS Max DD</div><div class="value" id="m-mdd">—</div><div class="sub" id="m-mdd-sub">—</div></div>
-      <div class="card"><div class="label">OOS CAGR</div><div class="value" id="m-cagr">—</div><div class="sub" id="m-cagr-sub">—</div></div>
-      <div class="card"><div class="label">OOS Final NAV</div><div class="value" id="m-nav">—</div><div class="sub" id="m-bh">—</div></div>
+      <div class="card"><div class="label" data-i18n="index.m.sharpe">OOS Sharpe</div><div class="value" id="m-sharpe">—</div><div class="sub" id="m-sharpe-sub">—</div></div>
+      <div class="card"><div class="label" data-i18n="index.m.mdd">OOS Max DD</div><div class="value" id="m-mdd">—</div><div class="sub" id="m-mdd-sub">—</div></div>
+      <div class="card"><div class="label" data-i18n="index.m.cagr">OOS CAGR</div><div class="value" id="m-cagr">—</div><div class="sub" id="m-cagr-sub">—</div></div>
+      <div class="card"><div class="label" data-i18n="index.m.nav">OOS Final NAV</div><div class="value" id="m-nav">—</div><div class="sub" id="m-bh">—</div></div>
     </section>
 
     <section class="panel">
-      <h2>NAV — v2 walk-forward (live) vs v3 candidate vs buy &amp; hold vs in-sample (hindsight)</h2>
+      <h2 data-i18n-html="index.nav.h2"></h2>
       <div class="chart-wrap"><canvas id="navChart"></canvas></div>
-      <p class="note">The dashed "in-sample" line uses parameters picked with knowledge of the whole sample; the gap to the walk-forward line is the cost of hindsight. The v3 candidate is also walk-forward, but its design was chosen on 2026-11-23 after seeing full-sample studies — see Validation.</p>
+      <p class="note" data-i18n="index.nav.note"></p>
     </section>
 
     <section class="panel">
-      <h2>Regime timeline (walk-forward)</h2>
+      <h2 data-i18n="index.regime.h2">Regime timeline (walk-forward)</h2>
       <div class="legend-regimes" id="regimeLegend"></div>
-      <div class="regime-strip" id="regimeStrip" title="Regime over time"></div>
+      <div class="regime-strip" id="regimeStrip" data-i18n-title="index.regime.title"></div>
     </section>
 
     <section class="panel">
-      <h2>Signals · VIX, overheat score, earnings momentum, executed weight</h2>
+      <h2 data-i18n="index.aux.h2"></h2>
       <div class="chart-wrap"><canvas id="auxChart"></canvas></div>
     </section>
 
     <section class="panel">
-      <h2>Valuation — aggregate mega-cap trailing P/E (market cap / TTM net income, point-in-time)</h2>
+      <h2 data-i18n="index.pe.h2"></h2>
       <div class="chart-wrap short"><canvas id="peChart"></canvas></div>
-      <p class="note">Σ market cap ÷ Σ TTM net income across names with positive earnings, chain-linked. Share counts from SEC filings, scaled for splits after each filing date. Before firm-level data exists the overheat score uses a price-extension proxy.</p>
+      <p class="note" data-i18n="index.pe.note"></p>
     </section>
 
     <section class="panel">
-      <h2>Capex intensity — mega-cap TTM Capex / revenue (SEC XBRL, point-in-time)</h2>
+      <h2 data-i18n="index.capex.h2"></h2>
       <div class="chart-wrap short"><canvas id="capexChart"></canvas></div>
     </section>
 
     <section class="panel">
-      <h2>Scenarios preview</h2>
-      <p class="note">Rule-based trigger distances from the live parameters. <a href="scenarios.html">Open full Scenarios view</a></p>
+      <h2 data-i18n="index.sc.h2">Scenarios preview</h2>
+      <p class="note" data-i18n-html="index.sc.note"></p>
       <div class="preview-grid" id="scenarioPreview"></div>
-      <div class="disclaimer" id="home-disclaimer"></div>
+      <div class="disclaimer" id="home-disclaimer" data-i18n="common.disclaimer"></div>
     </section>
   </main>
 
-  <footer id="footer">Loading…</footer>
+  <footer id="footer" data-i18n="common.loading">Loading…</footer>
+  <script src="js/i18n.js"></script>
   <script src="js/common.js"></script>
   <script src="js/backtest.js"></script>
 </body>
