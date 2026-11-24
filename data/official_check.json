@@ -1,5 +1,5 @@
 {
- "as_of": "20261124T015246Z",
+ "as_of": "20261124T031125Z",
  "settings": {
   "tolerance": 0.005,
   "months": 2,
@@ -13,10 +13,10 @@
    "venue": "Nasdaq",
    "window": [
     "2026-10-01",
-    "2026-11-20"
+    "2026-11-23"
    ],
-   "official_last": "2026-11-20",
-   "compared": 37,
+   "official_last": "2026-11-23",
+   "compared": 38,
    "max_abs_diff": 1.4410773824469203e-05,
    "mismatches": [],
    "n_mismatch": 0,
@@ -32,10 +32,10 @@
    "venue": "Nasdaq",
    "window": [
     "2026-10-01",
-    "2026-11-20"
+    "2026-11-23"
    ],
-   "official_last": "2026-11-20",
-   "compared": 37,
+   "official_last": "2026-11-23",
+   "compared": 38,
    "max_abs_diff": 9.603996761864408e-06,
    "mismatches": [],
    "n_mismatch": 0,
@@ -51,10 +51,10 @@
    "venue": "Nasdaq",
    "window": [
     "2026-10-01",
-    "2026-11-20"
+    "2026-11-23"
    ],
-   "official_last": "2026-11-20",
-   "compared": 37,
+   "official_last": "2026-11-23",
+   "compared": 38,
    "max_abs_diff": 5.6801107151116526e-08,
    "mismatches": [],
    "n_mismatch": 0,
@@ -70,10 +70,10 @@
    "venue": "Nasdaq",
    "window": [
     "2026-10-01",
-    "2026-11-20"
+    "2026-11-23"
    ],
-   "official_last": "2026-11-20",
-   "compared": 37,
+   "official_last": "2026-11-23",
+   "compared": 38,
    "max_abs_diff": 1.4690410100381968e-05,
    "mismatches": [],
    "n_mismatch": 0,
@@ -89,10 +89,10 @@
    "venue": "Nasdaq",
    "window": [
     "2026-10-01",
-    "2026-11-20"
+    "2026-11-23"
    ],
-   "official_last": "2026-11-20",
-   "compared": 37,
+   "official_last": "2026-11-23",
+   "compared": 38,
    "max_abs_diff": 7.073048100325607e-06,
    "mismatches": [],
    "n_mismatch": 0,
@@ -108,10 +108,10 @@
    "venue": "Nasdaq",
    "window": [
     "2026-10-01",
-    "2026-11-20"
+    "2026-11-23"
    ],
-   "official_last": "2026-11-20",
-   "compared": 37,
+   "official_last": "2026-11-23",
+   "compared": 38,
    "max_abs_diff": 4.447447787825354e-08,
    "mismatches": [],
    "n_mismatch": 0,
@@ -127,10 +127,10 @@
    "venue": "Nasdaq",
    "window": [
     "2026-10-01",
-    "2026-11-20"
+    "2026-11-23"
    ],
-   "official_last": "2026-11-20",
-   "compared": 37,
+   "official_last": "2026-11-23",
+   "compared": 38,
    "max_abs_diff": 5.304714090215157e-08,
    "mismatches": [],
    "n_mismatch": 0,
@@ -146,10 +146,10 @@
    "venue": "Nasdaq",
    "window": [
     "2026-10-01",
-    "2026-11-20"
+    "2026-11-23"
    ],
-   "official_last": "2026-11-20",
-   "compared": 37,
+   "official_last": "2026-11-23",
+   "compared": 38,
    "max_abs_diff": 5.5143944965863056e-08,
    "mismatches": [],
    "n_mismatch": 0,
@@ -165,10 +165,10 @@
    "venue": "Nasdaq",
    "window": [
     "2026-10-01",
-    "2026-11-20"
+    "2026-11-23"
    ],
-   "official_last": "2026-11-20",
-   "compared": 37,
+   "official_last": "2026-11-23",
+   "compared": 38,
    "max_abs_diff": 3.349286059606271e-08,
    "mismatches": [],
    "n_mismatch": 0,
@@ -184,10 +184,10 @@
    "venue": "Nasdaq",
    "window": [
     "2026-10-01",
-    "2026-11-20"
+    "2026-11-23"
    ],
-   "official_last": "2026-11-20",
-   "compared": 37,
+   "official_last": "2026-11-23",
+   "compared": 38,
    "max_abs_diff": 4.262727704151814e-08,
    "mismatches": [],
    "n_mismatch": 0,
@@ -614,8 +614,8 @@
   }
  },
  "updated": {
-  "US": "20261124T015246Z",
-  "TW": "20261124T015246Z"
+  "US": "20261124T031125Z",
+  "TW": "20261124T031125Z"
  },
  "source": {
   "TWSE": "https://www.twse.com.tw/rwd/zh/afterTrading/STOCK_DAY",

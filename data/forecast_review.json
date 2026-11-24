@@ -1,5 +1,5 @@
 {
- "as_of": "20261124T015246Z",
+ "as_of": "20261124T031125Z",
  "settings": {
   "var_level": 0.05,
   "min_days_stock": 250,
@@ -38,10 +38,12 @@
     "verdict": "before_first_look",
     "next_look": 60
    },
-   "logged": 0,
-   "logged_since": null,
-   "status_counts": {},
-   "backtest_breach_rate_mean": 0.04718123534909664
+   "logged": 10,
+   "logged_since": "2026-11-23",
+   "status_counts": {
+    "pending": 10
+   },
+   "backtest_breach_rate_mean": 0.047172670922539475
   },
   "TW": {
    "n": 0,
@@ -74,10 +76,101 @@
    "logged": 0,
    "logged_since": null,
    "status_counts": {},
-   "backtest_breach_rate_mean": 0.04892021802048066
+   "backtest_breach_rate_mean": 0.04890531748432318
   }
  },
- "stocks": {},
+ "stocks": {
+  "AAPL": {
+   "n": 0,
+   "breaches": 0,
+   "breach_rate": null,
+   "kupiec_p": null,
+   "christoffersen_p": null,
+   "verdict": "insufficient",
+   "backtest_breach_rate": 0.039895165987186954
+  },
+  "MSFT": {
+   "n": 0,
+   "breaches": 0,
+   "breach_rate": null,
+   "kupiec_p": null,
+   "christoffersen_p": null,
+   "verdict": "insufficient",
+   "backtest_breach_rate": 0.045806594379287455
+  },
+  "AMZN": {
+   "n": 0,
+   "breaches": 0,
+   "breach_rate": null,
+   "kupiec_p": null,
+   "christoffersen_p": null,
+   "verdict": "insufficient",
+   "backtest_breach_rate": 0.04199265527702379
+  },
+  "GOOGL": {
+   "n": 0,
+   "breaches": 0,
+   "breach_rate": null,
+   "kupiec_p": null,
+   "christoffersen_p": null,
+   "verdict": "insufficient",
+   "backtest_breach_rate": 0.048
+  },
+  "META": {
+   "n": 0,
+   "breaches": 0,
+   "breach_rate": null,
+   "kupiec_p": null,
+   "christoffersen_p": null,
+   "verdict": "insufficient",
+   "backtest_breach_rate": 0.051890587288817375
+  },
+  "NVDA": {
+   "n": 0,
+   "breaches": 0,
+   "breach_rate": null,
+   "kupiec_p": null,
+   "christoffersen_p": null,
+   "verdict": "insufficient",
+   "backtest_breach_rate": 0.044278520576488976
+  },
+  "ORCL": {
+   "n": 0,
+   "breaches": 0,
+   "breach_rate": null,
+   "kupiec_p": null,
+   "christoffersen_p": null,
+   "verdict": "insufficient",
+   "backtest_breach_rate": 0.04647045806594379
+  },
+  "AMD": {
+   "n": 0,
+   "breaches": 0,
+   "breach_rate": null,
+   "kupiec_p": null,
+   "christoffersen_p": null,
+   "verdict": "insufficient",
+   "backtest_breach_rate": 0.05372370665150654
+  },
+  "INTC": {
+   "n": 0,
+   "breaches": 0,
+   "breach_rate": null,
+   "kupiec_p": null,
+   "christoffersen_p": null,
+   "verdict": "insufficient",
+   "backtest_breach_rate": 0.0478491567178321
+  },
+  "AVGO": {
+   "n": 0,
+   "breaches": 0,
+   "breach_rate": null,
+   "kupiec_p": null,
+   "christoffersen_p": null,
+   "verdict": "insufficient",
+   "backtest_breach_rate": 0.05181986428130783
+  }
+ },
  "current_model": "effe1fd9a348",
  "model_id_aliases": {},
  "other_models": {
@@ -88,6 +181,6 @@
    "US",
    "TW"
   ],
-  "forecasts_added": 0
+  "forecasts_added": 10
  }
 }
