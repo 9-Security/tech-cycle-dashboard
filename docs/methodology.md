@@ -566,4 +566,4 @@ The informational `rules` block now only names the rules version; the range repo
 * per symbol: last close, 1/5/20/60/250-day returns, 20-day volatility, drawdown from the 260-day high, and the stock monitor's risk fields;
 * the latest USD/TWD.
 
-The full feed (`range-feed/2`, 260 adjusted closes per symbol and the USD/TWD history) is written only to the cache and uploaded by the archive step to the **private** R2 bucket, as `feeds/latest.json` plus `feeds/<generated_at>.json`. The private range settles from that file. `health.json → range_feed.private_sha256` records the hash of the full feed behind each run.
+The full feed (`range-feed/2`, 260 adjusted closes per symbol and the USD/TWD history) is written only to the cache. A step that runs **only after the data commit succeeded** uploads it to the **private** R2 bucket, as `feeds/latest.json` plus `feeds/<generated_at>.json`, so it never gets ahead of the published data. The private range settles from that file. `health.json → range_feed.private_sha256` records the hash of the full feed behind each run.

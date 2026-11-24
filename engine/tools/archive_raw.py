@@ -13,9 +13,10 @@ If they are missing the script prints a notice and exits 0 (not configured).
 
 Usage: python tools/archive_raw.py --cache .cache/raw --scope full [--run-id N --attempt N] [--feed FILE]
 
---feed FILE (full scope): the PRIVATE range feed (schema range-feed/2, full price
-series) is uploaded as feeds/latest.json and feeds/<generated_at>.json. The
-private agent range reads it to settle; the public data/feed.json has summaries only.
+--feed-only FILE: upload ONLY the private range feed (schema range-feed/2, full
+price series) as feeds/<generated_at>.json and feeds/latest.json. The workflow runs
+it after the data commit succeeded, so the private feed never gets ahead of the
+published data. The private agent range reads it to settle.
 Exit code 1 on any upload error (the workflow step is continue-on-error and
 reported by the notify job).
 """
@@ -91,23 +92,33 @@ def collect(cache: Path) -> dict[str, dict]:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--cache", default=".cache/raw")
-    ap.add_argument("--scope", required=True)
+    ap.add_argument("--scope", default="full")
     ap.add_argument("--run-id", default=os.environ.get("GITHUB_RUN_ID", "local"))
     ap.add_argument("--attempt", default=os.environ.get("GITHUB_RUN_ATTEMPT", "1"))
-    ap.add_argument("--feed", default=None, help="private range feed to upload (full scope)")
+    ap.add_argument("--feed-only", default=None, help="upload only this private range feed")
     args = ap.parse_args()
     missing = [k for k in REQUIRED if not os.environ.get(k)]
     gh_out = os.environ.get("GITHUB_OUTPUT")
     if missing:
         print(f"R2 archive not configured ({len(missing)} setting(s) missing): skipped")
-        if gh_out:
+        if gh_out and not args.feed_only:
             with open(gh_out, "a") as fh:
                 fh.write("ran=no\n")
+        return 0
+    bucket, env, cache = os.environ["R2_BUCKET"], aws_env(), Path(args.cache)
+    if args.feed_only:
+        fb = Path(args.feed_only)
+        if not fb.is_file():
+            print("no private range feed in this run: nothing to upload")
+            return 0
+        stamp = json.loads(fb.read_text()).get("generated_at", "unknown")
+        put(bucket, f"feeds/{stamp}.json", fb, "application/json", env)
+        put(bucket, "feeds/latest.json", fb, "application/json", env)
+        print(f"R2: private range feed {stamp} uploaded (feeds/latest.json)")
         return 0
     if gh_out:
         with open(gh_out, "a") as fh:
             fh.write("ran=yes\n")
-    bucket, env, cache = os.environ["R2_BUCKET"], aws_env(), Path(args.cache)
     files = collect(cache)
     uploaded = reused = 0
     with tempfile.TemporaryDirectory() as tmp:
@@ -127,12 +138,6 @@ def main() -> int:
         ip = Path(tmp) / "index.json"
         ip.write_text(json.dumps(index, indent=1, sort_keys=True))
         put(bucket, index_key, ip, "application/json", env)
-        if args.feed and Path(args.feed).is_file():
-            fb = Path(args.feed)
-            stamp = json.loads(fb.read_text()).get("generated_at", "unknown")
-            put(bucket, f"feeds/{stamp}.json", fb, "application/json", env)
-            put(bucket, "feeds/latest.json", fb, "application/json", env)
-            print(f"R2 archive: private range feed {stamp} uploaded (feeds/latest.json)")
     print(f"R2 archive: {len(files)} files, {uploaded} uploaded, {reused} already stored; index {index_key}")
     if gh_out:
         with open(gh_out, "a") as fh:
