@@ -1,5 +1,5 @@
 {
- "as_of": "20261124T031125Z",
+ "as_of": "20261124T055848Z",
  "settings": {
   "tolerance": 0.005,
   "months": 2,
@@ -203,10 +203,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-23"
+    "2026-11-24"
    ],
-   "official_last": "2026-11-23",
-   "compared": 35,
+   "official_last": "2026-11-24",
+   "compared": 36,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -216,9 +216,7 @@
     "2026-10-23"
    ],
    "n_extra": 1,
-   "not_yet": [
-    "2026-11-24"
-   ],
+   "not_yet": [],
    "status": "warn"
   },
   "2454.TW": {
@@ -226,10 +224,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-23"
+    "2026-11-24"
    ],
-   "official_last": "2026-11-23",
-   "compared": 35,
+   "official_last": "2026-11-24",
+   "compared": 36,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -239,9 +237,7 @@
     "2026-10-23"
    ],
    "n_extra": 1,
-   "not_yet": [
-    "2026-11-24"
-   ],
+   "not_yet": [],
    "status": "warn"
   },
   "3661.TW": {
@@ -249,10 +245,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-23"
+    "2026-11-24"
    ],
-   "official_last": "2026-11-23",
-   "compared": 35,
+   "official_last": "2026-11-24",
+   "compared": 36,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -262,9 +258,7 @@
     "2026-10-23"
    ],
    "n_extra": 1,
-   "not_yet": [
-    "2026-11-24"
-   ],
+   "not_yet": [],
    "status": "warn"
   },
   "3443.TW": {
@@ -272,10 +266,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-23"
+    "2026-11-24"
    ],
-   "official_last": "2026-11-23",
-   "compared": 35,
+   "official_last": "2026-11-24",
+   "compared": 36,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -285,9 +279,7 @@
     "2026-10-23"
    ],
    "n_extra": 1,
-   "not_yet": [
-    "2026-11-24"
-   ],
+   "not_yet": [],
    "status": "warn"
   },
   "2317.TW": {
@@ -318,10 +310,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-23"
+    "2026-11-24"
    ],
-   "official_last": "2026-11-23",
-   "compared": 35,
+   "official_last": "2026-11-24",
+   "compared": 36,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -331,9 +323,7 @@
     "2026-10-23"
    ],
    "n_extra": 1,
-   "not_yet": [
-    "2026-11-24"
-   ],
+   "not_yet": [],
    "status": "warn"
   },
   "3231.TW": {
@@ -341,10 +331,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-23"
+    "2026-11-24"
    ],
-   "official_last": "2026-11-23",
-   "compared": 35,
+   "official_last": "2026-11-24",
+   "compared": 36,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -354,9 +344,7 @@
     "2026-10-23"
    ],
    "n_extra": 1,
-   "not_yet": [
-    "2026-11-24"
-   ],
+   "not_yet": [],
    "status": "warn"
   },
   "6669.TW": {
@@ -364,10 +352,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-23"
+    "2026-11-24"
    ],
-   "official_last": "2026-11-23",
-   "compared": 35,
+   "official_last": "2026-11-24",
+   "compared": 36,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -377,9 +365,7 @@
     "2026-10-23"
    ],
    "n_extra": 1,
-   "not_yet": [
-    "2026-11-24"
-   ],
+   "not_yet": [],
    "status": "warn"
   },
   "2356.TW": {
@@ -387,10 +373,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-23"
+    "2026-11-24"
    ],
-   "official_last": "2026-11-23",
-   "compared": 35,
+   "official_last": "2026-11-24",
+   "compared": 36,
    "max_abs_diff": 3.274418258758516e-08,
    "mismatches": [],
    "n_mismatch": 0,
@@ -400,9 +386,7 @@
     "2026-10-23"
    ],
    "n_extra": 1,
-   "not_yet": [
-    "2026-11-24"
-   ],
+   "not_yet": [],
    "status": "warn"
   },
   "2308.TW": {
@@ -410,10 +394,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-23"
+    "2026-11-24"
    ],
-   "official_last": "2026-11-23",
-   "compared": 35,
+   "official_last": "2026-11-24",
+   "compared": 36,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -423,9 +407,7 @@
     "2026-10-23"
    ],
    "n_extra": 1,
-   "not_yet": [
-    "2026-11-24"
-   ],
+   "not_yet": [],
    "status": "warn"
   },
   "3017.TW": {
@@ -433,10 +415,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-23"
+    "2026-11-24"
    ],
-   "official_last": "2026-11-23",
-   "compared": 35,
+   "official_last": "2026-11-24",
+   "compared": 36,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -446,9 +428,7 @@
     "2026-10-23"
    ],
    "n_extra": 1,
-   "not_yet": [
-    "2026-11-24"
-   ],
+   "not_yet": [],
    "status": "warn"
   },
   "3324.TWO": {
@@ -479,10 +459,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-23"
+    "2026-11-24"
    ],
-   "official_last": "2026-11-23",
-   "compared": 35,
+   "official_last": "2026-11-24",
+   "compared": 36,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -492,9 +472,7 @@
     "2026-10-23"
    ],
    "n_extra": 1,
-   "not_yet": [
-    "2026-11-24"
-   ],
+   "not_yet": [],
    "status": "warn"
   },
   "2345.TW": {
@@ -502,10 +480,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-23"
+    "2026-11-24"
    ],
-   "official_last": "2026-11-23",
-   "compared": 35,
+   "official_last": "2026-11-24",
+   "compared": 36,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -515,9 +493,7 @@
     "2026-10-23"
    ],
    "n_extra": 1,
-   "not_yet": [
-    "2026-11-24"
-   ],
+   "not_yet": [],
    "status": "warn"
   },
   "2383.TW": {
@@ -525,10 +501,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-23"
+    "2026-11-24"
    ],
-   "official_last": "2026-11-23",
-   "compared": 35,
+   "official_last": "2026-11-24",
+   "compared": 36,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -538,9 +514,7 @@
     "2026-10-23"
    ],
    "n_extra": 1,
-   "not_yet": [
-    "2026-11-24"
-   ],
+   "not_yet": [],
    "status": "warn"
   },
   "3037.TW": {
@@ -571,10 +545,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-23"
+    "2026-11-24"
    ],
-   "official_last": "2026-11-23",
-   "compared": 35,
+   "official_last": "2026-11-24",
+   "compared": 36,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -584,9 +558,7 @@
     "2026-10-23"
    ],
    "n_extra": 1,
-   "not_yet": [
-    "2026-11-24"
-   ],
+   "not_yet": [],
    "status": "warn"
   },
   "3131.TWO": {
@@ -614,8 +586,8 @@
   }
  },
  "updated": {
-  "US": "20261124T031125Z",
-  "TW": "20261124T031125Z"
+  "US": "20261124T055848Z",
+  "TW": "20261124T055848Z"
  },
  "source": {
   "TWSE": "https://www.twse.com.tw/rwd/zh/afterTrading/STOCK_DAY",
