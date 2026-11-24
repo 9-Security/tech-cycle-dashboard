@@ -103,3 +103,16 @@ def test_restore_rejects_a_tampered_blob(tmp_path):
     (tmp_path / "store" / "blobs" / f"{h}.gz").write_bytes(gzip.compress(b'{"q": 3}'))
     r = _run("restore_raw.py", ["--index", "runs/9-1-tw.json", "--out", str(tmp_path / "o")], env)
     assert r.returncode == 1 and "hash mismatch" in r.stderr
+
+
+def test_private_range_feed_is_uploaded(tmp_path):
+    env = _env(tmp_path)
+    f = tmp_path / "full.json"
+    f.write_text('{"schema": "range-feed/2", "generated_at": "20261124T221500Z"}')
+    r = _run("archive_raw.py", ["--cache", str(_cache(tmp_path)), "--scope", "full", "--feed", str(f)], env)
+    assert r.returncode == 0, r.stderr
+    assert (tmp_path / "store" / "feeds" / "latest.json").read_text() == f.read_text()
+    assert (tmp_path / "store" / "feeds" / "20261124T221500Z.json").exists()
+    # a missing feed file (e.g. Taiwan-only run) is simply skipped
+    r = _run("archive_raw.py", ["--cache", str(_cache(tmp_path / "x")), "--scope", "tw", "--feed", str(tmp_path / "no.json")], env)
+    assert r.returncode == 0, r.stderr

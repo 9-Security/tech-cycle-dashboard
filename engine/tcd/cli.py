@@ -333,8 +333,17 @@ def refresh(args: argparse.Namespace) -> int:
         from .sources.store import RawStore
         fx = _yahoo.fetch_daily(RawStore(Path(args.cache), offline=args.offline, timeout=cfg.fetch.timeout_s,
                                          retries=cfg.fetch.retries), feed.FX_SYMBOL)
-        feed_out = feed.build(fprices, status, (stocks or {}).get("stocks"), history_row.get("v3_weight"), raw.vix,
-                              raw.fred["tbill_3m"], as_of, datetime.now(timezone.utc), fx=fx)
+        full = feed.build(fprices, status, (stocks or {}).get("stocks"), history_row.get("v3_weight"), raw.vix,
+                          raw.fred["tbill_3m"], as_of, datetime.now(timezone.utc), fx=fx)
+        feed_out = feed.public(full)  # public: summaries only
+        fp = Path(args.cache).parent / "range_feed" / "full.json"  # private: uploaded to R2 by the archive step
+        fp.parent.mkdir(parents=True, exist_ok=True)
+        from .export import clean
+        body = json.dumps(clean(full), allow_nan=False, sort_keys=True).encode()
+        fp.write_bytes(body)
+        import hashlib
+        health["range_feed"] = {"public": "data/feed.json", "private": "r2:feeds/latest.json",
+                                "private_sha256": hashlib.sha256(body).hexdigest()}
     except Exception as exc:  # noqa: BLE001
         _issue(issues, "feed", exc)
     health["close_fills"] = list(close_fill.LOG)  # second-source-checked fills of a missing final close

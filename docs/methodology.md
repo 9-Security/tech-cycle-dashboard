@@ -561,3 +561,9 @@ Only final US bars are published. Prices are the same second-source-checked, R2-
 * USD/TWD from Yahoo `TWD=X` (`fx`: TWD per USD, complete UTC days only), so the range can value Taiwan holdings in USD.
 
 The informational `rules` block now only names the rules version; the range repository is authoritative. `close_fill` no longer treats FX symbols as US-listed.
+
+*Update 2026-11-24 (owner decision "B": no redistribution of vendor price series).* The public `data/feed.json` is now schema `range-feed/3` with **summaries only**:
+* per symbol: last close, 1/5/20/60/250-day returns, 20-day volatility, drawdown from the 260-day high, and the stock monitor's risk fields;
+* the latest USD/TWD.
+
+The full feed (`range-feed/2`, 260 adjusted closes per symbol and the USD/TWD history) is written only to the cache and uploaded by the archive step to the **private** R2 bucket, as `feeds/latest.json` plus `feeds/<generated_at>.json`. The private range settles from that file. `health.json → range_feed.private_sha256` records the hash of the full feed behind each run.
