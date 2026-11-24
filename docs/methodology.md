@@ -545,3 +545,13 @@ No hysteresis is applied to the light or the cap now (changing the light's rule 
 **Amendment 1 (2026-11-23, owner decision "option A"; registered before its effect was computed).** The review rule above was triggered, and the owner chose to buffer the **alerts only**; the light (§ 12) and the cap shown on the site are unchanged. A `light_change` or `cap_band_change` alert is sent only after the new level has held for **2 consecutive closes**; the reference is the last *confirmed* level, not the previous close (a red → yellow → red round trip within one close raises nothing; red → yellow → green raises nothing until one of them holds for two closes). The filter state is stored in `data/alerts.json → state`; on the first run it starts from the last published level, so the switch raises no alert. VaR breaches and interim-look warnings are not buffered. The alert frequency and the reversal share under this rule are computed from the same walk-forward history and published as context.
 
 *Effect of amendment 1 (computed after it was registered; context only).* With the 2-close confirmation, light alerts fall from about 20 to 10 a year and cap-band alerts from about 22 to 12 (median run of the confirmed level 9 trading days instead of 3). The share of confirmed changes reversed within 5 trading days is still 34% (light) and 30% (cap), at or just above the 30% review line; no further change is made on this result (choosing a longer confirmation now would be fitted to it).
+
+## 22. Data feed for a private agent paper-trading range (2026-11-24)
+
+`data/feed.json` (schema `range-feed/1`, module `engine/tcd/feed.py`) is a compact, read-only feed for the owner's **private** simulation range, where AI agents submit target weights and are settled on later closes. It holds:
+* `data_as_of`;
+* the range's fixed rules (informational);
+* market context: risk light, 1-day VaR, exposure cap, v2 / v3 weights, VIX, 3-month T-bill;
+* for 9 ETFs (XLK SPY XLF XLE XLV EWJ EWG EWU EEM) and 10 US stocks (AAPL MSFT NVDA GOOGL AMZN META AVGO AMD ORCL INTC): the last final bar and the last 260 adjusted closes, plus the stock monitor's risk fields for stocks.
+
+Only final US bars are published. Prices are the same second-source-checked, R2-archived prices as the rest of the site. Nothing on this site reads the range; orders, positions and results stay in the private range repository. Simulation only — no broker, no real money.

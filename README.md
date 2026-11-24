@@ -34,6 +34,7 @@ engine/                 Python engine (numpy, pandas, requests)
   tcd/cross_market.py   pre-registered out-of-domain test of v3 on 9 other markets
   tcd/light.py          daily risk light (codes + numbers; text rendered per language)
   tcd/exposure.py       suggested maximum exposure from the volatility forecast (display only)
+  tcd/feed.py          data/feed.json: read-only feed for the private agent paper-trading range
   tcd/alerts.py         risk alerts (light / cap band changes, VaR breaches, interim warnings)
   tcd/ledger.py         live stock forecast ledger (append-only) + reconciliation
   tools/validate_data.py pre-commit checks of data/ (strict JSON/CSV, append-only ledger, no e-mail)
