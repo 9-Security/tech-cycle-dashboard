@@ -68,7 +68,7 @@ def pending(result: dict) -> dict | None:
 
 
 def us_listed(symbol: str) -> bool:
-    return not symbol.startswith("^") and "." not in symbol
+    return not symbol.startswith("^") and "." not in symbol and "=" not in symbol  # no indices, TW, FX
 
 
 def _closed_at(text: str) -> pd.Timestamp | None:

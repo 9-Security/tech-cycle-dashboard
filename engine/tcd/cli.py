@@ -329,8 +329,12 @@ def refresh(args: argparse.Namespace) -> int:
     feed_out = None
     try:  # data feed for the private agent range (report only)
         fprices = {**mprices, **(stocks_prices or {}), "XLK": raw.xlk}
+        from .sources import yahoo as _yahoo
+        from .sources.store import RawStore
+        fx = _yahoo.fetch_daily(RawStore(Path(args.cache), offline=args.offline, timeout=cfg.fetch.timeout_s,
+                                         retries=cfg.fetch.retries), feed.FX_SYMBOL)
         feed_out = feed.build(fprices, status, (stocks or {}).get("stocks"), history_row.get("v3_weight"), raw.vix,
-                              raw.fred["tbill_3m"], as_of, datetime.now(timezone.utc))
+                              raw.fred["tbill_3m"], as_of, datetime.now(timezone.utc), fx=fx)
     except Exception as exc:  # noqa: BLE001
         _issue(issues, "feed", exc)
     health["close_fills"] = list(close_fill.LOG)  # second-source-checked fills of a missing final close

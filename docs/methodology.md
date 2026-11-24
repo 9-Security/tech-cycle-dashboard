@@ -555,3 +555,9 @@ No hysteresis is applied to the light or the cap now (changing the light's rule 
 * for 9 ETFs (XLK SPY XLF XLE XLV EWJ EWG EWU EEM) and 10 US stocks (AAPL MSFT NVDA GOOGL AMZN META AVGO AMD ORCL INTC): the last final bar and the last 260 adjusted closes, plus the stock monitor's risk fields for stocks.
 
 Only final US bars are published. Prices are the same second-source-checked, R2-archived prices as the rest of the site. Nothing on this site reads the range; orders, positions and results stay in the private range repository. Simulation only — no broker, no real money.
+
+*Update 2026-11-24 (schema `range-feed/2`).* The feed adds:
+* the 18 Taiwan watchlist stocks (`market: TW`, `currency: TWD`, final Taiwan bars only, after the holiday-bar cleaning of § 13b);
+* USD/TWD from Yahoo `TWD=X` (`fx`: TWD per USD, complete UTC days only), so the range can value Taiwan holdings in USD.
+
+The informational `rules` block now only names the rules version; the range repository is authoritative. `close_fill` no longer treats FX symbols as US-listed.
