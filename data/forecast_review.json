@@ -1,5 +1,5 @@
 {
- "as_of": "20261124T081852Z",
+ "as_of": "20261124T084126Z",
  "settings": {
   "var_level": 0.05,
   "min_days_stock": 250,
@@ -345,6 +345,6 @@
    "US",
    "TW"
   ],
-  "forecasts_added": 18
+  "forecasts_added": 0
  }
 }
