@@ -191,7 +191,7 @@ jobs:
           R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           R2_BUCKET: ${{ vars.R2_BUCKET || 'tech-cycle-raw' }}
           SCOPE: ${{ steps.scope.outputs.scope }}
-        run: python tools/archive_raw.py --cache .cache/raw --scope "$SCOPE" --feed .cache/range_feed/full.json
+        run: python tools/archive_raw.py --cache .cache/raw --scope "$SCOPE"
       - name: Validate outputs before commit
         working-directory: engine
         run: python tools/validate_data.py --data ../data --base-ref HEAD
@@ -230,6 +230,18 @@ jobs:
           done
           exit 1
 
+      - name: Upload the private range feed (only after the data commit)
+        # The private agent range settles from R2 feeds/latest.json; uploading it only after a
+        # successful commit keeps it from getting ahead of the published data.
+        if: success() && steps.scope.outputs.scope == 'full'
+        continue-on-error: true
+        working-directory: engine
+        env:
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ vars.R2_BUCKET || 'tech-cycle-raw' }}
+        run: python tools/archive_raw.py --feed-only .cache/range_feed/full.json
   build:
     needs: refresh
     # Build after a successful refresh, or on push (refresh skipped).

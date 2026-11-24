@@ -109,10 +109,11 @@ def test_private_range_feed_is_uploaded(tmp_path):
     env = _env(tmp_path)
     f = tmp_path / "full.json"
     f.write_text('{"schema": "range-feed/2", "generated_at": "20261124T221500Z"}')
-    r = _run("archive_raw.py", ["--cache", str(_cache(tmp_path)), "--scope", "full", "--feed", str(f)], env)
+    r = _run("archive_raw.py", ["--feed-only", str(f)], env)
     assert r.returncode == 0, r.stderr
     assert (tmp_path / "store" / "feeds" / "latest.json").read_text() == f.read_text()
     assert (tmp_path / "store" / "feeds" / "20261124T221500Z.json").exists()
-    # a missing feed file (e.g. Taiwan-only run) is simply skipped
-    r = _run("archive_raw.py", ["--cache", str(_cache(tmp_path / "x")), "--scope", "tw", "--feed", str(tmp_path / "no.json")], env)
-    assert r.returncode == 0, r.stderr
+    assert not (tmp_path / "store" / "runs").exists()  # feed-only: no raw archive, no index
+    assert not (tmp_path / "gh_out").exists()          # and no archive outputs for the notify job
+    r = _run("archive_raw.py", ["--feed-only", str(tmp_path / "no.json")], env)
+    assert r.returncode == 0 and "nothing to upload" in r.stdout
