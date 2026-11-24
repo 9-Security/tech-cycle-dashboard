@@ -7,6 +7,10 @@ on:
     # 07:07 UTC Mon-Fri = 15:07 Taiwan time: after the TWSE close (13:30) so the day's bar
     # exists. Refreshes ONLY the Taiwan stocks on the Stocks page (see "Choose scope").
     - cron: "7 7 * * 1-5"
+    # Backups: GitHub can delay or drop a scheduled run. Each backup runs only if
+    # its primary did not publish after that market's close (see job "gate").
+    - cron: "41 23 * * 1-5"   # backup of 22:15 (full)
+    - cron: "37 8 * * 1-5"    # backup of 07:07 (Taiwan stocks)
   workflow_dispatch:
     inputs:
       scope:
@@ -39,9 +43,57 @@ permissions: {}
 # main, data included).
 
 jobs:
+  gate:
+    # A backup schedule runs only if the data were not already published after
+    # the market's close today (full: health.json as_of >= 21:00 UTC; Taiwan:
+    # stocks.json run_issues.TW.as_of >= 06:00 UTC). Every other trigger runs.
+    if: github.event_name != 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      run: ${{ steps.check.outputs.run }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
+          sparse-checkout: data
+      - name: Skip a backup whose primary already published
+        id: check
+        env:
+          EVENT_SCHEDULE: ${{ github.event.schedule }}
+        run: |
+          case "$EVENT_SCHEDULE" in
+            "41 23 * * 1-5") KIND=full ;;
+            "37 8 * * 1-5") KIND=tw ;;
+            *) echo "run=yes" >> "$GITHUB_OUTPUT"; echo "not a backup schedule: run"; exit 0 ;;
+          esac
+          RUN=$(KIND="$KIND" python3 - <<'PY'
+          import json, os
+          from datetime import datetime, timezone
+          kind = os.environ["KIND"]
+          now = datetime.now(timezone.utc)
+          cutoff = now.replace(hour=21 if kind == "full" else 6, minute=0, second=0, microsecond=0)
+          try:
+              if kind == "full":
+                  stamp = json.load(open("data/health.json")).get("as_of")
+              else:
+                  stamp = ((json.load(open("data/stocks.json")).get("run_issues") or {}).get("TW") or {}).get("as_of")
+              done = datetime.strptime(stamp, "%Y%m%dT%H%M%SZ").replace(tzinfo=timezone.utc) >= cutoff
+          except Exception:  # noqa: BLE001 - unreadable state: run the backup
+              done = False
+          print("no" if done else "yes")
+          PY
+          )
+          echo "run=$RUN" >> "$GITHUB_OUTPUT"
+          echo "backup ($KIND): run=$RUN"
+
   refresh:
     # Pushes only redeploy; data refresh runs on schedule / manual dispatch.
-    if: github.event_name != 'push'
+    needs: gate
+    if: github.event_name != 'push' && needs.gate.outputs.run == 'yes'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     concurrency:
@@ -78,7 +130,7 @@ jobs:
           EVENT_SCHEDULE: ${{ github.event.schedule }}
           INPUT_SCOPE: ${{ inputs.scope }}
         run: |
-          if [ "$EVENT_SCHEDULE" = "7 7 * * 1-5" ] || [ "$INPUT_SCOPE" = "tw" ]; then
+          if [ "$EVENT_SCHEDULE" = "7 7 * * 1-5" ] || [ "$EVENT_SCHEDULE" = "37 8 * * 1-5" ] || [ "$INPUT_SCOPE" = "tw" ]; then
             echo "scope=tw" >> "$GITHUB_OUTPUT"
           else
             echo "scope=full" >> "$GITHUB_OUTPUT"
@@ -112,7 +164,7 @@ jobs:
         # found in the first code review). Does not block publishing; notify opens
         # an issue labelled pit-check-failure when it fails.
         id: pit
-        if: steps.scope.outputs.scope == 'full' && (inputs.pit_check || (github.event_name == 'schedule' && github.event.schedule == '15 22 * * 1-5'))
+        if: steps.scope.outputs.scope == 'full' && (inputs.pit_check || (github.event_name == 'schedule' && (github.event.schedule == '15 22 * * 1-5' || github.event.schedule == '41 23 * * 1-5')))
         continue-on-error: true
         working-directory: engine
         env:
@@ -182,7 +234,8 @@ jobs:
     needs: refresh
     # Build after a successful refresh, or on push (refresh skipped).
     # A failed refresh skips build and deploy, so the site keeps the last good data.
-    if: always() && (needs.refresh.result == 'success' || needs.refresh.result == 'skipped')
+    # A backup schedule skipped by the gate does not redeploy.
+    if: always() && (needs.refresh.result == 'success' || (needs.refresh.result == 'skipped' && github.event_name == 'push'))
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -238,8 +291,9 @@ jobs:
     # own scope step. A success closes an issue only if the issue has had no
     # activity since this run started (an older run finishing late cannot
     # close a newer failure). Notify jobs run one at a time.
-    needs: [refresh, build, deploy]
-    if: always() && github.event_name != 'push'
+    needs: [gate, refresh, build, deploy]
+    # Runs unless the gate decided to skip a backup (a failed gate is reported).
+    if: always() && github.event_name != 'push' && needs.gate.outputs.run != 'no'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     concurrency:
@@ -259,6 +313,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
           RUN_ID: ${{ github.run_id }}
+          R_GATE: ${{ needs.gate.result }}
           R_REFRESH: ${{ needs.refresh.result }}
           R_BUILD: ${{ needs.build.result }}
           R_DEPLOY: ${{ needs.deploy.result }}
@@ -270,12 +325,12 @@ jobs:
           INPUT_SCOPE: ${{ inputs.scope }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          if [ "$EVENT_SCHEDULE" = "7 7 * * 1-5" ] || [ "$INPUT_SCOPE" = "tw" ]; then SCOPE=tw; else SCOPE=full; fi
+          if [ "$EVENT_SCHEDULE" = "7 7 * * 1-5" ] || [ "$EVENT_SCHEDULE" = "37 8 * * 1-5" ] || [ "$INPUT_SCOPE" = "tw" ]; then SCOPE=tw; else SCOPE=full; fi
           RUN_STARTED=$(gh api "repos/${REPO}/actions/runs/${RUN_ID}" --jq '.run_started_at')
           export RUN_STARTED
           today=$(date -u +%Y-%m-%d)
           failed=""
-          for j in "refresh:$R_REFRESH" "build:$R_BUILD" "deploy:$R_DEPLOY"; do
+          for j in "gate:$R_GATE" "refresh:$R_REFRESH" "build:$R_BUILD" "deploy:$R_DEPLOY"; do
             case "${j#*:}" in failure|cancelled) failed="$failed ${j%%:*} (${j#*:})" ;; esac
           done
           # Weekly look-ahead check (only reported when it actually ran).
