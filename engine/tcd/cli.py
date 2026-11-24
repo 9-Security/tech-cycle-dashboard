@@ -28,7 +28,7 @@ from .cross_market import fetch_markets, run_cross_market
 from .light import build_light
 from .export import clean
 from .sources.http import redact
-from . import alerts, close_fill, exposure, ledger, market_ledger, official_check, tw_calendar
+from . import alerts, close_fill, exposure, feed, ledger, market_ledger, official_check, tw_calendar
 from .sources.store import RawStore
 from .stocks import StockConfig, fetch_prices as fetch_stock_prices, load_watchlist, merge_stocks, run_stocks
 from .risk_model import run_risk
@@ -326,12 +326,19 @@ def refresh(args: argparse.Namespace) -> int:
         alerts_out = alerts.merge(prev_alerts, ev, as_of, astate)
     except Exception as exc:  # noqa: BLE001
         _issue(issues, "alerts", exc)
+    feed_out = None
+    try:  # data feed for the private agent range (report only)
+        fprices = {**mprices, **(stocks_prices or {}), "XLK": raw.xlk}
+        feed_out = feed.build(fprices, status, (stocks or {}).get("stocks"), history_row.get("v3_weight"), raw.vix,
+                              raw.fred["tbill_3m"], as_of, datetime.now(timezone.utc))
+    except Exception as exc:  # noqa: BLE001
+        _issue(issues, "feed", exc)
     health["close_fills"] = list(close_fill.LOG)  # second-source-checked fills of a missing final close
     health["degraded"] = bool(issues)
     written = write_all(Path(args.out), series=series, status=status, scenarios=scenarios,
                         validation=validation, health=health, panel=panel, history_row=history_row,
                         signals=signals, risk=risk, cross_market=cross, stocks=stocks,
-                        alerts=alerts_out)
+                        alerts=alerts_out, feed=feed_out)
     if issues:
         log.warning("report-only issues: %s", [i["component"] for i in issues])
     log.info("wrote %d files to %s in %.1fs", len(written), args.out, time.time() - t0)
