@@ -25,7 +25,7 @@ STOCKS = ("AAPL", "MSFT", "NVDA", "GOOGL", "AMZN", "META", "AVGO", "AMD", "ORCL"
 HISTORY_DAYS = 260
 RULES = {"currency": "USD", "initial_cash": 1_000_000, "long_only": True, "max_gross": 1.0,
          "max_single_stock": 0.30, "cost_bps": 15, "min_weight_change": 0.01,
-         "fill": "close of the next US trading day after the freeze", "freeze_utc": "13:00 on the next trading day",
+         "fill": "close of the next US trading day after the freeze", "freeze_utc": "06:07 (backup 09:37) on the next trading day",
          "cash_rate": "3-month T-bill (FRED DTB3)"}
 STOCK_FIELDS = ("level", "vol_1d_ann", "var95", "vol_percentile", "beta_1y", "ret_1m", "from_52w_high")
 
