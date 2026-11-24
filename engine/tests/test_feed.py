@@ -50,3 +50,10 @@ def test_public_feed_has_no_price_series():
     assert abs(x["ret_1d"] - (130 / (130 - 30 / 299) - 1)) < 1e-4
     assert pub["fx"] == {"pair": "USD/TWD", "unit": "TWD per USD", "date": "2024-01-02", "rate": 31.2}
     assert "history" not in str(pub)
+
+
+def test_vix_only_final_days():
+    vix = pd.Series([20.0, 21.0, 30.0], index=pd.to_datetime(["2024-01-01", "2024-01-02", "2024-01-03"]))
+    during = datetime(2024, 1, 3, 18, 0, tzinfo=timezone.utc)  # 2024-01-03 session still open
+    f = feed.build({"XLK": _px()}, {}, None, None, vix, pd.Series(dtype=float), "t", during)
+    assert f["market"]["vix"] == 21.0 and f["market"]["vix_date"] == "2024-01-02"

@@ -90,6 +90,9 @@ def build(prices: dict[str, pd.DataFrame], status: dict, stock_rows: list[dict] 
     L, C = status.get("light") or {}, status.get("exposure_cap") or {}
     w = status.get("weights") or {}
     v, tb = vix.dropna(), tbill.dropna()
+    # VIX is a US index: only CLOSED days, like every price in the feed (Yahoo creates the
+    # day's bar before the session ends).
+    v = v[[bar_is_final("US", str(d.date()), now_utc) for d in v.index]] if len(v) else v
     return {
         "schema": SCHEMA, "generated_at": as_of, "data_as_of": L.get("date"),
         "rules": RULES,
