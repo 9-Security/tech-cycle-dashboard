@@ -1,5 +1,5 @@
 {
- "as_of": "20261123T142545Z",
+ "as_of": "20261124T013300Z",
  "settings": {
   "var_level": 0.05,
   "min_days_stock": 250,
@@ -17,6 +17,27 @@
    "first_date": null,
    "last_date": null,
    "verdict": "insufficient",
+   "interim": {
+    "looks": [
+     {
+      "n": 60,
+      "alpha": 0.01,
+      "reached": false
+     },
+     {
+      "n": 120,
+      "alpha": 0.015,
+      "reached": false
+     },
+     {
+      "n": 250,
+      "alpha": 0.025,
+      "reached": false
+     }
+    ],
+    "verdict": "before_first_look",
+    "next_look": 60
+   },
    "logged": 0,
    "logged_since": null,
    "status_counts": {},
@@ -29,6 +50,27 @@
    "first_date": null,
    "last_date": null,
    "verdict": "insufficient",
+   "interim": {
+    "looks": [
+     {
+      "n": 60,
+      "alpha": 0.01,
+      "reached": false
+     },
+     {
+      "n": 120,
+      "alpha": 0.015,
+      "reached": false
+     },
+     {
+      "n": 250,
+      "alpha": 0.025,
+      "reached": false
+     }
+    ],
+    "verdict": "before_first_look",
+    "next_look": 60
+   },
    "logged": 0,
    "logged_since": null,
    "status_counts": {},

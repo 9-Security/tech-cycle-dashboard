@@ -1,0 +1,19 @@
+{
+ "as_of": "20261124T013300Z",
+ "events": [],
+ "recent": [],
+ "state": {
+  "light": {
+   "confirmed": "red",
+   "candidate": null,
+   "count": 0,
+   "last_date": "2026-11-20"
+  },
+  "cap": {
+   "confirmed": "D",
+   "candidate": null,
+   "count": 0,
+   "last_date": "2026-11-20"
+  }
+ }
+}

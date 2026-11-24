@@ -1,5 +1,5 @@
 {
- "as_of": "20261123T142545Z",
+ "as_of": "20261124T013300Z",
  "settings": {
   "var_level": 0.05,
   "min_days_var": 250,
@@ -10,7 +10,8 @@
   "var_1d": "d0e3a1794a49",
   "vol_5d": "d0e3a1794a49",
   "vol_1m": "f12a73c641b7",
-  "var_1d_challenger": "74a147431e24"
+  "var_1d_challenger": "74a147431e24",
+  "exposure_cap_5d": "d09ca22aaeca"
  },
  "targets": {
   "var_1d": {
@@ -21,6 +22,30 @@
    "christoffersen_p": null,
    "verdict": "insufficient",
    "first_date": null,
+   "interim": {
+    "looks": [
+     {
+      "n": 60,
+      "alpha": 0.01,
+      "critical": 8,
+      "reached": false
+     },
+     {
+      "n": 120,
+      "alpha": 0.015,
+      "critical": 13,
+      "reached": false
+     },
+     {
+      "n": 250,
+      "alpha": 0.025,
+      "critical": 21,
+      "reached": false
+     }
+    ],
+    "verdict": "before_first_look",
+    "next_look": 60
+   },
    "logged": 0,
    "logged_since": null,
    "other_models": {
@@ -55,16 +80,89 @@
    "christoffersen_p": null,
    "verdict": "insufficient",
    "first_date": null,
+   "interim": {
+    "looks": [
+     {
+      "n": 60,
+      "alpha": 0.01,
+      "critical": 8,
+      "reached": false
+     },
+     {
+      "n": 120,
+      "alpha": 0.015,
+      "critical": 13,
+      "reached": false
+     },
+     {
+      "n": 250,
+      "alpha": 0.025,
+      "critical": 21,
+      "reached": false
+     }
+    ],
+    "verdict": "before_first_look",
+    "next_look": 60
+   },
    "logged": 0,
    "logged_since": null,
    "other_models": {
     "117dc393ad20": 1
    },
    "pending": 1
+  },
+  "exposure_cap_5d": {
+   "n": 0,
+   "logged": 1,
+   "logged_since": "2026-11-20",
+   "other_models": {},
+   "pending": 1
   }
  },
  "last_run": {
-  "forecasts_added": 0
+  "forecasts_added": 11,
+  "new_var_breaches": []
+ },
+ "panel": {
+  "model_id": "019a7aa98ffc",
+  "symbols": [
+   "^NDX",
+   "^SOX",
+   "SPY",
+   "XLF",
+   "XLE",
+   "XLV",
+   "EWJ",
+   "EWG",
+   "EWU",
+   "EEM"
+  ],
+  "per_symbol": {},
+  "logged": 10,
+  "n": 0,
+  "n_dates": 0,
+  "rate": null,
+  "interim": {
+   "looks": [
+    {
+     "n": 60,
+     "alpha": 0.01,
+     "reached": false
+    },
+    {
+     "n": 120,
+     "alpha": 0.015,
+     "reached": false
+    },
+    {
+     "n": 250,
+     "alpha": 0.025,
+     "reached": false
+    }
+   ],
+   "verdict": "before_first_look",
+   "next_look": 60
+  }
  },
  "challenger_comparison": {
   "common_days": 0,
@@ -75,7 +173,31 @@
    "kupiec_p": null,
    "christoffersen_p": null,
    "verdict": "insufficient",
-   "first_date": null
+   "first_date": null,
+   "interim": {
+    "looks": [
+     {
+      "n": 60,
+      "alpha": 0.01,
+      "critical": 8,
+      "reached": false
+     },
+     {
+      "n": 120,
+      "alpha": 0.015,
+      "critical": 13,
+      "reached": false
+     },
+     {
+      "n": 250,
+      "alpha": 0.025,
+      "critical": 21,
+      "reached": false
+     }
+    ],
+    "verdict": "before_first_look",
+    "next_look": 60
+   }
   },
   "challenger": {
    "n": 0,
@@ -84,7 +206,31 @@
    "kupiec_p": null,
    "christoffersen_p": null,
    "verdict": "insufficient",
-   "first_date": null
+   "first_date": null,
+   "interim": {
+    "looks": [
+     {
+      "n": 60,
+      "alpha": 0.01,
+      "critical": 8,
+      "reached": false
+     },
+     {
+      "n": 120,
+      "alpha": 0.015,
+      "critical": 13,
+      "reached": false
+     },
+     {
+      "n": 250,
+      "alpha": 0.025,
+      "critical": 21,
+      "reached": false
+     }
+    ],
+    "verdict": "before_first_look",
+    "next_look": 60
+   }
   },
   "decision": "insufficient",
   "rule": "after >= 250 common live days: recommend switching only if the incumbent fails Kupiec or Christoffersen and the challenger passes both"

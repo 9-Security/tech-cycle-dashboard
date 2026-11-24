@@ -1,9 +1,9 @@
 {
- "as_of": "20261123T142545Z",
+ "as_of": "20261124T013300Z",
  "DATA_SOURCE": "REAL",
  "data_source": "REAL",
- "engine_version": "3.8.0",
- "git_sha": "2c4ed26137d6",
+ "engine_version": "3.9.0",
+ "git_sha": "1e3b3b287360",
  "n_months": 322,
  "panel_start": "2000-01-31",
  "panel_end": "2026-10-31",
@@ -39,10 +39,10 @@
   {
    "id": "shock",
    "signal": "VIX (monthly mean)",
-   "value": 23.26687479019165,
+   "value": 23.197499871253967,
    "threshold": 18.0,
    "direction": "above",
-   "distance": -5.26687479019165,
+   "distance": -5.197499871253967,
    "active": true,
    "weight": 0.25
   },
@@ -73,7 +73,7 @@
    "horizon": "1-3 months",
    "thesis": "Signals stay on their current side of every threshold; regime remains Shock.",
    "flip_conditions": [
-    "VIX 23.27 vs Shock threshold 18.00",
+    "VIX 23.20 vs Shock threshold 18.00",
     "Overheat 0.74 vs threshold 1.50",
     "Earnings score 0.27 vs Digestion threshold -1.50"
    ],
@@ -98,7 +98,7 @@
   {
    "id": "shock",
    "horizon": "1-3 months",
-   "thesis": "Shock trigger already active (monthly-average VIX 23.27 > 18.00); Shock overrides every other regime.",
+   "thesis": "Shock trigger already active (monthly-average VIX 23.20 > 18.00); Shock overrides every other regime.",
    "flip_conditions": [
     "Monthly mean VIX > threshold"
    ],
