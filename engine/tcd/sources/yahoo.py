@@ -24,10 +24,10 @@ def fetch_daily(store: RawStore, symbol: str) -> pd.DataFrame:
         headers=HEADERS,
         params={"period1": 0, "period2": 9_999_999_999, "interval": "1d", "events": "div,split"},
     )
-    return parse_chart(raw, symbol)
+    return parse_chart(raw, symbol, store)
 
 
-def parse_chart(raw: bytes, symbol: str) -> pd.DataFrame:
+def parse_chart(raw: bytes, symbol: str, store: RawStore | None = None) -> pd.DataFrame:
     try:
         payload = json.loads(raw)
         result = payload["chart"]["result"][0]
@@ -46,7 +46,8 @@ def parse_chart(raw: bytes, symbol: str) -> pd.DataFrame:
     df = df[~df.index.duplicated(keep="last")].dropna(subset=["close"]).sort_index()
     if df.empty:
         raise FetchError(f"yahoo {symbol}: no rows")
-    return df
+    from ..close_fill import apply  # missing final close: second-source-checked fill
+    return apply(df, result, symbol, store)
 
 
 def parse_splits(raw: bytes) -> pd.Series:
@@ -80,4 +81,4 @@ def fetch_daily_with_splits(store: RawStore, symbol: str) -> tuple[pd.DataFrame,
         headers=HEADERS,
         params={"period1": 0, "period2": 9_999_999_999, "interval": "1d", "events": "div,split"},
     )
-    return parse_chart(raw, symbol), parse_splits(raw)
+    return parse_chart(raw, symbol, store), parse_splits(raw)
