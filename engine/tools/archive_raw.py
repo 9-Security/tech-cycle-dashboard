@@ -11,7 +11,11 @@ Credentials come only from the environment of the workflow step:
   R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET.
 If they are missing the script prints a notice and exits 0 (not configured).
 
-Usage: python tools/archive_raw.py --cache .cache/raw --scope full [--run-id N --attempt N]
+Usage: python tools/archive_raw.py --cache .cache/raw --scope full [--run-id N --attempt N] [--feed FILE]
+
+--feed FILE (full scope): the PRIVATE range feed (schema range-feed/2, full price
+series) is uploaded as feeds/latest.json and feeds/<generated_at>.json. The
+private agent range reads it to settle; the public data/feed.json has summaries only.
 Exit code 1 on any upload error (the workflow step is continue-on-error and
 reported by the notify job).
 """
@@ -90,6 +94,7 @@ def main() -> int:
     ap.add_argument("--scope", required=True)
     ap.add_argument("--run-id", default=os.environ.get("GITHUB_RUN_ID", "local"))
     ap.add_argument("--attempt", default=os.environ.get("GITHUB_RUN_ATTEMPT", "1"))
+    ap.add_argument("--feed", default=None, help="private range feed to upload (full scope)")
     args = ap.parse_args()
     missing = [k for k in REQUIRED if not os.environ.get(k)]
     gh_out = os.environ.get("GITHUB_OUTPUT")
@@ -122,6 +127,12 @@ def main() -> int:
         ip = Path(tmp) / "index.json"
         ip.write_text(json.dumps(index, indent=1, sort_keys=True))
         put(bucket, index_key, ip, "application/json", env)
+        if args.feed and Path(args.feed).is_file():
+            fb = Path(args.feed)
+            stamp = json.loads(fb.read_text()).get("generated_at", "unknown")
+            put(bucket, f"feeds/{stamp}.json", fb, "application/json", env)
+            put(bucket, "feeds/latest.json", fb, "application/json", env)
+            print(f"R2 archive: private range feed {stamp} uploaded (feeds/latest.json)")
     print(f"R2 archive: {len(files)} files, {uploaded} uploaded, {reused} already stored; index {index_key}")
     if gh_out:
         with open(gh_out, "a") as fh:

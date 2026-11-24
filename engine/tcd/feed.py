@@ -1,9 +1,13 @@
 """Daily data feed for the private agent paper-trading range (data/feed.json).
 
-Schema "range-feed/2" (2026-11-24: Taiwan stocks and USD/TWD added). Read-only
-for agents; the range settles trades with the prices published here (second-
-source checked, archived in R2). Only FINAL bars of each market are included
-(bar_is_final), so the feed never carries an unfinished day.
+Two outputs (2026-11-24, owner decision "B"):
+  * PUBLIC  data/feed.json, schema "range-feed/3": per-symbol SUMMARIES only
+    (last close, returns, 20-day volatility, drawdown, risk fields) and the latest
+    USD/TWD - no vendor price series are redistributed.
+  * PRIVATE full feed, schema "range-feed/2": the same plus 260 adjusted closes per
+    symbol and the USD/TWD history; written to the cache and uploaded only to the
+    private R2 bucket (feeds/latest.json), where the private range reads it to settle.
+Only FINAL bars of each market are included (bar_is_final).
 
     data_as_of   date of the latest final XLK bar (the market numbers' date)
     rules        the range's fixed rules (informational; the range repo enforces them)
@@ -22,7 +26,8 @@ import pandas as pd
 
 from .ledger import bar_is_final
 
-SCHEMA = "range-feed/2"
+SCHEMA = "range-feed/2"          # private full feed
+PUBLIC_SCHEMA = "range-feed/3"   # public summaries
 ETFS = ("XLK", "SPY", "XLF", "XLE", "XLV", "EWJ", "EWG", "EWU", "EEM")
 STOCKS = ("AAPL", "MSFT", "NVDA", "GOOGL", "AMZN", "META", "AVGO", "AMD", "ORCL", "INTC")
 TW_STOCKS = ("2330.TW", "2454.TW", "3661.TW", "3443.TW", "2317.TW", "2382.TW", "3231.TW", "6669.TW", "2356.TW",
@@ -97,3 +102,33 @@ def build(prices: dict[str, pd.DataFrame], status: dict, stock_rows: list[dict] 
         "symbols": syms, "missing": missing, "fx": fx_block(fx, now_utc),
         "notes": "Research data, simulation only. Not investment advice.",
     }
+
+
+def _summary(blk: dict) -> dict:
+    raw = blk["history"]["adjclose"]
+    filled, last = [], None
+    for x in raw:  # a missing close repeats the last one: windows stay on the trading calendar
+        last = x if x else last
+        filled.append(last)
+    p = [x for x in filled if x is not None]
+    ret = lambda n: (_r(filled[-1] / filled[-1 - n] - 1, 4)  # noqa: E731
+                     if len(filled) > n and filled[-1 - n] else None)
+    r = [p[i] / p[i - 1] - 1 for i in range(1, len(p))][-20:]
+    mu = sum(r) / len(r) if r else 0.0
+    vol = (sum((x - mu) ** 2 for x in r) / len(r) * 252) ** 0.5 if r else None
+    out = {k: blk.get(k) for k in ("kind", "market", "currency", "date", "close")}
+    out.update(ret_1d=ret(1), ret_5d=ret(5), ret_20d=ret(20), ret_60d=ret(60), ret_250d=ret(250),
+               vol_20d_ann=_r(vol, 4), from_high_260d=_r(p[-1] / max(p) - 1, 4) if p else None)
+    if "risk" in blk:
+        out["risk"] = blk["risk"]
+    return out
+
+
+def public(full: dict) -> dict:
+    """The public data/feed.json: summaries only (no price or FX series)."""
+    fx = full.get("fx") or {}
+    return {**{k: v for k, v in full.items() if k not in ("symbols", "fx", "schema")},
+            "schema": PUBLIC_SCHEMA,
+            "symbols": {s: _summary(b) for s, b in full["symbols"].items()},
+            "fx": {k: fx.get(k) for k in ("pair", "unit", "date", "rate")} if fx else None,
+            "full_feed": "private: the range settles with the full price series held in a private bucket"}

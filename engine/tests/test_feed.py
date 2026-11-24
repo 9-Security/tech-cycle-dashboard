@@ -35,3 +35,18 @@ def test_missing_symbol_is_listed():
                    datetime(2024, 1, 4, tzinfo=timezone.utc))
     assert list(f["symbols"]) == ["XLK"] and "SPY" in f["missing"] and "2330.TW" in f["missing"]
     assert f["market"]["vix"] is None and f["fx"] is None
+
+
+def test_public_feed_has_no_price_series():
+    prices = {s: _px() for s in feed.ETFS + feed.STOCKS + feed.TW_STOCKS}
+    status = {"light": {"date": "2024-01-02", "level": "red"}, "exposure_cap": {"cap": 0.35, "band": "D"}}
+    fx = pd.DataFrame({"close": [31.0, 31.2]}, index=pd.to_datetime(["2024-01-01", "2024-01-02"]))
+    full = feed.build(prices, status, None, None, pd.Series(dtype=float), pd.Series(dtype=float), "t",
+                      datetime(2024, 1, 4, tzinfo=timezone.utc), fx=fx)
+    pub = feed.public(full)
+    assert pub["schema"] == "range-feed/3" and full["schema"] == "range-feed/2"
+    x = pub["symbols"]["XLK"]
+    assert "history" not in x and set(x) >= {"close", "ret_1d", "ret_20d", "ret_250d", "vol_20d_ann", "from_high_260d"}
+    assert abs(x["ret_1d"] - (130 / (130 - 30 / 299) - 1)) < 1e-4
+    assert pub["fx"] == {"pair": "USD/TWD", "unit": "TWD per USD", "date": "2024-01-02", "rate": 31.2}
+    assert "history" not in str(pub)
