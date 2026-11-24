@@ -1,5 +1,5 @@
 {
- "as_of": "20261124T055848Z",
+ "as_of": "20261124T081852Z",
  "settings": {
   "var_level": 0.05,
   "min_days_stock": 250,
@@ -73,9 +73,11 @@
     "verdict": "before_first_look",
     "next_look": 60
    },
-   "logged": 0,
-   "logged_since": null,
-   "status_counts": {},
+   "logged": 18,
+   "logged_since": "2026-11-24",
+   "status_counts": {
+    "pending": 18
+   },
    "backtest_breach_rate_mean": 0.04890531748432318
   }
  },
@@ -169,6 +171,168 @@
    "christoffersen_p": null,
    "verdict": "insufficient",
    "backtest_breach_rate": 0.05181986428130783
+  },
+  "2330.TW": {
+   "n": 0,
+   "breaches": 0,
+   "breach_rate": null,
+   "kupiec_p": null,
+   "christoffersen_p": null,
+   "verdict": "insufficient",
+   "backtest_breach_rate": 0.03998505231689088
+  },
+  "2454.TW": {
+   "n": 0,
+   "breaches": 0,
+   "breach_rate": null,
+   "kupiec_p": null,
+   "christoffersen_p": null,
+   "verdict": "insufficient",
+   "backtest_breach_rate": 0.046229187071498534
+  },
+  "3661.TW": {
+   "n": 0,
+   "breaches": 0,
+   "breach_rate": null,
+   "kupiec_p": null,
+   "christoffersen_p": null,
+   "verdict": "insufficient",
+   "backtest_breach_rate": 0.06768660176170607
+  },
+  "3443.TW": {
+   "n": 0,
+   "breaches": 0,
+   "breach_rate": null,
+   "kupiec_p": null,
+   "christoffersen_p": null,
+   "verdict": "insufficient",
+   "backtest_breach_rate": 0.049108296717498064
+  },
+  "2317.TW": {
+   "n": 0,
+   "breaches": 0,
+   "breach_rate": null,
+   "kupiec_p": null,
+   "christoffersen_p": null,
+   "verdict": "insufficient",
+   "backtest_breach_rate": 0.04471487194000283
+  },
+  "2382.TW": {
+   "n": 0,
+   "breaches": 0,
+   "breach_rate": null,
+   "kupiec_p": null,
+   "christoffersen_p": null,
+   "verdict": "insufficient",
+   "backtest_breach_rate": 0.04110612855007474
+  },
+  "3231.TW": {
+   "n": 0,
+   "breaches": 0,
+   "breach_rate": null,
+   "kupiec_p": null,
+   "christoffersen_p": null,
+   "verdict": "insufficient",
+   "backtest_breach_rate": 0.049404117009750816
+  },
+  "6669.TW": {
+   "n": 0,
+   "breaches": 0,
+   "breach_rate": null,
+   "kupiec_p": null,
+   "christoffersen_p": null,
+   "verdict": "insufficient",
+   "backtest_breach_rate": 0.06510138740661686
+  },
+  "2356.TW": {
+   "n": 0,
+   "breaches": 0,
+   "breach_rate": null,
+   "kupiec_p": null,
+   "christoffersen_p": null,
+   "verdict": "insufficient",
+   "backtest_breach_rate": 0.044282511210762335
+  },
+  "2308.TW": {
+   "n": 0,
+   "breaches": 0,
+   "breach_rate": null,
+   "kupiec_p": null,
+   "christoffersen_p": null,
+   "verdict": "insufficient",
+   "backtest_breach_rate": 0.04377923292797006
+  },
+  "3017.TW": {
+   "n": 0,
+   "breaches": 0,
+   "breach_rate": null,
+   "kupiec_p": null,
+   "christoffersen_p": null,
+   "verdict": "insufficient",
+   "backtest_breach_rate": 0.04878550843968711
+  },
+  "3324.TWO": {
+   "n": 0,
+   "breaches": 0,
+   "breach_rate": null,
+   "kupiec_p": null,
+   "christoffersen_p": null,
+   "verdict": "insufficient",
+   "backtest_breach_rate": 0.05005924170616114
+  },
+  "2059.TW": {
+   "n": 0,
+   "breaches": 0,
+   "breach_rate": null,
+   "kupiec_p": null,
+   "christoffersen_p": null,
+   "verdict": "insufficient",
+   "backtest_breach_rate": 0.05154028436018957
+  },
+  "2345.TW": {
+   "n": 0,
+   "breaches": 0,
+   "breach_rate": null,
+   "kupiec_p": null,
+   "christoffersen_p": null,
+   "verdict": "insufficient",
+   "backtest_breach_rate": 0.04484304932735426
+  },
+  "2383.TW": {
+   "n": 0,
+   "breaches": 0,
+   "breach_rate": null,
+   "kupiec_p": null,
+   "christoffersen_p": null,
+   "verdict": "insufficient",
+   "backtest_breach_rate": 0.04390881913303438
+  },
+  "3037.TW": {
+   "n": 0,
+   "breaches": 0,
+   "breach_rate": null,
+   "kupiec_p": null,
+   "christoffersen_p": null,
+   "verdict": "insufficient",
+   "backtest_breach_rate": 0.04878550843968711
+  },
+  "3711.TW": {
+   "n": 0,
+   "breaches": 0,
+   "breach_rate": null,
+   "kupiec_p": null,
+   "christoffersen_p": null,
+   "verdict": "insufficient",
+   "backtest_breach_rate": 0.04266467065868264
+  },
+  "3131.TWO": {
+   "n": 0,
+   "breaches": 0,
+   "breach_rate": null,
+   "kupiec_p": null,
+   "christoffersen_p": null,
+   "verdict": "insufficient",
+   "backtest_breach_rate": 0.05831124574024991
   }
  },
  "current_model": "effe1fd9a348",
@@ -181,6 +345,6 @@
    "US",
    "TW"
   ],
-  "forecasts_added": 0
+  "forecasts_added": 18
  }
 }
