@@ -1,5 +1,5 @@
 {
- "as_of": "20261125T045338Z",
+ "as_of": "20261125T054056Z",
  "settings": {
   "var_level": 0.05,
   "min_days_stock": 250,
@@ -82,7 +82,7 @@
     "scored": 10,
     "pending": 10
    },
-   "backtest_breach_rate_mean": 0.047183058965680605
+   "backtest_breach_rate_mean": 0.047173584782828876
   },
   "TW": {
    "n": 0,
@@ -117,7 +117,7 @@
    "status_counts": {
     "pending": 18
    },
-   "backtest_breach_rate_mean": 0.04894196409076433
+   "backtest_breach_rate_mean": 0.048967708092411945
   }
  },
  "stocks": {
@@ -173,7 +173,7 @@
    "kupiec_p": null,
    "christoffersen_p": null,
    "verdict": "insufficient",
-   "backtest_breach_rate": 0.04793936522974893
+   "backtest_breach_rate": 0.04784462340123164
   },
   "META": {
    "n": 1,
@@ -236,7 +236,7 @@
    "kupiec_p": null,
    "christoffersen_p": null,
    "verdict": "insufficient",
-   "backtest_breach_rate": 0.06765523632993513
+   "backtest_breach_rate": 0.06811862835959222
   },
   "3443.TW": {
    "n": 0,
