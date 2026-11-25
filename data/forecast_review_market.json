@@ -1,5 +1,5 @@
 {
- "as_of": "20261125T003746Z",
+ "as_of": "20261125T045338Z",
  "settings": {
   "var_level": 0.05,
   "min_days_var": 250,
@@ -146,7 +146,7 @@
   }
  },
  "last_run": {
-  "forecasts_added": 14,
+  "forecasts_added": 0,
   "new_var_breaches": []
  },
  "panel": {
