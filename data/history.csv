@@ -1,3 +1,4 @@
 run_at,panel_end,regime,executed_weight,provisional_month,provisional_regime,provisional_weight,vix,overheat_score,earn_score,oos_sharpe,v3_weight,v3_month_end_weight,p_dd20_12m_model,vol_fcst_next_month,var95_1d,light,exposure_cap,git_sha
 20261123T142545Z,2026-10-31,Normal,1.0,2026-11,Shock,0.25,23.2669,0.7425,0.2715,0.1072,0.1648,0.1648,0.3385,0.3523,0.05501,red,,2c4ed26137d6
 20261124T084126Z,2026-10-31,Normal,1.0,2026-11,Shock,0.25,23.3935,0.9596,0.2715,0.1072,0.1648,0.1648,0.3336,0.3913,0.05199,red,0.35,c104ca5d465e
+20261125T003746Z,2026-10-31,Normal,1.0,2026-11,Shock,0.25,23.3835,0.9124,0.2715,0.1072,0.1648,0.1648,0.3484,0.3917,0.05404,red,0.35,8923144a7617

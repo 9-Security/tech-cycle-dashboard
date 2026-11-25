@@ -1,5 +1,5 @@
 {
- "as_of": "20261124T084126Z",
+ "as_of": "20261125T003746Z",
  "settings": {
   "var_level": 0.05,
   "min_days_var": 250,
@@ -15,13 +15,26 @@
  },
  "targets": {
   "var_1d": {
-   "n": 0,
+   "n": 1,
    "breaches": 0,
-   "breach_rate": null,
+   "breach_rate": 0.0,
    "kupiec_p": null,
    "christoffersen_p": null,
    "verdict": "insufficient",
-   "first_date": null,
+   "first_date": "2026-11-23",
+   "var_ratio": 1.0849640216848269,
+   "rolling": {
+    "n": 1,
+    "breaches": 0,
+    "breach_rate": 0.0
+   },
+   "by_light": {
+    "red": {
+     "n": 1,
+     "realized_vol_ann": 0.5257705472879182,
+     "forecast_vol_ann": 0.5047642468372736
+    }
+   },
    "interim": {
     "looks": [
      {
@@ -46,7 +59,7 @@
     "verdict": "before_first_look",
     "next_look": 60
    },
-   "logged": 1,
+   "logged": 2,
    "logged_since": "2026-11-23",
    "other_models": {
     "8d7e08f31003": 1
@@ -55,12 +68,12 @@
   },
   "vol_5d": {
    "n": 0,
-   "logged": 1,
+   "logged": 2,
    "logged_since": "2026-11-23",
    "other_models": {
     "8d7e08f31003": 1
    },
-   "pending": 2
+   "pending": 3
   },
   "vol_1m": {
    "n": 0,
@@ -73,13 +86,26 @@
    "pending": 1
   },
   "var_1d_challenger": {
-   "n": 0,
+   "n": 1,
    "breaches": 0,
-   "breach_rate": null,
+   "breach_rate": 0.0,
    "kupiec_p": null,
    "christoffersen_p": null,
    "verdict": "insufficient",
-   "first_date": null,
+   "first_date": "2026-11-23",
+   "var_ratio": 1.0849640216848269,
+   "rolling": {
+    "n": 1,
+    "breaches": 0,
+    "breach_rate": 0.0
+   },
+   "by_light": {
+    "red": {
+     "n": 1,
+     "realized_vol_ann": 0.5257705472879182,
+     "forecast_vol_ann": 0.5047642468372736
+    }
+   },
    "interim": {
     "looks": [
      {
@@ -104,7 +130,7 @@
     "verdict": "before_first_look",
     "next_look": 60
    },
-   "logged": 1,
+   "logged": 2,
    "logged_since": "2026-11-23",
    "other_models": {
     "117dc393ad20": 1
@@ -113,14 +139,14 @@
   },
   "exposure_cap_5d": {
    "n": 0,
-   "logged": 2,
+   "logged": 3,
    "logged_since": "2026-11-20",
    "other_models": {},
-   "pending": 2
+   "pending": 3
   }
  },
  "last_run": {
-  "forecasts_added": 0,
+  "forecasts_added": 14,
   "new_var_breaches": []
  },
  "panel": {
@@ -139,49 +165,59 @@
   ],
   "per_symbol": {
    "EEM": {
-    "n": 1,
+    "n": 2,
     "breaches": 0,
     "rate": 0.0
    },
    "EWG": {
-    "n": 1,
+    "n": 2,
     "breaches": 0,
     "rate": 0.0
    },
    "EWJ": {
-    "n": 1,
+    "n": 2,
     "breaches": 0,
     "rate": 0.0
    },
    "EWU": {
-    "n": 1,
+    "n": 2,
     "breaches": 0,
     "rate": 0.0
    },
    "SPY": {
-    "n": 1,
+    "n": 2,
     "breaches": 0,
     "rate": 0.0
    },
    "XLE": {
-    "n": 1,
+    "n": 2,
     "breaches": 0,
     "rate": 0.0
    },
    "XLF": {
-    "n": 1,
+    "n": 2,
     "breaches": 0,
     "rate": 0.0
    },
    "XLV": {
+    "n": 2,
+    "breaches": 0,
+    "rate": 0.0
+   },
+   "^NDX": {
+    "n": 1,
+    "breaches": 0,
+    "rate": 0.0
+   },
+   "^SOX": {
     "n": 1,
     "breaches": 0,
     "rate": 0.0
    }
   },
-  "logged": 18,
-  "n": 8,
-  "n_dates": 1,
+  "logged": 28,
+  "n": 18,
+  "n_dates": 2,
   "rate": 0.0,
   "interim": {
    "looks": [
@@ -206,15 +242,28 @@
   }
  },
  "challenger_comparison": {
-  "common_days": 0,
+  "common_days": 1,
   "incumbent": {
-   "n": 0,
+   "n": 1,
    "breaches": 0,
-   "breach_rate": null,
+   "breach_rate": 0.0,
    "kupiec_p": null,
    "christoffersen_p": null,
    "verdict": "insufficient",
-   "first_date": null,
+   "first_date": "2026-11-23",
+   "var_ratio": 1.0849640216848269,
+   "rolling": {
+    "n": 1,
+    "breaches": 0,
+    "breach_rate": 0.0
+   },
+   "by_light": {
+    "red": {
+     "n": 1,
+     "realized_vol_ann": 0.5257705472879182,
+     "forecast_vol_ann": 0.5047642468372736
+    }
+   },
    "interim": {
     "looks": [
      {
@@ -241,13 +290,26 @@
    }
   },
   "challenger": {
-   "n": 0,
+   "n": 1,
    "breaches": 0,
-   "breach_rate": null,
+   "breach_rate": 0.0,
    "kupiec_p": null,
    "christoffersen_p": null,
    "verdict": "insufficient",
-   "first_date": null,
+   "first_date": "2026-11-23",
+   "var_ratio": 1.0849640216848269,
+   "rolling": {
+    "n": 1,
+    "breaches": 0,
+    "breach_rate": 0.0
+   },
+   "by_light": {
+    "red": {
+     "n": 1,
+     "realized_vol_ann": 0.5257705472879182,
+     "forecast_vol_ann": 0.5047642468372736
+    }
+   },
    "interim": {
     "looks": [
      {
