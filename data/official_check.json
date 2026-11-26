@@ -1,5 +1,5 @@
 {
- "as_of": "20261125T054056Z",
+ "as_of": "20261126T012153Z",
  "settings": {
   "tolerance": 0.005,
   "months": 2,
@@ -24,7 +24,9 @@
    "n_missing": 0,
    "extra": [],
    "n_extra": 0,
-   "not_yet": [],
+   "not_yet": [
+    "2026-11-25"
+   ],
    "status": "ok"
   },
   "MSFT": {
@@ -43,7 +45,9 @@
    "n_missing": 0,
    "extra": [],
    "n_extra": 0,
-   "not_yet": [],
+   "not_yet": [
+    "2026-11-25"
+   ],
    "status": "ok"
   },
   "AMZN": {
@@ -62,7 +66,9 @@
    "n_missing": 0,
    "extra": [],
    "n_extra": 0,
-   "not_yet": [],
+   "not_yet": [
+    "2026-11-25"
+   ],
    "status": "ok"
   },
   "GOOGL": {
@@ -81,7 +87,9 @@
    "n_missing": 0,
    "extra": [],
    "n_extra": 0,
-   "not_yet": [],
+   "not_yet": [
+    "2026-11-25"
+   ],
    "status": "ok"
   },
   "META": {
@@ -100,7 +108,9 @@
    "n_missing": 0,
    "extra": [],
    "n_extra": 0,
-   "not_yet": [],
+   "not_yet": [
+    "2026-11-25"
+   ],
    "status": "ok"
   },
   "NVDA": {
@@ -119,7 +129,9 @@
    "n_missing": 0,
    "extra": [],
    "n_extra": 0,
-   "not_yet": [],
+   "not_yet": [
+    "2026-11-25"
+   ],
    "status": "ok"
   },
   "ORCL": {
@@ -138,7 +150,9 @@
    "n_missing": 0,
    "extra": [],
    "n_extra": 0,
-   "not_yet": [],
+   "not_yet": [
+    "2026-11-25"
+   ],
    "status": "ok"
   },
   "AMD": {
@@ -157,7 +171,9 @@
    "n_missing": 0,
    "extra": [],
    "n_extra": 0,
-   "not_yet": [],
+   "not_yet": [
+    "2026-11-25"
+   ],
    "status": "ok"
   },
   "INTC": {
@@ -176,7 +192,9 @@
    "n_missing": 0,
    "extra": [],
    "n_extra": 0,
-   "not_yet": [],
+   "not_yet": [
+    "2026-11-25"
+   ],
    "status": "ok"
   },
   "AVGO": {
@@ -195,7 +213,9 @@
    "n_missing": 0,
    "extra": [],
    "n_extra": 0,
-   "not_yet": [],
+   "not_yet": [
+    "2026-11-25"
+   ],
    "status": "ok"
   },
   "2330.TW": {
@@ -203,10 +223,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-24"
+    "2026-11-25"
    ],
-   "official_last": "2026-11-24",
-   "compared": 36,
+   "official_last": "2026-11-25",
+   "compared": 37,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -217,7 +237,7 @@
    ],
    "n_extra": 1,
    "not_yet": [
-    "2026-11-25"
+    "2026-11-26"
    ],
    "status": "warn"
   },
@@ -226,10 +246,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-24"
+    "2026-11-25"
    ],
-   "official_last": "2026-11-24",
-   "compared": 36,
+   "official_last": "2026-11-25",
+   "compared": 37,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -240,7 +260,7 @@
    ],
    "n_extra": 1,
    "not_yet": [
-    "2026-11-25"
+    "2026-11-26"
    ],
    "status": "warn"
   },
@@ -249,10 +269,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-24"
+    "2026-11-25"
    ],
-   "official_last": "2026-11-24",
-   "compared": 36,
+   "official_last": "2026-11-25",
+   "compared": 37,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -263,7 +283,7 @@
    ],
    "n_extra": 1,
    "not_yet": [
-    "2026-11-25"
+    "2026-11-26"
    ],
    "status": "warn"
   },
@@ -272,10 +292,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-24"
+    "2026-11-25"
    ],
-   "official_last": "2026-11-24",
-   "compared": 36,
+   "official_last": "2026-11-25",
+   "compared": 37,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -286,7 +306,7 @@
    ],
    "n_extra": 1,
    "not_yet": [
-    "2026-11-25"
+    "2026-11-26"
    ],
    "status": "warn"
   },
@@ -295,10 +315,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-24"
+    "2026-11-25"
    ],
-   "official_last": "2026-11-24",
-   "compared": 36,
+   "official_last": "2026-11-25",
+   "compared": 37,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -309,7 +329,7 @@
    ],
    "n_extra": 1,
    "not_yet": [
-    "2026-11-25"
+    "2026-11-26"
    ],
    "status": "warn"
   },
@@ -318,10 +338,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-24"
+    "2026-11-25"
    ],
-   "official_last": "2026-11-24",
-   "compared": 36,
+   "official_last": "2026-11-25",
+   "compared": 37,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -332,7 +352,7 @@
    ],
    "n_extra": 1,
    "not_yet": [
-    "2026-11-25"
+    "2026-11-26"
    ],
    "status": "warn"
   },
@@ -341,10 +361,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-24"
+    "2026-11-25"
    ],
-   "official_last": "2026-11-24",
-   "compared": 36,
+   "official_last": "2026-11-25",
+   "compared": 37,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -355,7 +375,7 @@
    ],
    "n_extra": 1,
    "not_yet": [
-    "2026-11-25"
+    "2026-11-26"
    ],
    "status": "warn"
   },
@@ -364,10 +384,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-24"
+    "2026-11-25"
    ],
-   "official_last": "2026-11-24",
-   "compared": 36,
+   "official_last": "2026-11-25",
+   "compared": 37,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -378,7 +398,7 @@
    ],
    "n_extra": 1,
    "not_yet": [
-    "2026-11-25"
+    "2026-11-26"
    ],
    "status": "warn"
   },
@@ -387,10 +407,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-24"
+    "2026-11-25"
    ],
-   "official_last": "2026-11-24",
-   "compared": 36,
+   "official_last": "2026-11-25",
+   "compared": 37,
    "max_abs_diff": 3.274418258758516e-08,
    "mismatches": [],
    "n_mismatch": 0,
@@ -401,7 +421,7 @@
    ],
    "n_extra": 1,
    "not_yet": [
-    "2026-11-25"
+    "2026-11-26"
    ],
    "status": "warn"
   },
@@ -410,10 +430,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-24"
+    "2026-11-25"
    ],
-   "official_last": "2026-11-24",
-   "compared": 36,
+   "official_last": "2026-11-25",
+   "compared": 37,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -424,7 +444,7 @@
    ],
    "n_extra": 1,
    "not_yet": [
-    "2026-11-25"
+    "2026-11-26"
    ],
    "status": "warn"
   },
@@ -433,10 +453,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-24"
+    "2026-11-25"
    ],
-   "official_last": "2026-11-24",
-   "compared": 36,
+   "official_last": "2026-11-25",
+   "compared": 37,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -447,7 +467,7 @@
    ],
    "n_extra": 1,
    "not_yet": [
-    "2026-11-25"
+    "2026-11-26"
    ],
    "status": "warn"
   },
@@ -456,10 +476,10 @@
    "venue": "TPEx",
    "window": [
     "2026-10-01",
-    "2026-11-24"
+    "2026-11-25"
    ],
-   "official_last": "2026-11-24",
-   "compared": 36,
+   "official_last": "2026-11-25",
+   "compared": 37,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -470,7 +490,7 @@
    ],
    "n_extra": 1,
    "not_yet": [
-    "2026-11-25"
+    "2026-11-26"
    ],
    "status": "warn"
   },
@@ -479,10 +499,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-24"
+    "2026-11-25"
    ],
-   "official_last": "2026-11-24",
-   "compared": 36,
+   "official_last": "2026-11-25",
+   "compared": 37,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -493,7 +513,7 @@
    ],
    "n_extra": 1,
    "not_yet": [
-    "2026-11-25"
+    "2026-11-26"
    ],
    "status": "warn"
   },
@@ -502,10 +522,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-24"
+    "2026-11-25"
    ],
-   "official_last": "2026-11-24",
-   "compared": 36,
+   "official_last": "2026-11-25",
+   "compared": 37,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -516,7 +536,7 @@
    ],
    "n_extra": 1,
    "not_yet": [
-    "2026-11-25"
+    "2026-11-26"
    ],
    "status": "warn"
   },
@@ -525,10 +545,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-24"
+    "2026-11-25"
    ],
-   "official_last": "2026-11-24",
-   "compared": 36,
+   "official_last": "2026-11-25",
+   "compared": 37,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -539,7 +559,7 @@
    ],
    "n_extra": 1,
    "not_yet": [
-    "2026-11-25"
+    "2026-11-26"
    ],
    "status": "warn"
   },
@@ -548,10 +568,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-24"
+    "2026-11-25"
    ],
-   "official_last": "2026-11-24",
-   "compared": 36,
+   "official_last": "2026-11-25",
+   "compared": 37,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -562,7 +582,7 @@
    ],
    "n_extra": 1,
    "not_yet": [
-    "2026-11-25"
+    "2026-11-26"
    ],
    "status": "warn"
   },
@@ -571,10 +591,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-24"
+    "2026-11-25"
    ],
-   "official_last": "2026-11-24",
-   "compared": 36,
+   "official_last": "2026-11-25",
+   "compared": 37,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -585,7 +605,7 @@
    ],
    "n_extra": 1,
    "not_yet": [
-    "2026-11-25"
+    "2026-11-26"
    ],
    "status": "warn"
   },
@@ -594,10 +614,10 @@
    "venue": "TPEx",
    "window": [
     "2026-10-01",
-    "2026-11-24"
+    "2026-11-25"
    ],
-   "official_last": "2026-11-24",
-   "compared": 36,
+   "official_last": "2026-11-25",
+   "compared": 37,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -608,14 +628,14 @@
    ],
    "n_extra": 1,
    "not_yet": [
-    "2026-11-25"
+    "2026-11-26"
    ],
    "status": "warn"
   }
  },
  "updated": {
-  "US": "20261125T054056Z",
-  "TW": "20261125T054056Z"
+  "US": "20261126T012153Z",
+  "TW": "20261126T012153Z"
  },
  "source": {
   "TWSE": "https://www.twse.com.tw/rwd/zh/afterTrading/STOCK_DAY",

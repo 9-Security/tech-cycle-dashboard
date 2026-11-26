@@ -1,23 +1,23 @@
 {
- "generated_at": "20261125T054056Z",
- "data_as_of": "2026-11-24",
+ "generated_at": "20261126T012153Z",
+ "data_as_of": "2026-11-25",
  "rules": {
   "rules_version": "1.0",
   "see": "agent-range README (authoritative)"
  },
  "market": {
   "light": "red",
-  "vol_percentile": 0.96969,
-  "var95_1d": 0.054041,
-  "vol_1d_ann": 0.525262,
+  "vol_percentile": 0.978322,
+  "var95_1d": 0.058447,
+  "vol_1d_ann": 0.569453,
   "exposure_cap": 0.35,
   "exposure_band": "D",
   "v2_weight": 1.0,
   "v3_weight": 0.1648,
-  "vix": 26.360001,
-  "vix_date": "2026-11-24",
+  "vix": 28.290001,
+  "vix_date": "2026-11-25",
   "tbill_3m_pct": 4.18,
-  "tbill_date": "2026-11-23"
+  "tbill_date": "2026-11-24"
  },
  "missing": [],
  "notes": "Research data, simulation only. Not investment advice.",
@@ -27,356 +27,356 @@
    "kind": "etf",
    "market": "US",
    "currency": "USD",
-   "date": "2026-11-24",
-   "close": 157.089996,
-   "ret_1d": -0.0326,
-   "ret_5d": -0.0378,
-   "ret_20d": -0.171,
-   "ret_60d": -0.1567,
-   "ret_250d": 0.126,
-   "vol_20d_ann": 0.5901,
-   "from_high_260d": -0.2223
+   "date": "2026-11-25",
+   "close": 155.79,
+   "ret_1d": -0.0083,
+   "ret_5d": -0.049,
+   "ret_20d": -0.1843,
+   "ret_60d": -0.1507,
+   "ret_250d": 0.1036,
+   "vol_20d_ann": 0.587,
+   "from_high_260d": -0.2288
   },
   "SPY": {
    "kind": "etf",
    "market": "US",
    "currency": "USD",
-   "date": "2026-11-24",
-   "close": 718.780029,
-   "ret_1d": -0.0049,
-   "ret_5d": -0.0186,
-   "ret_20d": -0.0661,
-   "ret_60d": -0.0606,
-   "ret_250d": 0.0763,
-   "vol_20d_ann": 0.3093,
-   "from_high_260d": -0.0774
+   "date": "2026-11-25",
+   "close": 716.7,
+   "ret_1d": -0.0029,
+   "ret_5d": -0.0185,
+   "ret_20d": -0.072,
+   "ret_60d": -0.0568,
+   "ret_250d": 0.0658,
+   "vol_20d_ann": 0.3084,
+   "from_high_260d": -0.0801
   },
   "XLF": {
    "kind": "etf",
    "market": "US",
    "currency": "USD",
-   "date": "2026-11-24",
-   "close": 56.110001,
-   "ret_1d": 0.0083,
-   "ret_5d": -0.0168,
-   "ret_20d": 0.0041,
-   "ret_60d": -0.0243,
-   "ret_250d": 0.0848,
-   "vol_20d_ann": 0.2442,
-   "from_high_260d": -0.0522
+   "date": "2026-11-25",
+   "close": 56.51,
+   "ret_1d": 0.0071,
+   "ret_5d": 0.0016,
+   "ret_20d": 0.0068,
+   "ret_60d": -0.0086,
+   "ret_250d": 0.0841,
+   "vol_20d_ann": 0.2449,
+   "from_high_260d": -0.0454
   },
   "XLE": {
    "kind": "etf",
    "market": "US",
    "currency": "USD",
-   "date": "2026-11-24",
-   "close": 60.450001,
-   "ret_1d": 0.0097,
-   "ret_5d": -0.0459,
-   "ret_20d": -0.1138,
-   "ret_60d": -0.0493,
-   "ret_250d": 0.4033,
-   "vol_20d_ann": 0.2961,
-   "from_high_260d": -0.1367
+   "date": "2026-11-25",
+   "close": 60.9,
+   "ret_1d": 0.0074,
+   "ret_5d": -0.0064,
+   "ret_20d": -0.1103,
+   "ret_60d": -0.0542,
+   "ret_250d": 0.4031,
+   "vol_20d_ann": 0.298,
+   "from_high_260d": -0.1302
   },
   "XLV": {
    "kind": "etf",
    "market": "US",
    "currency": "USD",
-   "date": "2026-11-24",
-   "close": 184.720001,
-   "ret_1d": 0.0295,
-   "ret_5d": -0.0028,
-   "ret_20d": 0.0309,
-   "ret_60d": 0.0873,
-   "ret_250d": 0.1829,
-   "vol_20d_ann": 0.2439,
-   "from_high_260d": -0.026
+   "date": "2026-11-25",
+   "close": 183.68,
+   "ret_1d": -0.0056,
+   "ret_5d": 0.0139,
+   "ret_20d": 0.022,
+   "ret_60d": 0.0741,
+   "ret_250d": 0.1788,
+   "vol_20d_ann": 0.2451,
+   "from_high_260d": -0.0315
   },
   "EWJ": {
    "kind": "etf",
    "market": "US",
    "currency": "USD",
-   "date": "2026-11-24",
-   "close": 86.639999,
-   "ret_1d": -0.003,
-   "ret_5d": -0.0231,
-   "ret_20d": -0.0904,
-   "ret_60d": -0.0964,
-   "ret_250d": 0.1032,
-   "vol_20d_ann": 0.3539,
-   "from_high_260d": -0.1277
+   "date": "2026-11-25",
+   "close": 87.25,
+   "ret_1d": 0.007,
+   "ret_5d": -0.009,
+   "ret_20d": -0.0815,
+   "ret_60d": -0.0837,
+   "ret_250d": 0.093,
+   "vol_20d_ann": 0.3561,
+   "from_high_260d": -0.1215
   },
   "EWG": {
    "kind": "etf",
    "market": "US",
    "currency": "USD",
-   "date": "2026-11-24",
-   "close": 40.07,
-   "ret_1d": -0.0005,
-   "ret_5d": -0.0384,
-   "ret_20d": -0.0349,
-   "ret_60d": -0.0941,
-   "ret_250d": 0.017,
-   "vol_20d_ann": 0.2768,
-   "from_high_260d": -0.1014
+   "date": "2026-11-25",
+   "close": 40.08,
+   "ret_1d": 0.0002,
+   "ret_5d": -0.0232,
+   "ret_20d": -0.0411,
+   "ret_60d": -0.0773,
+   "ret_250d": 0.007,
+   "vol_20d_ann": 0.2753,
+   "from_high_260d": -0.1011
   },
   "EWU": {
    "kind": "etf",
    "market": "US",
    "currency": "USD",
-   "date": "2026-11-24",
-   "close": 45.869999,
-   "ret_1d": 0.0077,
-   "ret_5d": -0.0228,
-   "ret_20d": -0.028,
-   "ret_60d": -0.0517,
-   "ret_250d": 0.1154,
-   "vol_20d_ann": 0.2284,
-   "from_high_260d": -0.0713
+   "date": "2026-11-25",
+   "close": 46.12,
+   "ret_1d": 0.0055,
+   "ret_5d": 0.0007,
+   "ret_20d": -0.0247,
+   "ret_60d": -0.043,
+   "ret_250d": 0.1092,
+   "vol_20d_ann": 0.2293,
+   "from_high_260d": -0.0662
   },
   "EEM": {
    "kind": "etf",
    "market": "US",
    "currency": "USD",
-   "date": "2026-11-24",
-   "close": 56.689999,
-   "ret_1d": -0.0197,
-   "ret_5d": -0.0271,
-   "ret_20d": -0.0933,
-   "ret_60d": -0.1541,
-   "ret_250d": 0.0734,
-   "vol_20d_ann": 0.4559,
-   "from_high_260d": -0.2039
+   "date": "2026-11-25",
+   "close": 56.4,
+   "ret_1d": -0.0051,
+   "ret_5d": -0.0256,
+   "ret_20d": -0.1121,
+   "ret_60d": -0.1553,
+   "ret_250d": 0.0602,
+   "vol_20d_ann": 0.4498,
+   "from_high_260d": -0.208
   },
   "AAPL": {
    "kind": "stock",
    "market": "US",
    "currency": "USD",
-   "date": "2026-11-24",
-   "close": 354.070007,
-   "ret_1d": 0.0143,
-   "ret_5d": 0.0061,
-   "ret_20d": 0.0209,
-   "ret_60d": 0.1183,
-   "ret_250d": 0.2828,
-   "vol_20d_ann": 0.2836,
-   "from_high_260d": -0.0062,
+   "date": "2026-11-25",
+   "close": 355.58,
+   "ret_1d": 0.0043,
+   "ret_5d": 0.0089,
+   "ret_20d": 0.035,
+   "ret_60d": 0.0945,
+   "ret_250d": 0.2856,
+   "vol_20d_ann": 0.2811,
+   "from_high_260d": -0.0019,
    "risk": {
     "level": "green",
-    "vol_1d_ann": 0.328667,
-    "var95": 0.029663,
-    "vol_percentile": 0.441388,
-    "beta_1y": 0.254304,
-    "ret_1m": 0.030325,
-    "from_52w_high": -0.006175
+    "vol_1d_ann": 0.316758,
+    "var95": 0.028602,
+    "vol_percentile": 0.406315,
+    "beta_1y": 0.249536,
+    "ret_1m": 0.025209,
+    "from_52w_high": -0.001937
    }
   },
   "MSFT": {
    "kind": "stock",
    "market": "US",
    "currency": "USD",
-   "date": "2026-11-24",
-   "close": 496.130005,
-   "ret_1d": 0.0074,
-   "ret_5d": -0.0181,
-   "ret_20d": -0.0644,
-   "ret_60d": -0.0201,
-   "ret_250d": 0.0487,
-   "vol_20d_ann": 0.377,
-   "from_high_260d": -0.1056,
+   "date": "2026-11-25",
+   "close": 489.93,
+   "ret_1d": -0.0125,
+   "ret_5d": -0.0343,
+   "ret_20d": -0.0756,
+   "ret_60d": -0.0202,
+   "ret_250d": 0.0175,
+   "vol_20d_ann": 0.3782,
+   "from_high_260d": -0.1168,
    "risk": {
     "level": "yellow",
-    "vol_1d_ann": 0.354089,
-    "var95": 0.031861,
-    "vol_percentile": 0.728232,
-    "beta_1y": 0.522854,
-    "ret_1m": -0.066676,
-    "from_52w_high": -0.105634
+    "vol_1d_ann": 0.362282,
+    "var95": 0.032584,
+    "vol_percentile": 0.746824,
+    "beta_1y": 0.528858,
+    "ret_1m": -0.076136,
+    "from_52w_high": -0.116811
    }
   },
   "NVDA": {
    "kind": "stock",
    "market": "US",
    "currency": "USD",
-   "date": "2026-11-24",
-   "close": 155.380005,
-   "ret_1d": -0.0586,
-   "ret_5d": -0.0005,
-   "ret_20d": -0.2871,
-   "ret_60d": -0.2954,
-   "ret_250d": -0.1241,
-   "vol_20d_ann": 1.3426,
-   "from_high_260d": -0.3505,
+   "date": "2026-11-25",
+   "close": 149.3,
+   "ret_1d": -0.0391,
+   "ret_5d": -0.011,
+   "ret_20d": -0.3068,
+   "ret_60d": -0.3126,
+   "ret_250d": -0.1698,
+   "vol_20d_ann": 1.3455,
+   "from_high_260d": -0.3759,
    "risk": {
     "level": "red",
-    "vol_1d_ann": 1.218746,
-    "var95": 0.103867,
-    "vol_percentile": 0.967488,
-    "beta_1y": 1.591946,
-    "ret_1m": -0.280648,
-    "from_52w_high": -0.350527
+    "vol_1d_ann": 1.209226,
+    "var95": 0.103013,
+    "vol_percentile": 0.96606,
+    "beta_1y": 1.60541,
+    "ret_1m": -0.314949,
+    "from_52w_high": -0.37594
    }
   },
   "GOOGL": {
    "kind": "stock",
    "market": "US",
    "currency": "USD",
-   "date": "2026-11-24",
-   "close": 279.049988,
-   "ret_1d": -0.0108,
-   "ret_5d": -0.0041,
-   "ret_20d": -0.1295,
-   "ret_60d": -0.1772,
-   "ret_250d": -0.135,
-   "vol_20d_ann": 0.5736,
-   "from_high_260d": -0.3061,
+   "date": "2026-11-25",
+   "close": 273.1,
+   "ret_1d": -0.0213,
+   "ret_5d": -0.0331,
+   "ret_20d": -0.1594,
+   "ret_60d": -0.1843,
+   "ret_250d": -0.1442,
+   "vol_20d_ann": 0.5711,
+   "from_high_260d": -0.3209,
    "risk": {
     "level": "red",
-    "vol_1d_ann": 0.474835,
-    "var95": 0.042621,
-    "vol_percentile": 0.926178,
-    "beta_1y": 0.749998,
-    "ret_1m": -0.11916,
-    "from_52w_high": -0.306055
+    "vol_1d_ann": 0.48864,
+    "var95": 0.043834,
+    "vol_percentile": 0.938732,
+    "beta_1y": 0.730716,
+    "ret_1m": -0.148107,
+    "from_52w_high": -0.320851
    }
   },
   "AMZN": {
    "kind": "stock",
    "market": "US",
    "currency": "USD",
-   "date": "2026-11-24",
-   "close": 252.289993,
-   "ret_1d": -0.0121,
-   "ret_5d": -0.0217,
-   "ret_20d": -0.0032,
-   "ret_60d": -0.0288,
-   "ret_250d": 0.0985,
-   "vol_20d_ann": 0.4448,
-   "from_high_260d": -0.1117,
+   "date": "2026-11-25",
+   "close": 244.43,
+   "ret_1d": -0.0312,
+   "ret_5d": -0.0871,
+   "ret_20d": -0.0399,
+   "ret_60d": -0.0412,
+   "ret_250d": 0.0666,
+   "vol_20d_ann": 0.4572,
+   "from_high_260d": -0.1394,
    "risk": {
     "level": "yellow",
-    "vol_1d_ann": 0.522977,
-    "var95": 0.044246,
-    "vol_percentile": 0.72634,
-    "beta_1y": 0.726271,
-    "ret_1m": 0.012847,
-    "from_52w_high": -0.111717
+    "vol_1d_ann": 0.548227,
+    "var95": 0.046335,
+    "vol_percentile": 0.74676,
+    "beta_1y": 0.726798,
+    "ret_1m": -0.034255,
+    "from_52w_high": -0.139392
    }
   },
   "META": {
    "kind": "stock",
    "market": "US",
    "currency": "USD",
-   "date": "2026-11-24",
-   "close": 589.820007,
-   "ret_1d": -0.013,
-   "ret_5d": -0.0469,
-   "ret_20d": -0.049,
-   "ret_60d": 0.0314,
-   "ret_250d": -0.0698,
-   "vol_20d_ann": 0.4623,
-   "from_high_260d": -0.2415,
+   "date": "2026-11-25",
+   "close": 609.89,
+   "ret_1d": 0.034,
+   "ret_5d": -0.0105,
+   "ret_20d": -0.0042,
+   "ret_60d": 0.055,
+   "ret_250d": -0.0342,
+   "vol_20d_ann": 0.4769,
+   "from_high_260d": -0.2157,
    "risk": {
     "level": "red",
-    "vol_1d_ann": 0.51446,
-    "var95": 0.044099,
-    "vol_percentile": 0.863323,
-    "beta_1y": 0.821317,
-    "ret_1m": -0.064609,
-    "from_52w_high": -0.241477
+    "vol_1d_ann": 0.539294,
+    "var95": 0.046163,
+    "vol_percentile": 0.884848,
+    "beta_1y": 0.811472,
+    "ret_1m": -0.016608,
+    "from_52w_high": -0.215666
    }
   },
   "AVGO": {
    "kind": "stock",
    "market": "US",
    "currency": "USD",
-   "date": "2026-11-24",
-   "close": 301.079987,
-   "ret_1d": -0.0398,
-   "ret_5d": -0.1186,
-   "ret_20d": -0.1205,
-   "ret_60d": -0.1855,
-   "ret_250d": -0.2122,
-   "vol_20d_ann": 0.8209,
-   "from_high_260d": -0.3727,
+   "date": "2026-11-25",
+   "close": 300.86,
+   "ret_1d": -0.0007,
+   "ret_5d": -0.1502,
+   "ret_20d": -0.1448,
+   "ret_60d": -0.1847,
+   "ret_250d": -0.2376,
+   "vol_20d_ann": 0.8124,
+   "from_high_260d": -0.3731,
    "risk": {
     "level": "red",
-    "vol_1d_ann": 0.638218,
-    "var95": 0.058446,
-    "vol_percentile": 0.956361,
-    "beta_1y": 1.550866,
-    "ret_1m": -0.085336,
-    "from_52w_high": -0.372665
+    "vol_1d_ann": 0.611649,
+    "var95": 0.056028,
+    "vol_percentile": 0.950139,
+    "beta_1y": 1.515154,
+    "ret_1m": -0.12114,
+    "from_52w_high": -0.373124
    }
   },
   "AMD": {
    "kind": "stock",
    "market": "US",
    "currency": "USD",
-   "date": "2026-11-24",
-   "close": 413.269989,
-   "ret_1d": -0.0886,
-   "ret_5d": -0.1791,
-   "ret_20d": -0.2624,
-   "ret_60d": -0.122,
-   "ret_250d": 1.0049,
-   "vol_20d_ann": 1.3085,
-   "from_high_260d": -0.3636,
+   "date": "2026-11-25",
+   "close": 406.03,
+   "ret_1d": -0.0175,
+   "ret_5d": -0.2341,
+   "ret_20d": -0.2981,
+   "ret_60d": -0.1166,
+   "ret_250d": 0.8952,
+   "vol_20d_ann": 1.2987,
+   "from_high_260d": -0.3748,
    "risk": {
     "level": "red",
-    "vol_1d_ann": 0.974088,
-    "var95": 0.084616,
-    "vol_percentile": 0.951307,
-    "beta_1y": 2.531428,
-    "ret_1m": -0.222124,
-    "from_52w_high": -0.363632
+    "vol_1d_ann": 0.918685,
+    "var95": 0.080154,
+    "vol_percentile": 0.939053,
+    "beta_1y": 2.53867,
+    "ret_1m": -0.275283,
+    "from_52w_high": -0.374781
    }
   },
   "ORCL": {
    "kind": "stock",
    "market": "US",
    "currency": "USD",
-   "date": "2026-11-24",
-   "close": 109.5,
-   "ret_1d": -0.0368,
-   "ret_5d": -0.0478,
-   "ret_20d": -0.1611,
-   "ret_60d": -0.263,
-   "ret_250d": -0.4368,
-   "vol_20d_ann": 0.9379,
-   "from_high_260d": -0.5556,
+   "date": "2026-11-25",
+   "close": 103.88,
+   "ret_1d": -0.0513,
+   "ret_5d": -0.0879,
+   "ret_20d": -0.2813,
+   "ret_60d": -0.2622,
+   "ret_250d": -0.4864,
+   "vol_20d_ann": 0.8507,
+   "from_high_260d": -0.5784,
    "risk": {
     "level": "red",
-    "vol_1d_ann": 0.907837,
-    "var95": 0.078704,
-    "vol_percentile": 0.962478,
-    "beta_1y": 1.552984,
-    "ret_1m": -0.131366,
-    "from_52w_high": -0.555562
+    "vol_1d_ann": 0.942223,
+    "var95": 0.081543,
+    "vol_percentile": 0.965804,
+    "beta_1y": 1.572836,
+    "ret_1m": -0.204168,
+    "from_52w_high": -0.578372
    }
   },
   "INTC": {
    "kind": "stock",
    "market": "US",
    "currency": "USD",
-   "date": "2026-11-24",
-   "close": 54.799999,
-   "ret_1d": -0.0815,
-   "ret_5d": -0.0067,
-   "ret_20d": -0.4154,
+   "date": "2026-11-25",
+   "close": 54.47,
+   "ret_1d": -0.006,
+   "ret_5d": -0.0037,
+   "ret_20d": -0.4298,
    "ret_60d": -0.3878,
-   "ret_250d": 0.5294,
-   "vol_20d_ann": 1.3956,
-   "from_high_260d": -0.6112,
+   "ret_250d": 0.4798,
+   "vol_20d_ann": 1.389,
+   "from_high_260d": -0.6135,
    "risk": {
     "level": "red",
-    "vol_1d_ann": 1.170621,
-    "var95": 0.103064,
-    "vol_percentile": 0.99353,
-    "beta_1y": 2.555002,
-    "ret_1m": -0.394274,
-    "from_52w_high": -0.611182
+    "vol_1d_ann": 1.113247,
+    "var95": 0.098264,
+    "vol_percentile": 0.990892,
+    "beta_1y": 2.569419,
+    "ret_1m": -0.418925,
+    "from_52w_high": -0.613523
    }
   },
   "2330.TW": {
@@ -394,12 +394,12 @@
    "from_high_260d": -0.1373,
    "risk": {
     "level": "red",
-    "vol_1d_ann": 0.525127,
-    "var95": 0.049587,
-    "vol_percentile": 0.947777,
-    "beta_1y": 0.99709,
-    "ret_1m": -0.104167,
-    "from_52w_high": -0.168279
+    "vol_1d_ann": 0.527219,
+    "var95": 0.049779,
+    "vol_percentile": 0.948691,
+    "beta_1y": 1.006399,
+    "ret_1m": -0.10625,
+    "from_52w_high": -0.170213
    }
   },
   "2454.TW": {
@@ -417,12 +417,12 @@
    "from_high_260d": -0.2337,
    "risk": {
     "level": "red",
-    "vol_1d_ann": 0.795912,
-    "var95": 0.074069,
-    "vol_percentile": 0.981089,
-    "beta_1y": 1.538353,
-    "ret_1m": -0.079545,
-    "from_52w_high": -0.310312
+    "vol_1d_ann": 0.76127,
+    "var95": 0.070968,
+    "vol_percentile": 0.976887,
+    "beta_1y": 1.529849,
+    "ret_1m": -0.037879,
+    "from_52w_high": -0.279092
    }
   },
   "3661.TW": {
@@ -440,12 +440,12 @@
    "from_high_260d": -0.2659,
    "risk": {
     "level": "red",
-    "vol_1d_ann": 0.935697,
-    "var95": 0.084464,
-    "vol_percentile": 0.979456,
-    "beta_1y": 1.557141,
-    "ret_1m": 0.025751,
-    "from_52w_high": -0.32781
+    "vol_1d_ann": 0.883824,
+    "var95": 0.079984,
+    "vol_percentile": 0.961027,
+    "beta_1y": 1.550101,
+    "ret_1m": 0.080114,
+    "from_52w_high": -0.292185
    }
   },
   "3443.TW": {
@@ -463,12 +463,12 @@
    "from_high_260d": -0.3461,
    "risk": {
     "level": "red",
-    "vol_1d_ann": 1.185682,
-    "var95": 0.108923,
-    "vol_percentile": 0.99959,
-    "beta_1y": 1.660873,
-    "ret_1m": -0.317631,
-    "from_52w_high": -0.41115
+    "vol_1d_ann": 1.202836,
+    "var95": 0.110405,
+    "vol_percentile": 0.999795,
+    "beta_1y": 1.67119,
+    "ret_1m": -0.32638,
+    "from_52w_high": -0.418699
    }
   },
   "2317.TW": {
@@ -486,12 +486,12 @@
    "from_high_260d": -0.2452,
    "risk": {
     "level": "red",
-    "vol_1d_ann": 0.686239,
-    "var95": 0.062632,
-    "vol_percentile": 0.963297,
-    "beta_1y": 0.963397,
-    "ret_1m": -0.165657,
-    "from_52w_high": -0.311814
+    "vol_1d_ann": 0.657309,
+    "var95": 0.060075,
+    "vol_percentile": 0.955957,
+    "beta_1y": 0.956545,
+    "ret_1m": -0.149495,
+    "from_52w_high": -0.298483
    }
   },
   "2382.TW": {
@@ -509,12 +509,12 @@
    "from_high_260d": -0.2936,
    "risk": {
     "level": "red",
-    "vol_1d_ann": 0.580757,
-    "var95": 0.054319,
-    "vol_percentile": 0.948995,
-    "beta_1y": 0.761216,
-    "ret_1m": -0.207634,
-    "from_52w_high": -0.35113
+    "vol_1d_ann": 0.540842,
+    "var95": 0.050689,
+    "vol_percentile": 0.927223,
+    "beta_1y": 0.748995,
+    "ret_1m": -0.183206,
+    "from_52w_high": -0.331126
    }
   },
   "3231.TW": {
@@ -532,12 +532,12 @@
    "from_high_260d": -0.1768,
    "risk": {
     "level": "red",
-    "vol_1d_ann": 0.661771,
-    "var95": 0.061316,
-    "vol_percentile": 0.950854,
-    "beta_1y": 0.925074,
-    "ret_1m": -0.199475,
-    "from_52w_high": -0.229798
+    "vol_1d_ann": 0.621974,
+    "var95": 0.057741,
+    "vol_percentile": 0.934649,
+    "beta_1y": 0.918583,
+    "ret_1m": -0.175853,
+    "from_52w_high": -0.207071
    }
   },
   "6669.TW": {
@@ -555,12 +555,12 @@
    "from_high_260d": -0.4226,
    "risk": {
     "level": "red",
-    "vol_1d_ann": 0.677065,
-    "var95": 0.061784,
-    "vol_percentile": 0.86326,
-    "beta_1y": 1.154535,
-    "ret_1m": -0.261538,
-    "from_52w_high": -0.44933
+    "vol_1d_ann": 0.65701,
+    "var95": 0.060015,
+    "vol_percentile": 0.843462,
+    "beta_1y": 1.156371,
+    "ret_1m": -0.24359,
+    "from_52w_high": -0.435946
    }
   },
   "2356.TW": {
@@ -578,12 +578,12 @@
    "from_high_260d": -0.4898,
    "risk": {
     "level": "red",
-    "vol_1d_ann": 0.706157,
-    "var95": 0.067442,
-    "vol_percentile": 0.977463,
-    "beta_1y": 0.90464,
-    "ret_1m": -0.380159,
-    "from_52w_high": -0.527918
+    "vol_1d_ann": 0.664708,
+    "var95": 0.063614,
+    "vol_percentile": 0.965586,
+    "beta_1y": 0.895062,
+    "ret_1m": -0.359524,
+    "from_52w_high": -0.512202
    }
   },
   "2308.TW": {
@@ -601,12 +601,12 @@
    "from_high_260d": -0.5672,
    "risk": {
     "level": "red",
-    "vol_1d_ann": 0.815756,
-    "var95": 0.076392,
-    "vol_percentile": 0.991921,
-    "beta_1y": 1.62529,
-    "ret_1m": -0.307947,
-    "from_52w_high": -0.583149
+    "vol_1d_ann": 0.810276,
+    "var95": 0.075899,
+    "vol_percentile": 0.991463,
+    "beta_1y": 1.621376,
+    "ret_1m": -0.258278,
+    "from_52w_high": -0.553232
    }
   },
   "3017.TW": {
@@ -624,12 +624,12 @@
    "from_high_260d": -0.2944,
    "risk": {
     "level": "red",
-    "vol_1d_ann": 0.924901,
-    "var95": 0.087628,
-    "vol_percentile": 0.996269,
-    "beta_1y": 1.393689,
-    "ret_1m": -0.178914,
-    "from_52w_high": -0.302578
+    "vol_1d_ann": 0.983862,
+    "var95": 0.092943,
+    "vol_percentile": 0.998474,
+    "beta_1y": 1.391049,
+    "ret_1m": -0.123003,
+    "from_52w_high": -0.255088
    }
   },
   "3324.TWO": {
@@ -647,12 +647,12 @@
    "from_high_260d": -0.5006,
    "risk": {
     "level": "red",
-    "vol_1d_ann": 0.928954,
-    "var95": 0.086971,
-    "vol_percentile": 0.989522,
-    "beta_1y": 1.358697,
-    "ret_1m": -0.402247,
-    "from_52w_high": -0.533333
+    "vol_1d_ann": 0.855288,
+    "var95": 0.080362,
+    "vol_percentile": 0.977298,
+    "beta_1y": 1.344849,
+    "ret_1m": -0.356554,
+    "from_52w_high": -0.497661
    }
   },
   "2059.TW": {
@@ -670,12 +670,12 @@
    "from_high_260d": -0.5712,
    "risk": {
     "level": "red",
-    "vol_1d_ann": 0.856596,
-    "var95": 0.078774,
-    "vol_percentile": 0.989048,
-    "beta_1y": 1.161779,
-    "ret_1m": -0.332824,
-    "from_52w_high": -0.547341
+    "vol_1d_ann": 0.920673,
+    "var95": 0.084404,
+    "vol_percentile": 0.992624,
+    "beta_1y": 1.170107,
+    "ret_1m": -0.294597,
+    "from_52w_high": -0.521405
    }
   },
   "2345.TW": {
@@ -693,12 +693,12 @@
    "from_high_260d": -0.4557,
    "risk": {
     "level": "red",
-    "vol_1d_ann": 0.854976,
-    "var95": 0.083429,
-    "vol_percentile": 0.992996,
-    "beta_1y": 1.4825,
-    "ret_1m": -0.159091,
-    "from_52w_high": -0.457558
+    "vol_1d_ann": 0.942115,
+    "var95": 0.091526,
+    "vol_percentile": 0.999391,
+    "beta_1y": 1.478495,
+    "ret_1m": -0.090909,
+    "from_52w_high": -0.413576
    }
   },
   "2383.TW": {
@@ -716,12 +716,12 @@
    "from_high_260d": -0.4629,
    "risk": {
     "level": "red",
-    "vol_1d_ann": 1.014342,
-    "var95": 0.095079,
-    "vol_percentile": 0.998173,
-    "beta_1y": 1.639982,
-    "ret_1m": -0.297895,
-    "from_52w_high": -0.472405
+    "vol_1d_ann": 1.06204,
+    "var95": 0.099319,
+    "vol_percentile": 0.999391,
+    "beta_1y": 1.63724,
+    "ret_1m": -0.244211,
+    "from_52w_high": -0.432064
    }
   },
   "3037.TW": {
@@ -739,12 +739,12 @@
    "from_high_260d": -0.5374,
    "risk": {
     "level": "red",
-    "vol_1d_ann": 0.969964,
-    "var95": 0.094175,
-    "vol_percentile": 0.991067,
-    "beta_1y": 1.778563,
-    "ret_1m": -0.45283,
-    "from_52w_high": -0.562264
+    "vol_1d_ann": 0.947617,
+    "var95": 0.09211,
+    "vol_percentile": 0.989909,
+    "beta_1y": 1.773129,
+    "ret_1m": -0.413208,
+    "from_52w_high": -0.530566
    }
   },
   "3711.TW": {
@@ -762,12 +762,12 @@
    "from_high_260d": -0.3045,
    "risk": {
     "level": "red",
-    "vol_1d_ann": 0.894273,
-    "var95": 0.084331,
-    "vol_percentile": 0.998171,
-    "beta_1y": 1.670481,
-    "ret_1m": -0.246544,
-    "from_52w_high": -0.356299
+    "vol_1d_ann": 0.86777,
+    "var95": 0.081939,
+    "vol_percentile": 0.997104,
+    "beta_1y": 1.675072,
+    "ret_1m": -0.228879,
+    "from_52w_high": -0.341207
    }
   },
   "3131.TWO": {
@@ -785,20 +785,20 @@
    "from_high_260d": -0.6179,
    "risk": {
     "level": "red",
-    "vol_1d_ann": 1.064882,
-    "var95": 0.092804,
-    "vol_percentile": 0.999479,
-    "beta_1y": 1.311383,
-    "ret_1m": -0.315136,
-    "from_52w_high": -0.640103
+    "vol_1d_ann": 0.980641,
+    "var95": 0.085791,
+    "vol_percentile": 0.995051,
+    "beta_1y": 1.3034,
+    "ret_1m": -0.275434,
+    "from_52w_high": -0.619239
    }
   }
  },
  "fx": {
   "pair": "USD/TWD",
   "unit": "TWD per USD",
-  "date": "2026-11-24",
-  "rate": 32.848499
+  "date": "2026-11-25",
+  "rate": 32.921001
  },
  "full_feed": "private: the range settles with the full price series held in a private bucket"
 }

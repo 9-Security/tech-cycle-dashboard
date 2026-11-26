@@ -1,5 +1,5 @@
 {
- "as_of": "20261125T054056Z",
+ "as_of": "20261126T012153Z",
  "settings": {
   "var_level": 0.05,
   "min_days_var": 250,
@@ -15,24 +15,24 @@
  },
  "targets": {
   "var_1d": {
-   "n": 1,
+   "n": 2,
    "breaches": 0,
    "breach_rate": 0.0,
    "kupiec_p": null,
    "christoffersen_p": null,
    "verdict": "insufficient",
    "first_date": "2026-11-23",
-   "var_ratio": 1.0849640216848269,
+   "var_ratio": 0.5740187629210144,
    "rolling": {
-    "n": 1,
+    "n": 2,
     "breaches": 0,
     "breach_rate": 0.0
    },
    "by_light": {
     "red": {
-     "n": 1,
-     "realized_vol_ann": 0.5257705472879182,
-     "forecast_vol_ann": 0.5047642468372736
+     "n": 2,
+     "realized_vol_ann": 0.383299145040853,
+     "forecast_vol_ann": 0.5151136314928969
     }
    },
    "interim": {
@@ -59,7 +59,7 @@
     "verdict": "before_first_look",
     "next_look": 60
    },
-   "logged": 2,
+   "logged": 3,
    "logged_since": "2026-11-23",
    "other_models": {
     "8d7e08f31003": 1
@@ -68,12 +68,12 @@
   },
   "vol_5d": {
    "n": 0,
-   "logged": 2,
+   "logged": 3,
    "logged_since": "2026-11-23",
    "other_models": {
     "8d7e08f31003": 1
    },
-   "pending": 3
+   "pending": 4
   },
   "vol_1m": {
    "n": 0,
@@ -86,24 +86,24 @@
    "pending": 1
   },
   "var_1d_challenger": {
-   "n": 1,
+   "n": 2,
    "breaches": 0,
    "breach_rate": 0.0,
    "kupiec_p": null,
    "christoffersen_p": null,
    "verdict": "insufficient",
    "first_date": "2026-11-23",
-   "var_ratio": 1.0849640216848269,
+   "var_ratio": 0.5740187629210144,
    "rolling": {
-    "n": 1,
+    "n": 2,
     "breaches": 0,
     "breach_rate": 0.0
    },
    "by_light": {
     "red": {
-     "n": 1,
-     "realized_vol_ann": 0.5257705472879182,
-     "forecast_vol_ann": 0.5047642468372736
+     "n": 2,
+     "realized_vol_ann": 0.383299145040853,
+     "forecast_vol_ann": 0.5151136314928969
     }
    },
    "interim": {
@@ -130,7 +130,7 @@
     "verdict": "before_first_look",
     "next_look": 60
    },
-   "logged": 2,
+   "logged": 3,
    "logged_since": "2026-11-23",
    "other_models": {
     "117dc393ad20": 1
@@ -139,14 +139,14 @@
   },
   "exposure_cap_5d": {
    "n": 0,
-   "logged": 3,
+   "logged": 4,
    "logged_since": "2026-11-20",
    "other_models": {},
-   "pending": 3
+   "pending": 4
   }
  },
  "last_run": {
-  "forecasts_added": 0,
+  "forecasts_added": 14,
   "new_var_breaches": []
  },
  "panel": {
@@ -165,59 +165,59 @@
   ],
   "per_symbol": {
    "EEM": {
-    "n": 2,
+    "n": 3,
     "breaches": 0,
     "rate": 0.0
    },
    "EWG": {
-    "n": 2,
+    "n": 3,
     "breaches": 0,
     "rate": 0.0
    },
    "EWJ": {
-    "n": 2,
+    "n": 3,
     "breaches": 0,
     "rate": 0.0
    },
    "EWU": {
-    "n": 2,
+    "n": 3,
     "breaches": 0,
     "rate": 0.0
    },
    "SPY": {
-    "n": 2,
+    "n": 3,
     "breaches": 0,
     "rate": 0.0
    },
    "XLE": {
-    "n": 2,
+    "n": 3,
     "breaches": 0,
     "rate": 0.0
    },
    "XLF": {
-    "n": 2,
+    "n": 3,
     "breaches": 0,
     "rate": 0.0
    },
    "XLV": {
-    "n": 2,
+    "n": 3,
     "breaches": 0,
     "rate": 0.0
    },
    "^NDX": {
-    "n": 1,
+    "n": 2,
     "breaches": 0,
     "rate": 0.0
    },
    "^SOX": {
-    "n": 1,
+    "n": 2,
     "breaches": 0,
     "rate": 0.0
    }
   },
-  "logged": 28,
-  "n": 18,
-  "n_dates": 2,
+  "logged": 38,
+  "n": 28,
+  "n_dates": 3,
   "rate": 0.0,
   "interim": {
    "looks": [
@@ -242,26 +242,26 @@
   }
  },
  "challenger_comparison": {
-  "common_days": 1,
+  "common_days": 2,
   "incumbent": {
-   "n": 1,
+   "n": 2,
    "breaches": 0,
    "breach_rate": 0.0,
    "kupiec_p": null,
    "christoffersen_p": null,
    "verdict": "insufficient",
    "first_date": "2026-11-23",
-   "var_ratio": 1.0849640216848269,
+   "var_ratio": 0.5740187629210144,
    "rolling": {
-    "n": 1,
+    "n": 2,
     "breaches": 0,
     "breach_rate": 0.0
    },
    "by_light": {
     "red": {
-     "n": 1,
-     "realized_vol_ann": 0.5257705472879182,
-     "forecast_vol_ann": 0.5047642468372736
+     "n": 2,
+     "realized_vol_ann": 0.383299145040853,
+     "forecast_vol_ann": 0.5151136314928969
     }
    },
    "interim": {
@@ -290,24 +290,24 @@
    }
   },
   "challenger": {
-   "n": 1,
+   "n": 2,
    "breaches": 0,
    "breach_rate": 0.0,
    "kupiec_p": null,
    "christoffersen_p": null,
    "verdict": "insufficient",
    "first_date": "2026-11-23",
-   "var_ratio": 1.0849640216848269,
+   "var_ratio": 0.5740187629210144,
    "rolling": {
-    "n": 1,
+    "n": 2,
     "breaches": 0,
     "breach_rate": 0.0
    },
    "by_light": {
     "red": {
-     "n": 1,
-     "realized_vol_ann": 0.5257705472879182,
-     "forecast_vol_ann": 0.5047642468372736
+     "n": 2,
+     "realized_vol_ann": 0.383299145040853,
+     "forecast_vol_ann": 0.5151136314928969
     }
    },
    "interim": {

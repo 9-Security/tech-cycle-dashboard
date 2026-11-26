@@ -1,9 +1,9 @@
 {
- "as_of": "20261125T054056Z",
+ "as_of": "20261126T012153Z",
  "DATA_SOURCE": "REAL",
  "data_source": "REAL",
  "engine_version": "3.9.0",
- "git_sha": "7b6edcf4545e",
+ "git_sha": "6bf866e72157",
  "n_months": 322,
  "panel_start": "2000-01-31",
  "panel_end": "2026-10-31",
@@ -45,19 +45,19 @@
  },
  "provisional": {
   "month": "2026-11",
-  "data_through": "2026-11-24",
+  "data_through": "2026-11-25",
   "regime": {
    "code": 2,
    "label": "Shock"
   },
   "signals": {
-   "vix": 23.383529326495,
-   "vix_last": 26.360000610351562,
-   "overheat_score": 0.9123700001509096,
-   "val_z": -1.858283317951578,
+   "vix": 23.656111081441242,
+   "vix_last": 28.290000915527344,
+   "overheat_score": 0.8719063724925896,
+   "val_z": -1.939210573268218,
    "val_src": "PE",
-   "pe_agg": 22.892054826971837,
-   "pe_level": 23.1902188827023,
+   "pe_agg": 22.582427599437743,
+   "pe_level": 22.876558827594454,
    "capex_z": 3.6830233182533973,
    "capex_ratio_firm": 0.3110951945672479,
    "capex_src": "SEC",
@@ -73,9 +73,9 @@
   "label": "v3 candidate: valuation/Capex tilts + vol targeting",
   "design_date": "2026-11-23",
   "panel_end": "2026-10-31",
-  "executed_weight": 0.16479919031969031,
+  "executed_weight": 0.16479919031969048,
   "month_end": {
-   "weight": 0.16479919031969031,
+   "weight": 0.16479919031969048,
    "state": {
     "code": 2,
     "label": "Vol-capped"
@@ -83,8 +83,8 @@
    "tilt": -0.5050461904676878,
    "base_weight": 0.24495380953231216,
    "earnings_cut_active": false,
-   "vol_forecast": 0.29727550124139773,
-   "vol_scale": 0.6727765966748578
+   "vol_forecast": 0.2972755012413974,
+   "vol_scale": 0.6727765966748585
   },
   "params": {
    "c_px": 0.25,
@@ -100,17 +100,17 @@
   },
   "provisional": {
    "month": "2026-11",
-   "data_through": "2026-11-24",
+   "data_through": "2026-11-25",
    "weight": 0.0,
    "state": {
     "code": 2,
     "label": "Vol-capped"
    },
-   "tilt": -0.8213027348671799,
+   "tilt": -0.8568004118505665,
    "base_weight": 0.0,
    "earnings_cut_active": false,
-   "vol_forecast": 0.5989692117084212,
-   "vol_scale": 0.33390697900739547
+   "vol_forecast": 0.5920398755875782,
+   "vol_scale": 0.33781508348826544
   },
   "since_design": null,
   "note": "Candidate only. Live posture remains the v2 regime model until v3 earns out-of-sample evidence after its design date.",
@@ -122,14 +122,14 @@
   }
  },
  "metrics": {
-  "sharpe": 0.10723847947393528,
-  "sortino": 0.13478994261545715,
-  "cagr": 0.024392854822761878,
-  "ann_vol": 0.14344169617673605,
-  "max_dd": -0.7190495715950409,
-  "calmar": 0.033923745714293546,
-  "final_nav": 1.9092032826979282,
-  "period_return": 0.9092032826979282,
+  "sharpe": 0.10723871078391192,
+  "sortino": 0.13479024194290415,
+  "cagr": 0.024392892892208362,
+  "ann_vol": 0.14344159770458248,
+  "max_dd": -0.7190495420124177,
+  "calmar": 0.03392380005408182,
+  "final_nav": 1.9092051865667796,
+  "period_return": 0.9092051865667796,
   "ann_turnover": 1.4720496894409938,
   "avg_weight": 0.6149068322981367,
   "total_cost": 0.05925000000000001,
@@ -143,44 +143,44 @@
   "headline_source": "base_rate",
   "headline_p": 0.15571776155717762,
   "base_rate": 0.15571776155717762,
-  "model_p": 0.3483998291871194,
+  "model_p": 0.3482939181203216,
   "model_ci90": [
-   0.0825423510435923,
-   0.6159614443558526
+   0.08527861259677855,
+   0.604857055270097
   ],
   "as_of_row": "2026-11-30",
   "vol_forecast_next_month": {
    "date": "2026-11-30",
-   "vol": 0.39173045786435556,
+   "vol": 0.3900836691409499,
    "band90": [
-    0.21640220296775814,
-    0.7528930828420894
+    0.21548581021115623,
+    0.7497281938389573
    ],
-   "current_rv21": 0.5989692117084212
+   "current_rv21": 0.5920398755875782
   },
-  "vol_forecast_oos_r2": 0.49786159787481965,
+  "vol_forecast_oos_r2": 0.49786087580272054,
   "short_term": {
-   "date": "2026-11-24",
+   "date": "2026-11-25",
    "model": "har_vix",
    "label": "HAR + VIX",
    "spec": "log",
-   "vol_1d_ann": 0.5252621518872402,
-   "vol_1d": 0.0330884054049589,
+   "vol_1d_ann": 0.5694530254309708,
+   "vol_1d": 0.03587216877675449,
    "var_quantile": {
-    "used": -1.6790186046365783,
-    "insample": -1.636933076441663,
+    "used": -1.6788800891343378,
+    "insample": -1.6372648582892735,
     "source": "oos"
    },
-   "var95_1d_insample_simple_ret": 0.052722790961887034,
-   "var95_1d": 0.05555604827268351,
-   "var95_1d_simple_ret": 0.054040997183552375,
-   "vol_5d_ann": 0.5151595534575805,
-   "vol_5d": 0.0725648814114528,
-   "ewma_vol_ann": 0.571287068140485,
-   "vol_hist_percentile": 0.96969043253155,
-   "vol_hist_median": 0.19036859936574327,
+   "var95_1d_insample_simple_ret": 0.05704077913450256,
+   "var95_1d": 0.06022506991335959,
+   "var95_1d_simple_ret": 0.058447405426288235,
+   "vol_5d_ann": 0.526064766826123,
+   "vol_5d": 0.07410097932431046,
+   "ewma_vol_ann": 0.5548250961226662,
+   "vol_hist_percentile": 0.9783218291630716,
+   "vol_hist_median": 0.19038963687666902,
    "vol_hist_start": "1990-02-01",
-   "vol_hist_days": 9271
+   "vol_hist_days": 9272
   },
   "short_term_epu_verdict": "drop: no significant improvement from EPU (pre-set rule: improvement with DM t >= 2 at every horizon)"
  },
@@ -191,27 +191,27 @@
    "red_at_or_above": 0.8,
    "basis": "HAR + VIX next-day vol forecast vs history of 22-day realized vol"
   },
-  "date": "2026-11-24",
-  "vol_percentile": 0.96969043253155,
-  "vol_ann": 0.5252621518872402,
-  "vol_median": 0.19036859936574327,
-  "vol_ratio": 2.7591848321481156,
-  "daily_move": 0.0330884054049589,
-  "var95": 0.054040997183552375,
+  "date": "2026-11-25",
+  "vol_percentile": 0.9783218291630716,
+  "vol_ann": 0.5694530254309708,
+  "vol_median": 0.19038963687666902,
+  "vol_ratio": 2.9909875073707513,
+  "daily_move": 0.03587216877675449,
+  "var95": 0.058447405426288235,
   "hist_start": "1990-02-01",
   "mtd_month": "2026-11",
-  "mtd_return": -0.12489554261610503,
-  "pe": 23.1902188827023,
-  "val_z": -1.858283317951578,
+  "mtd_return": -0.13213745881950134,
+  "pe": 22.876558827594454,
+  "val_z": -1.939210573268218,
   "val_state": "below",
   "earn_score": 0.27154020877325175,
   "earn_state": "flat"
  },
  "exposure_cap": {
-  "date": "2026-11-24",
-  "forecast_vol_5d_ann": 0.5151595534575805,
-  "target_vol": 0.19036859936574327,
-  "cap_raw": 0.36953327971509453,
+  "date": "2026-11-25",
+  "forecast_vol_5d_ann": 0.526064766826123,
+  "target_vol": 0.19038963687666902,
+  "cap_raw": 0.36191292191137625,
   "cap": 0.35,
   "band": "D",
   "rule": {
