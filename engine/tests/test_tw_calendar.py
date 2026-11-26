@@ -38,9 +38,11 @@ def test_bar_after_index_end_dropped_only_if_unchanged():
     assert len(out["B.TW"]) == 3
 
 
-def _null_index_case(n_moved: int, n: int = 6):
+def _null_index_case(n_moved: int, n: int = 6, absent: bool = False):
     days = ["2026-11-20", "2026-11-23", "2026-11-24", "2026-11-25", "2026-11-26"]
-    twii = _df(days, [100, 101, 102, float("nan"), 103])
+    # As loaded (sources/yahoo.py drops null closes) the index has no 11-25 row at all.
+    twii = _df([d for d in days if d != "2026-11-25"], [100, 101, 102, 103]) if absent else \
+        _df(days, [100, 101, 102, float("nan"), 103])
     wl = {"stocks": [{"symbol": f"S{i}.TW", "market": "TW"} for i in range(n)]}
     px = {"^TWII": twii}
     for i in range(n):
@@ -55,7 +57,7 @@ def test_null_index_close_kept_when_the_stocks_traded():
     out, rep = tw_calendar.clean(px, wl)
     assert "2026-11-25" in out["S0.TW"].index.strftime("%Y-%m-%d")
     assert rep["total"] == 0
-    assert rep["null_index_open_days"] == {"2026-11-25": {"moved": 6, "of": 6, "open": True}}
+    assert rep["index_gap_open_days"] == {"2026-11-25": {"moved": 6, "of": 6, "open": True}}
 
 
 def test_null_index_close_still_a_holiday_without_broad_evidence():
@@ -63,10 +65,20 @@ def test_null_index_close_still_a_holiday_without_broad_evidence():
     px, wl = _null_index_case(n_moved=4)
     out, rep = tw_calendar.clean(px, wl)
     assert "2026-11-25" not in out["S0.TW"].index.strftime("%Y-%m-%d")
-    assert rep["total"] == 6 and rep["null_index_open_days"] == {}
+    assert rep["total"] == 6 and rep["index_gap_open_days"] == {}
 
 
 def test_null_index_close_needs_enough_names():
     px, wl = _null_index_case(n_moved=4, n=4)   # 100% moved but only 4 names
     out, rep = tw_calendar.clean(px, wl)
-    assert "2026-11-25" not in out["S0.TW"].index.strftime("%Y-%m-%d") and rep["null_index_open_days"] == {}
+    assert "2026-11-25" not in out["S0.TW"].index.strftime("%Y-%m-%d") and rep["index_gap_open_days"] == {}
+
+
+def test_missing_index_row_as_loaded_is_kept_when_the_stocks_traded():
+    # Production path: the loader drops the null-close row, so ^TWII has no 11-25 bar.
+    px, wl = _null_index_case(n_moved=6, absent=True)
+    out, rep = tw_calendar.clean(px, wl)
+    assert "2026-11-25" in out["S0.TW"].index.strftime("%Y-%m-%d") and rep["total"] == 0
+    px, wl = _null_index_case(n_moved=4, absent=True)
+    out, rep = tw_calendar.clean(px, wl)
+    assert "2026-11-25" not in out["S0.TW"].index.strftime("%Y-%m-%d") and rep["total"] == 6

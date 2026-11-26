@@ -93,7 +93,7 @@ def model_id(stock_cfg) -> str:
     from . import light, short_risk, stocks, tw_calendar
     parts = [stocks.drop_stale_runs, stocks.daily_frame, stocks.walk_forward_var, stocks.current_risk,
              stocks.analyze_stock, short_risk.design, short_risk.fit_var, short_risk.VarModel, short_risk._ols,
-             light.level_for, tw_calendar.clean, tw_calendar.market_open_days, tw_calendar.null_index_days]
+             light.level_for, tw_calendar.clean, tw_calendar.market_open_days, tw_calendar.index_gap_days]
     blob = "".join(inspect.getsource(f) for f in parts).encode()
     # Module-level constants the forecast depends on (not part of any function's source).
     blob += repr((stocks.HAR_FEATURES, sorted(short_risk.LOGGED))).encode()
