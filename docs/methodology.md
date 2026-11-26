@@ -329,6 +329,16 @@ Module `engine/tcd/tw_calendar.py`, applied to Yahoo prices before the stock mod
 
 Effect (2026-11-23): 1,130 bars dropped across 18 names (most before 2006); next-day volatility and VaR rise slightly (holiday zero returns had deflated them); no risk light changed; verified Taiwan VaRs stay at 1 (2382 crosses into "verified", 3711 drops out, both at the p ≈ 0.05 boundary). The removal is reported in `stocks.json` → `data_cleaning.tw_holiday_bars`. Limitation: bars before July 1997 (2317 only) are not checked.
 
+### 13c. Null ^TWII close on a trading day (2026-11-26)
+
+**Found:** on 2026-11-25 Yahoo's `^TWII` row had a null close although the exchange traded (all 18 Taiwan names had normal bars, e.g. 2330: 2230 → 2150, volume 79.9 M). The § 13b rule ignores null rows, so the day counted as a closure and 18 real bars were dropped; the agent range (§ 22) could not settle because its Taiwan calendar reference stopped at 2026-11-24.
+
+**Rule:** a `^TWII` row with a null close counts as an open day only if at least 5 Taiwan stocks have a bar that day **and** at least 80% of them closed at a different price than their previous bar. Otherwise it stays a closure (unchanged § 13b behaviour). Days kept this way are reported in `stocks.json` → `data_cleaning.tw_holiday_bars.null_index_open_days`.
+
+**Evidence the threshold separates the two cases (full Yahoo history, fixed before applying it):** `^TWII` has 143 null-close rows since 1997, nearly all real closures (Lunar New Year, national holidays). Among them the highest share of moved names was 56% (2012-01-02, a holiday with spurious prices: 9 of 16), then 40% (2008-07-28 typhoon: 6 of 15); four 1997–1999 days had one name with a bar (below the 5-name minimum). 2026-11-25: 18 of 18. The only bars the rule restores are those of 2026-11-25.
+
+**Model id:** `tw_calendar.clean` is part of the stock forecast fingerprint (§ 14), and the new helper and its two constants were added to it. The stock `model_id` changes `effe1fd9a348` → `efb69ecbf292`; the 48 ledger rows of 2026-11-23 → 25 are counted as an earlier model and the live record restarts (no alias: the code is not identical). The market models do not use this module and are unchanged.
+
 ### 13a. Tested and rejected: out-of-sample VaR quantile for stocks (2026-11-23)
 
 After the market VaR fix (§ 10, out-of-sample FHS quantile), the same change was tested on the 28 stocks. Adoption rule fixed before looking at the results: adopt only if, on the same scored days, the number of verified names does not fall **and** the mean |breach rate − 5%| falls.
