@@ -329,15 +329,17 @@ Module `engine/tcd/tw_calendar.py`, applied to Yahoo prices before the stock mod
 
 Effect (2026-11-23): 1,130 bars dropped across 18 names (most before 2006); next-day volatility and VaR rise slightly (holiday zero returns had deflated them); no risk light changed; verified Taiwan VaRs stay at 1 (2382 crosses into "verified", 3711 drops out, both at the p ≈ 0.05 boundary). The removal is reported in `stocks.json` → `data_cleaning.tw_holiday_bars`. Limitation: bars before July 1997 (2317 only) are not checked.
 
-### 13c. Null ^TWII close on a trading day (2026-11-26)
+### 13c. ^TWII missing on a trading day (2026-11-26)
 
-**Found:** on 2026-11-25 Yahoo's `^TWII` row had a null close although the exchange traded (all 18 Taiwan names had normal bars, e.g. 2330: 2230 → 2150, volume 79.9 M). The § 13b rule ignores null rows, so the day counted as a closure and 18 real bars were dropped; the agent range (§ 22) could not settle because its Taiwan calendar reference stopped at 2026-11-24.
+**Found:** on 2026-11-25 Yahoo's `^TWII` row had a null close although the exchange traded (TWSE official: TAIEX 38,195.43; all 18 Taiwan names had normal bars, e.g. 2330: 2,230 → 2,150 on 84.9 M shares). The loader (`sources/yahoo.py`) drops null-close rows, so the index had no bar that day and the § 13b rule dropped 18 real bars; the agent range (§ 22) could not settle because its Taiwan calendar reference stopped at 2026-11-24.
 
-**Rule:** a `^TWII` row with a null close counts as an open day only if at least 5 Taiwan stocks have a bar that day **and** at least 80% of them closed at a different price than their previous bar. Otherwise it stays a closure (unchanged § 13b behaviour). Days kept this way are reported in `stocks.json` → `data_cleaning.tw_holiday_bars.null_index_open_days`.
+**Rule:** a day inside the `^TWII` window that has Taiwan stock bars but no usable `^TWII` close (row absent or null) counts as an open day only if at least 5 Taiwan stocks have a bar that day **and** at least 80% of them closed at a different price than their previous bar. Otherwise it stays a closure. An unchanged `^TWII` close (§ 13b) is still a closure. Days kept this way are reported in `stocks.json` → `data_cleaning.tw_holiday_bars.index_gap_open_days`.
 
-**Evidence the threshold separates the two cases (full Yahoo history, fixed before applying it):** `^TWII` has 143 null-close rows since 1997, nearly all real closures (Lunar New Year, national holidays). Among them the highest share of moved names was 56% (2012-01-02, a holiday with spurious prices: 9 of 16), then 40% (2008-07-28 typhoon: 6 of 15); four 1997–1999 days had one name with a bar (below the 5-name minimum). 2026-11-25: 18 of 18. The only bars the rule restores are those of 2026-11-25.
+**Evidence the threshold separates the two cases (full Yahoo history, fixed before applying it):** 138 days since 1997 have Taiwan stock bars but no `^TWII` close, nearly all real closures (Lunar New Year, national holidays, typhoons). Apart from 2026-11-25 (18 of 18 moved), the highest share was 56% (2012-01-02, a holiday with spurious prices: 9 of 16), then 50% (2005-10-10), 40% (2008-07-28 typhoon); four 1997–1999 days had a single name (below the 5-name minimum). On the real data the rule restores exactly the 18 bars of 2026-11-25 (1,148 → 1,130 dropped bars).
 
-**Model id:** `tw_calendar.clean` is part of the stock forecast fingerprint (§ 14), and the new helper and its two constants were added to it. The stock `model_id` changes `effe1fd9a348` → `efb69ecbf292`; the 48 ledger rows of 2026-11-23 → 25 are counted as an earlier model and the live record restarts (no alias: the code is not identical). The market models do not use this module and are unchanged.
+A first version (PR #39) looked only for `^TWII` rows with a null close; those rows never reach this module because the loader drops them, so it had no effect in production. Its test built the index with a NaN row rather than as loaded; the tests now cover the loaded form.
+
+**Model id:** `tw_calendar.clean` is part of the stock forecast fingerprint (§ 14), and `index_gap_days` and its two constants were added to it. The stock `model_id` is now `2495b35ca93b` (previously `effe1fd9a348`; the one 2026-11-26 run under the ineffective first version logged `efb69ecbf292`). Earlier rows count as earlier models and the live record restarts (no alias: the code is not identical). The market models do not use this module and are unchanged.
 
 ### 13a. Tested and rejected: out-of-sample VaR quantile for stocks (2026-11-23)
 
