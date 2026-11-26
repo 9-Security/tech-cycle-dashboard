@@ -1,5 +1,5 @@
 {
- "as_of": "20261126T012153Z",
+ "as_of": "20261126T015017Z",
  "settings": {
   "var_level": 0.05,
   "min_days_stock": 250,
@@ -11,26 +11,12 @@
  },
  "markets": {
   "US": {
-   "n": 20,
-   "n_dates": 2,
-   "breaches": 1,
-   "first_date": "2026-11-24",
-   "last_date": "2026-11-25",
-   "too_many_z": 0.0,
-   "too_many_p": 0.5,
-   "breach_rate": 0.05,
-   "breach_ci": [
-    0.026257913555249618,
-    0.07374208644475039
-   ],
-   "var_ratio": 0.5445568676002663,
-   "var_ratio_ci": [
-    0.4795927348539672,
-    0.6095210003465654
-   ],
-   "qlike_har": -5.851130049735789,
-   "qlike_ewma": -5.906448324885128,
-   "dm_t_vs_ewma": null,
+   "n": 0,
+   "n_dates": 0,
+   "breaches": 0,
+   "first_date": null,
+   "last_date": null,
+   "verdict": "insufficient",
    "interim": {
     "looks": [
      {
@@ -52,37 +38,10 @@
     "verdict": "before_first_look",
     "next_look": 60
    },
-   "verdict": "insufficient",
-   "rolling": {
-    "n_dates": 2,
-    "n": 20,
-    "breaches": 1,
-    "breach_rate": 0.05
-   },
-   "by_level": {
-    "green": {
-     "n": 2,
-     "realized_vol_ann": 0.16632955143408437,
-     "forecast_vol_ann": 0.325944230404712
-    },
-    "red": {
-     "n": 14,
-     "realized_vol_ann": 0.724007010214628,
-     "forecast_vol_ann": 0.8937526439177677
-    },
-    "yellow": {
-     "n": 4,
-     "realized_vol_ann": 0.2930292063199669,
-     "forecast_vol_ann": 0.4564763842515514
-    }
-   },
-   "logged": 30,
-   "logged_since": "2026-11-23",
-   "status_counts": {
-    "scored": 20,
-    "pending": 10
-   },
-   "backtest_breach_rate_mean": 0.04717450094843746
+   "logged": 0,
+   "logged_since": null,
+   "status_counts": {},
+   "backtest_breach_rate_mean": 0.0471650276631021
   },
   "TW": {
    "n": 0,
@@ -112,271 +71,17 @@
     "verdict": "before_first_look",
     "next_look": 60
    },
-   "logged": 18,
-   "logged_since": "2026-11-24",
-   "status_counts": {
-    "pending": 18
-   },
-   "backtest_breach_rate_mean": 0.04892302525717038
+   "logged": 0,
+   "logged_since": null,
+   "status_counts": {},
+   "backtest_breach_rate_mean": 0.0488904312679556
   }
  },
- "stocks": {
-  "AAPL": {
-   "n": 2,
-   "breaches": 0,
-   "breach_rate": 0.0,
-   "kupiec_p": null,
-   "christoffersen_p": null,
-   "verdict": "insufficient",
-   "backtest_breach_rate": 0.03988742236024845
-  },
-  "AMD": {
-   "n": 2,
-   "breaches": 1,
-   "breach_rate": 0.5,
-   "kupiec_p": null,
-   "christoffersen_p": null,
-   "verdict": "insufficient",
-   "backtest_breach_rate": 0.05380826070481243
-  },
-  "AMZN": {
-   "n": 2,
-   "breaches": 0,
-   "breach_rate": 0.0,
-   "kupiec_p": null,
-   "christoffersen_p": null,
-   "verdict": "insufficient",
-   "backtest_breach_rate": 0.04197924980047885
-  },
-  "AVGO": {
-   "n": 2,
-   "breaches": 0,
-   "breach_rate": 0.0,
-   "kupiec_p": null,
-   "christoffersen_p": null,
-   "verdict": "insufficient",
-   "backtest_breach_rate": 0.051787916152897656
-  },
-  "GOOGL": {
-   "n": 2,
-   "breaches": 0,
-   "breach_rate": 0.0,
-   "kupiec_p": null,
-   "christoffersen_p": null,
-   "verdict": "insufficient",
-   "backtest_breach_rate": 0.04797867614393603
-  },
-  "INTC": {
-   "n": 2,
-   "breaches": 0,
-   "breach_rate": 0.0,
-   "kupiec_p": null,
-   "christoffersen_p": null,
-   "verdict": "insufficient",
-   "backtest_breach_rate": 0.04793482379689276
-  },
-  "META": {
-   "n": 2,
-   "breaches": 0,
-   "breach_rate": 0.0,
-   "kupiec_p": null,
-   "christoffersen_p": null,
-   "verdict": "insufficient",
-   "backtest_breach_rate": 0.05184887459807074
-  },
-  "MSFT": {
-   "n": 2,
-   "breaches": 0,
-   "breach_rate": 0.0,
-   "kupiec_p": null,
-   "christoffersen_p": null,
-   "verdict": "insufficient",
-   "backtest_breach_rate": 0.04579646017699115
-  },
-  "NVDA": {
-   "n": 2,
-   "breaches": 0,
-   "breach_rate": 0.0,
-   "kupiec_p": null,
-   "christoffersen_p": null,
-   "verdict": "insufficient",
-   "backtest_breach_rate": 0.044263148758896025
-  },
-  "ORCL": {
-   "n": 2,
-   "breaches": 0,
-   "breach_rate": 0.0,
-   "kupiec_p": null,
-   "christoffersen_p": null,
-   "verdict": "insufficient",
-   "backtest_breach_rate": 0.046460176991150445
-  },
-  "2330.TW": {
-   "n": 0,
-   "breaches": 0,
-   "breach_rate": null,
-   "kupiec_p": null,
-   "christoffersen_p": null,
-   "verdict": "insufficient",
-   "backtest_breach_rate": 0.03997758266392677
-  },
-  "2454.TW": {
-   "n": 0,
-   "breaches": 0,
-   "breach_rate": null,
-   "kupiec_p": null,
-   "christoffersen_p": null,
-   "verdict": "insufficient",
-   "backtest_breach_rate": 0.046220133176654916
-  },
-  "3661.TW": {
-   "n": 0,
-   "breaches": 0,
-   "breach_rate": null,
-   "kupiec_p": null,
-   "christoffersen_p": null,
-   "verdict": "insufficient",
-   "backtest_breach_rate": 0.06765523632993513
-  },
-  "3443.TW": {
-   "n": 0,
-   "breaches": 0,
-   "breach_rate": null,
-   "kupiec_p": null,
-   "christoffersen_p": null,
-   "verdict": "insufficient",
-   "backtest_breach_rate": 0.04935400516795865
-  },
-  "2317.TW": {
-   "n": 0,
-   "breaches": 0,
-   "breach_rate": null,
-   "kupiec_p": null,
-   "christoffersen_p": null,
-   "verdict": "insufficient",
-   "backtest_breach_rate": 0.04485002829654782
-  },
-  "2382.TW": {
-   "n": 0,
-   "breaches": 0,
-   "breach_rate": null,
-   "kupiec_p": null,
-   "christoffersen_p": null,
-   "verdict": "insufficient",
-   "backtest_breach_rate": 0.04128526060153185
-  },
-  "3231.TW": {
-   "n": 0,
-   "breaches": 0,
-   "breach_rate": null,
-   "kupiec_p": null,
-   "christoffersen_p": null,
-   "verdict": "insufficient",
-   "backtest_breach_rate": 0.049393414211438474
-  },
-  "6669.TW": {
-   "n": 0,
-   "breaches": 0,
-   "breach_rate": null,
-   "kupiec_p": null,
-   "christoffersen_p": null,
-   "verdict": "insufficient",
-   "backtest_breach_rate": 0.0650319829424307
-  },
-  "2356.TW": {
-   "n": 0,
-   "breaches": 0,
-   "breach_rate": null,
-   "kupiec_p": null,
-   "christoffersen_p": null,
-   "verdict": "insufficient",
-   "backtest_breach_rate": 0.04427423874462918
-  },
-  "2308.TW": {
-   "n": 0,
-   "breaches": 0,
-   "breach_rate": null,
-   "kupiec_p": null,
-   "christoffersen_p": null,
-   "verdict": "insufficient",
-   "backtest_breach_rate": 0.04377104377104377
-  },
-  "3017.TW": {
-   "n": 0,
-   "breaches": 0,
-   "breach_rate": null,
-   "kupiec_p": null,
-   "christoffersen_p": null,
-   "verdict": "insufficient",
-   "backtest_breach_rate": 0.04877546820333402
-  },
-  "3324.TWO": {
-   "n": 0,
-   "breaches": 0,
-   "breach_rate": null,
-   "kupiec_p": null,
-   "christoffersen_p": null,
-   "verdict": "insufficient",
-   "backtest_breach_rate": 0.05004441812259402
-  },
-  "2059.TW": {
-   "n": 0,
-   "breaches": 0,
-   "breach_rate": null,
-   "kupiec_p": null,
-   "christoffersen_p": null,
-   "verdict": "insufficient",
-   "backtest_breach_rate": 0.0515250222090613
-  },
-  "2345.TW": {
-   "n": 0,
-   "breaches": 0,
-   "breach_rate": null,
-   "kupiec_p": null,
-   "christoffersen_p": null,
-   "verdict": "insufficient",
-   "backtest_breach_rate": 0.04483467214645993
-  },
-  "2383.TW": {
-   "n": 0,
-   "breaches": 0,
-   "breach_rate": null,
-   "kupiec_p": null,
-   "christoffersen_p": null,
-   "verdict": "insufficient",
-   "backtest_breach_rate": 0.04390061647674201
-  },
-  "3037.TW": {
-   "n": 0,
-   "breaches": 0,
-   "breach_rate": null,
-   "kupiec_p": null,
-   "christoffersen_p": null,
-   "verdict": "insufficient",
-   "backtest_breach_rate": 0.04877546820333402
-  },
-  "3711.TW": {
-   "n": 0,
-   "breaches": 0,
-   "breach_rate": null,
-   "kupiec_p": null,
-   "christoffersen_p": null,
-   "verdict": "insufficient",
-   "backtest_breach_rate": 0.04265668849391955
-  },
-  "3131.TWO": {
-   "n": 0,
-   "breaches": 0,
-   "breach_rate": null,
-   "kupiec_p": null,
-   "christoffersen_p": null,
-   "verdict": "insufficient",
-   "backtest_breach_rate": 0.0582891748675246
-  }
- },
- "current_model": "effe1fd9a348",
+ "stocks": {},
+ "current_model": "efb69ecbf292",
  "model_id_aliases": {},
  "other_models": {
+  "effe1fd9a348": 48,
   "333e22e1aab1": 28
  },
  "last_run": {
@@ -384,6 +89,6 @@
    "US",
    "TW"
   ],
-  "forecasts_added": 10
+  "forecasts_added": 0
  }
 }

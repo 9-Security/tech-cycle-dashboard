@@ -1,5 +1,5 @@
 {
- "as_of": "20261126T012153Z",
+ "as_of": "20261126T015017Z",
  "settings": {
   "tolerance": 0.005,
   "months": 2,
@@ -634,8 +634,8 @@
   }
  },
  "updated": {
-  "US": "20261126T012153Z",
-  "TW": "20261126T012153Z"
+  "US": "20261126T015017Z",
+  "TW": "20261126T015017Z"
  },
  "source": {
   "TWSE": "https://www.twse.com.tw/rwd/zh/afterTrading/STOCK_DAY",
