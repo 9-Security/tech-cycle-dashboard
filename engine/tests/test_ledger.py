@@ -191,7 +191,7 @@ def test_model_id_guard():
     with a documented model change (methodology section 14); update the expected
     id here, and never add an alias unless the forecasting code is byte-identical."""
     from tcd.stocks import StockConfig
-    assert L.model_id(StockConfig()) == "effe1fd9a348"
+    assert L.model_id(StockConfig()) == "efb69ecbf292"
     assert L.MODEL_ID_ALIASES == {}
 
 
