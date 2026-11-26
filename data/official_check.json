@@ -1,5 +1,5 @@
 {
- "as_of": "20261126T052800Z",
+ "as_of": "20261126T064518Z",
  "settings": {
   "tolerance": 0.005,
   "months": 2,
@@ -203,10 +203,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-25"
+    "2026-11-26"
    ],
-   "official_last": "2026-11-25",
-   "compared": 37,
+   "official_last": "2026-11-26",
+   "compared": 38,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -216,9 +216,7 @@
     "2026-10-23"
    ],
    "n_extra": 1,
-   "not_yet": [
-    "2026-11-26"
-   ],
+   "not_yet": [],
    "status": "warn"
   },
   "2454.TW": {
@@ -226,10 +224,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-25"
+    "2026-11-26"
    ],
-   "official_last": "2026-11-25",
-   "compared": 37,
+   "official_last": "2026-11-26",
+   "compared": 38,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -239,9 +237,7 @@
     "2026-10-23"
    ],
    "n_extra": 1,
-   "not_yet": [
-    "2026-11-26"
-   ],
+   "not_yet": [],
    "status": "warn"
   },
   "3661.TW": {
@@ -249,10 +245,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-25"
+    "2026-11-26"
    ],
-   "official_last": "2026-11-25",
-   "compared": 37,
+   "official_last": "2026-11-26",
+   "compared": 38,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -262,9 +258,7 @@
     "2026-10-23"
    ],
    "n_extra": 1,
-   "not_yet": [
-    "2026-11-26"
-   ],
+   "not_yet": [],
    "status": "warn"
   },
   "3443.TW": {
@@ -272,10 +266,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-25"
+    "2026-11-26"
    ],
-   "official_last": "2026-11-25",
-   "compared": 37,
+   "official_last": "2026-11-26",
+   "compared": 38,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -285,9 +279,7 @@
     "2026-10-23"
    ],
    "n_extra": 1,
-   "not_yet": [
-    "2026-11-26"
-   ],
+   "not_yet": [],
    "status": "warn"
   },
   "2317.TW": {
@@ -295,10 +287,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-25"
+    "2026-11-26"
    ],
-   "official_last": "2026-11-25",
-   "compared": 37,
+   "official_last": "2026-11-26",
+   "compared": 38,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -308,9 +300,7 @@
     "2026-10-23"
    ],
    "n_extra": 1,
-   "not_yet": [
-    "2026-11-26"
-   ],
+   "not_yet": [],
    "status": "warn"
   },
   "2382.TW": {
@@ -318,10 +308,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-25"
+    "2026-11-26"
    ],
-   "official_last": "2026-11-25",
-   "compared": 37,
+   "official_last": "2026-11-26",
+   "compared": 38,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -331,9 +321,7 @@
     "2026-10-23"
    ],
    "n_extra": 1,
-   "not_yet": [
-    "2026-11-26"
-   ],
+   "not_yet": [],
    "status": "warn"
   },
   "3231.TW": {
@@ -341,10 +329,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-25"
+    "2026-11-26"
    ],
-   "official_last": "2026-11-25",
-   "compared": 37,
+   "official_last": "2026-11-26",
+   "compared": 38,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -354,9 +342,7 @@
     "2026-10-23"
    ],
    "n_extra": 1,
-   "not_yet": [
-    "2026-11-26"
-   ],
+   "not_yet": [],
    "status": "warn"
   },
   "6669.TW": {
@@ -364,10 +350,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-25"
+    "2026-11-26"
    ],
-   "official_last": "2026-11-25",
-   "compared": 37,
+   "official_last": "2026-11-26",
+   "compared": 38,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -377,9 +363,7 @@
     "2026-10-23"
    ],
    "n_extra": 1,
-   "not_yet": [
-    "2026-11-26"
-   ],
+   "not_yet": [],
    "status": "warn"
   },
   "2356.TW": {
@@ -387,11 +371,11 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-25"
+    "2026-11-26"
    ],
-   "official_last": "2026-11-25",
-   "compared": 37,
-   "max_abs_diff": 3.274418258758516e-08,
+   "official_last": "2026-11-26",
+   "compared": 38,
+   "max_abs_diff": 3.64171577338368e-08,
    "mismatches": [],
    "n_mismatch": 0,
    "missing": [],
@@ -400,9 +384,7 @@
     "2026-10-23"
    ],
    "n_extra": 1,
-   "not_yet": [
-    "2026-11-26"
-   ],
+   "not_yet": [],
    "status": "warn"
   },
   "2308.TW": {
@@ -410,10 +392,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-25"
+    "2026-11-26"
    ],
-   "official_last": "2026-11-25",
-   "compared": 37,
+   "official_last": "2026-11-26",
+   "compared": 38,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -423,9 +405,7 @@
     "2026-10-23"
    ],
    "n_extra": 1,
-   "not_yet": [
-    "2026-11-26"
-   ],
+   "not_yet": [],
    "status": "warn"
   },
   "3017.TW": {
@@ -433,10 +413,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-25"
+    "2026-11-26"
    ],
-   "official_last": "2026-11-25",
-   "compared": 37,
+   "official_last": "2026-11-26",
+   "compared": 38,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -446,9 +426,7 @@
     "2026-10-23"
    ],
    "n_extra": 1,
-   "not_yet": [
-    "2026-11-26"
-   ],
+   "not_yet": [],
    "status": "warn"
   },
   "3324.TWO": {
@@ -479,10 +457,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-25"
+    "2026-11-26"
    ],
-   "official_last": "2026-11-25",
-   "compared": 37,
+   "official_last": "2026-11-26",
+   "compared": 38,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -492,9 +470,7 @@
     "2026-10-23"
    ],
    "n_extra": 1,
-   "not_yet": [
-    "2026-11-26"
-   ],
+   "not_yet": [],
    "status": "warn"
   },
   "2345.TW": {
@@ -502,10 +478,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-25"
+    "2026-11-26"
    ],
-   "official_last": "2026-11-25",
-   "compared": 37,
+   "official_last": "2026-11-26",
+   "compared": 38,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -515,9 +491,7 @@
     "2026-10-23"
    ],
    "n_extra": 1,
-   "not_yet": [
-    "2026-11-26"
-   ],
+   "not_yet": [],
    "status": "warn"
   },
   "2383.TW": {
@@ -525,10 +499,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-25"
+    "2026-11-26"
    ],
-   "official_last": "2026-11-25",
-   "compared": 37,
+   "official_last": "2026-11-26",
+   "compared": 38,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -538,9 +512,7 @@
     "2026-10-23"
    ],
    "n_extra": 1,
-   "not_yet": [
-    "2026-11-26"
-   ],
+   "not_yet": [],
    "status": "warn"
   },
   "3037.TW": {
@@ -548,10 +520,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-25"
+    "2026-11-26"
    ],
-   "official_last": "2026-11-25",
-   "compared": 37,
+   "official_last": "2026-11-26",
+   "compared": 38,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -561,9 +533,7 @@
     "2026-10-23"
    ],
    "n_extra": 1,
-   "not_yet": [
-    "2026-11-26"
-   ],
+   "not_yet": [],
    "status": "warn"
   },
   "3711.TW": {
@@ -571,10 +541,10 @@
    "venue": "TWSE",
    "window": [
     "2026-10-01",
-    "2026-11-25"
+    "2026-11-26"
    ],
-   "official_last": "2026-11-25",
-   "compared": 37,
+   "official_last": "2026-11-26",
+   "compared": 38,
    "max_abs_diff": 0.0,
    "mismatches": [],
    "n_mismatch": 0,
@@ -584,9 +554,7 @@
     "2026-10-23"
    ],
    "n_extra": 1,
-   "not_yet": [
-    "2026-11-26"
-   ],
+   "not_yet": [],
    "status": "warn"
   },
   "3131.TWO": {
@@ -614,8 +582,8 @@
   }
  },
  "updated": {
-  "US": "20261126T052800Z",
-  "TW": "20261126T052800Z"
+  "US": "20261126T064518Z",
+  "TW": "20261126T064518Z"
  },
  "source": {
   "TWSE": "https://www.twse.com.tw/rwd/zh/afterTrading/STOCK_DAY",
