@@ -1,9 +1,9 @@
 {
- "as_of": "20261126T015017Z",
+ "as_of": "20261126T022826Z",
  "DATA_SOURCE": "REAL",
  "data_source": "REAL",
  "engine_version": "3.9.0",
- "git_sha": "5d9aededcf4f",
+ "git_sha": "05aaa3c9760b",
  "n_months": 322,
  "panel_start": "2000-01-31",
  "panel_end": "2026-10-31",
@@ -49,10 +49,10 @@
   {
    "id": "overheat",
    "signal": "Overheat score",
-   "value": 0.8719063724925896,
+   "value": 0.8719063427565696,
    "threshold": 1.5,
    "direction": "above",
-   "distance": 0.6280936275074104,
+   "distance": 0.6280936572434304,
    "active": false,
    "weight": 0.75
   },

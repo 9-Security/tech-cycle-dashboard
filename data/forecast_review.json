@@ -1,5 +1,5 @@
 {
- "as_of": "20261126T015017Z",
+ "as_of": "20261126T022826Z",
  "settings": {
   "var_level": 0.05,
   "min_days_stock": 250,
@@ -74,11 +74,11 @@
    "logged": 0,
    "logged_since": null,
    "status_counts": {},
-   "backtest_breach_rate_mean": 0.0488904312679556
+   "backtest_breach_rate_mean": 0.04892708243608312
   }
  },
  "stocks": {},
- "current_model": "efb69ecbf292",
+ "current_model": "2495b35ca93b",
  "model_id_aliases": {},
  "other_models": {
   "effe1fd9a348": 48,
