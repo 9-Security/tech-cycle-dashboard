@@ -1,9 +1,9 @@
 {
- "as_of": "20261127T041300Z",
+ "as_of": "20261127T052123Z",
  "DATA_SOURCE": "REAL",
  "data_source": "REAL",
  "engine_version": "3.9.0",
- "git_sha": "d1e477d3dba7",
+ "git_sha": "71516e76dbf0",
  "n_months": 322,
  "panel_start": "2000-01-31",
  "panel_end": "2026-10-31",
@@ -73,9 +73,9 @@
   "label": "v3 candidate: valuation/Capex tilts + vol targeting",
   "design_date": "2026-11-23",
   "panel_end": "2026-10-31",
-  "executed_weight": 0.16479919031968945,
+  "executed_weight": 0.1647991903196916,
   "month_end": {
-   "weight": 0.16479919031968945,
+   "weight": 0.1647991903196916,
    "state": {
     "code": 2,
     "label": "Vol-capped"
@@ -83,8 +83,8 @@
    "tilt": -0.5050461904676878,
    "base_weight": 0.24495380953231216,
    "earnings_cut_active": false,
-   "vol_forecast": 0.2972755012413993,
-   "vol_scale": 0.6727765966748542
+   "vol_forecast": 0.2972755012413954,
+   "vol_scale": 0.672776596674863
   },
   "params": {
    "c_px": 0.25,
@@ -109,8 +109,8 @@
    "tilt": -0.8568000811266284,
    "base_weight": 0.0,
    "earnings_cut_active": false,
-   "vol_forecast": 0.5920398746564884,
-   "vol_scale": 0.33781508401954075
+   "vol_forecast": 0.5920398746564866,
+   "vol_scale": 0.3378150840195418
   },
   "since_design": null,
   "note": "Candidate only. Live posture remains the v2 regime model until v3 earns out-of-sample evidence after its design date.",
@@ -122,14 +122,14 @@
   }
  },
  "metrics": {
-  "sharpe": 0.10723865225076568,
-  "sortino": 0.13479017996786638,
-  "cagr": 0.024392882968784058,
-  "ann_vol": 0.1434416441316371,
-  "max_dd": -0.7190495624656138,
-  "calmar": 0.033923785288375814,
-  "final_nav": 1.9092046902920286,
-  "period_return": 0.9092046902920286,
+  "sharpe": 0.10723895768011936,
+  "sortino": 0.13479056017131663,
+  "cagr": 0.024392931730337297,
+  "ann_vol": 0.14344156202547498,
+  "max_dd": -0.7190495722111376,
+  "calmar": 0.033923852642491654,
+  "final_nav": 1.9092071288796384,
+  "period_return": 0.9092071288796384,
   "ann_turnover": 1.4720496894409938,
   "avg_weight": 0.6149068322981367,
   "total_cost": 0.05925000000000001,
@@ -143,42 +143,42 @@
   "headline_source": "base_rate",
   "headline_p": 0.15571776155717762,
   "base_rate": 0.15571776155717762,
-  "model_p": 0.34843868690828894,
+  "model_p": 0.348438762399798,
   "model_ci90": [
-   0.08637614974255134,
-   0.5998331614007834
+   0.08637630497414954,
+   0.5998344944013049
   ],
   "as_of_row": "2026-11-30",
   "vol_forecast_next_month": {
    "date": "2026-11-30",
-   "vol": 0.3906641792928431,
+   "vol": 0.3906644935283714,
    "band90": [
-    0.21581289022257685,
-    0.750844002794081
+    0.2158102844704788,
+    0.7508446160079643
    ],
-   "current_rv21": 0.5920398746564884
+   "current_rv21": 0.5920398746564866
   },
-  "vol_forecast_oos_r2": 0.49786152039213705,
+  "vol_forecast_oos_r2": 0.49786217174492897,
   "short_term": {
    "date": "2026-11-25",
    "model": "har_vix",
    "label": "HAR + VIX",
    "spec": "log",
-   "vol_1d_ann": 0.569460465729459,
-   "vol_1d": 0.03587263747150401,
+   "vol_1d_ann": 0.5694503403805244,
+   "vol_1d": 0.035871999634474995,
    "var_quantile": {
-    "used": -1.6788972164279081,
-    "insample": -1.6372516618726896,
+    "used": -1.678923104274342,
+    "insample": -1.6372636230513538,
     "source": "oos"
    },
-   "var95_1d_insample_simple_ret": 0.05704105635237888,
-   "var95_1d": 0.06022647119683555,
-   "var95_1d_simple_ret": 0.05844872480745633,
-   "vol_5d_ann": 0.5260658693920653,
-   "vol_5d": 0.07410113463069336,
-   "ewma_vol_ann": 0.5548251060006553,
+   "var95_1d_insample_simple_ret": 0.057040476217135705,
+   "var95_1d": 0.06022632898284082,
+   "var95_1d_simple_ret": 0.058448590905678666,
+   "vol_5d_ann": 0.5260650572899072,
+   "vol_5d": 0.07410102023876096,
+   "ewma_vol_ann": 0.5548251058833317,
    "vol_hist_percentile": 0.9783218291630716,
-   "vol_hist_median": 0.19038953950822055,
+   "vol_hist_median": 0.19038917082165185,
    "vol_hist_start": "1990-02-01",
    "vol_hist_days": 9272
   },
@@ -193,11 +193,11 @@
   },
   "date": "2026-11-25",
   "vol_percentile": 0.9783218291630716,
-  "vol_ann": 0.569460465729459,
-  "vol_median": 0.19038953950822055,
-  "vol_ratio": 2.9910281163575747,
-  "daily_move": 0.03587263747150401,
-  "var95": 0.05844872480745633,
+  "vol_ann": 0.5694503403805244,
+  "vol_median": 0.19038917082165185,
+  "vol_ratio": 2.9909807260727046,
+  "daily_move": 0.035871999634474995,
+  "var95": 0.058448590905678666,
   "hist_start": "1990-02-01",
   "mtd_month": "2026-11",
   "mtd_return": -0.1321374962205787,
@@ -209,9 +209,9 @@
  },
  "exposure_cap": {
   "date": "2026-11-25",
-  "forecast_vol_5d_ann": 0.5260658693920653,
-  "target_vol": 0.19038953950822055,
-  "cap_raw": 0.361911978300815,
+  "forecast_vol_5d_ann": 0.5260650572899072,
+  "target_vol": 0.19038917082165185,
+  "cap_raw": 0.3619118361566657,
   "cap": 0.35,
   "band": "D",
   "rule": {
