@@ -1,5 +1,5 @@
 {
- "as_of": "20261127T052123Z",
+ "as_of": "20261128T035344Z",
  "events": [],
  "recent": [],
  "state": {
@@ -7,13 +7,13 @@
    "confirmed": "red",
    "candidate": null,
    "count": 0,
-   "last_date": "2026-11-25"
+   "last_date": "2026-11-27"
   },
   "cap": {
    "confirmed": "D",
    "candidate": null,
    "count": 0,
-   "last_date": "2026-11-25"
+   "last_date": "2026-11-27"
   }
  }
 }
