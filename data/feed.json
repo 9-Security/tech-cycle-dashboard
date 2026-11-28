@@ -1,5 +1,5 @@
 {
- "generated_at": "20261128T045727Z",
+ "generated_at": "20261128T150239Z",
  "data_as_of": "2026-11-27",
  "rules": {
   "rules_version": "1.0",
@@ -8,8 +8,8 @@
  "market": {
   "light": "red",
   "vol_percentile": 0.964952,
-  "var95_1d": 0.051652,
-  "vol_1d_ann": 0.501483,
+  "var95_1d": 0.051651,
+  "vol_1d_ann": 0.501477,
   "exposure_cap": 0.35,
   "exposure_band": "D",
   "v2_weight": 1.0,
@@ -187,8 +187,8 @@
    "from_high_260d": -0.1115,
    "risk": {
     "level": "yellow",
-    "vol_1d_ann": 0.347793,
-    "var95": 0.031299,
+    "vol_1d_ann": 0.347792,
+    "var95": 0.0313,
     "vol_percentile": 0.712164,
     "beta_1y": 0.524703,
     "ret_1m": -0.07007,
@@ -211,7 +211,7 @@
    "risk": {
     "level": "red",
     "vol_1d_ann": 1.180256,
-    "var95": 0.100706,
+    "var95": 0.100705,
     "vol_percentile": 0.964061,
     "beta_1y": 1.593068,
     "ret_1m": -0.301281,
@@ -303,7 +303,7 @@
    "risk": {
     "level": "red",
     "vol_1d_ann": 0.636365,
-    "var95": 0.058321,
+    "var95": 0.05832,
     "vol_percentile": 0.955458,
     "beta_1y": 1.513813,
     "ret_1m": -0.112191,
@@ -348,7 +348,7 @@
    "from_high_260d": -0.5652,
    "risk": {
     "level": "red",
-    "vol_1d_ann": 0.918635,
+    "vol_1d_ann": 0.918634,
     "var95": 0.079612,
     "vol_percentile": 0.963658,
     "beta_1y": 1.571597,
@@ -372,7 +372,7 @@
    "risk": {
     "level": "red",
     "vol_1d_ann": 1.156824,
-    "var95": 0.10192,
+    "var95": 0.101917,
     "vol_percentile": 0.99251,
     "beta_1y": 2.563583,
     "ret_1m": -0.399142,
@@ -463,7 +463,7 @@
    "from_high_260d": -0.4088,
    "risk": {
     "level": "red",
-    "vol_1d_ann": 1.133793,
+    "vol_1d_ann": 1.133792,
     "var95": 0.10433,
     "vol_percentile": 0.998771,
     "beta_1y": 1.666547,
@@ -486,8 +486,8 @@
    "from_high_260d": -0.2702,
    "risk": {
     "level": "red",
-    "vol_1d_ann": 0.664577,
-    "var95": 0.060764,
+    "vol_1d_ann": 0.664576,
+    "var95": 0.060765,
     "vol_percentile": 0.95693,
     "beta_1y": 0.968756,
     "ret_1m": -0.116935,
@@ -670,7 +670,7 @@
    "from_high_260d": -0.5141,
    "risk": {
     "level": "red",
-    "vol_1d_ann": 0.83412,
+    "vol_1d_ann": 0.834119,
     "var95": 0.076992,
     "vol_percentile": 0.985925,
     "beta_1y": 1.184151,
@@ -694,7 +694,7 @@
    "risk": {
     "level": "red",
     "vol_1d_ann": 0.927063,
-    "var95": 0.090142,
+    "var95": 0.090141,
     "vol_percentile": 0.997869,
     "beta_1y": 1.499331,
     "ret_1m": -0.11396,
@@ -739,7 +739,7 @@
    "from_high_260d": -0.5125,
    "risk": {
     "level": "red",
-    "vol_1d_ann": 0.956563,
+    "vol_1d_ann": 0.956562,
     "var95": 0.093087,
     "vol_percentile": 0.989912,
     "beta_1y": 1.789468,
@@ -762,7 +762,7 @@
    "from_high_260d": -0.3255,
    "risk": {
     "level": "red",
-    "vol_1d_ann": 0.805085,
+    "vol_1d_ann": 0.805084,
     "var95": 0.076364,
     "vol_percentile": 0.990856,
     "beta_1y": 1.676167,
@@ -785,7 +785,7 @@
    "from_high_260d": -0.6192,
    "risk": {
     "level": "red",
-    "vol_1d_ann": 1.021181,
+    "vol_1d_ann": 1.02118,
     "var95": 0.089613,
     "vol_percentile": 0.996876,
     "beta_1y": 1.331611,
